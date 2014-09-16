@@ -53,8 +53,8 @@ nio.models.Post = Backbone.Model.extend({
 	},
 
 	testImage: function(url) {
-	var self = this;
-    var img = new Image();
+		var self = this;
+		var img = new Image();
 		img.onload = function() {
 			self.set('profile_image_url', url);
 		};

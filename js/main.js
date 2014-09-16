@@ -18,7 +18,6 @@
 	extendGlobal('nio.utils', {
 		extendGlobal: extendGlobal
 	});
-	extendGlobal('nio.settings', {});
 	extendGlobal('nio.collections', {});
 	extendGlobal('nio.models', {});
 	extendGlobal('nio.templates', {});
@@ -28,7 +27,6 @@
 	});
 
 	require('./content.js');
-	require('./settings.js');
 	require('./utils.js');
 	require('./models/Post.js');
 	require('./models/Tile.js');

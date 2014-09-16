@@ -42,7 +42,6 @@ nio.views.Tile = Backbone.View.extend({
         'click' : 'expandTile'
     },
 
-
 	filterByUser: function(ev) {
 		var el = $(ev.currentTarget).parent();
 		var username = el.attr('title');

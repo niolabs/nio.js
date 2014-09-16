@@ -25,8 +25,6 @@ nio.views.Stream = Backbone.View.extend({
 		args.types = args.types || this.types || [];
 		args.names = args.names || this.names || [];
 
-		// console.log('renderTiles args: ', args);
-
 		this.types = _.compact(args.types);
 		this.names = _.compact(args.names);
 
@@ -42,7 +40,6 @@ nio.views.Stream = Backbone.View.extend({
 	setupSocket: function() {
 		// Connect to the socket.  Force a new connection only if
 		// there's not an existing connection.
-		// console.log(bNewConnection, App.sockets);
 		if (!this.ws)
 			this.ws = nio.utils.connectToWebSocket(this.socketHost, 'default');
 		this.ws.on('recvData', this.handleMsg);
@@ -68,7 +65,6 @@ nio.views.Stream = Backbone.View.extend({
 	getNumCols: function() {
 		/** Returns the number of columns for tiles based on the available space **/
 		//TODO: revert this
-		console.log(this.$el.width())
 		//var width = this.$el.width();
 		//var numCols = Math.floor(width/App.settings.tileWidth);
 		//return numCols;

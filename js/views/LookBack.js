@@ -33,8 +33,6 @@ nio.views.LookBack = Backbone.View.extend({
 
 	},
 
-	events: {},
-
 	populateTiles: function(oResponse) {
 
 		var self = this;

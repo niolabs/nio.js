@@ -475,7 +475,6 @@ function makeTile(tileType, rows, cols, data) {
 	extendGlobal('nio.utils', {
 		extendGlobal: extendGlobal
 	});
-	extendGlobal('nio.settings', {});
 	extendGlobal('nio.collections', {});
 	extendGlobal('nio.models', {});
 	extendGlobal('nio.templates', {});
@@ -485,7 +484,6 @@ function makeTile(tileType, rows, cols, data) {
 	});
 
 	require('./content.js');
-	require('./settings.js');
 	require('./utils.js');
 	require('./models/Post.js');
 	require('./models/Tile.js');
@@ -503,7 +501,7 @@ function makeTile(tileType, rows, cols, data) {
 
 }())
 
-},{"./content.js":1,"./models/Post.js":3,"./models/Tile.js":4,"./settings.js":5,"./utils.js":6,"./views/LookBack.js":7,"./views/RandomStream.js":8,"./views/SearchStream.js":9,"./views/Stream.js":10,"./views/Tile.js":11}],3:[function(require,module,exports){
+},{"./content.js":1,"./models/Post.js":3,"./models/Tile.js":4,"./utils.js":5,"./views/LookBack.js":6,"./views/RandomStream.js":7,"./views/SearchStream.js":8,"./views/Stream.js":9,"./views/Tile.js":10}],3:[function(require,module,exports){
 nio.models.Post = Backbone.Model.extend({
 
 	initialize: function(args) {
@@ -559,8 +557,8 @@ nio.models.Post = Backbone.Model.extend({
 	},
 
 	testImage: function(url) {
-	var self = this;
-    var img = new Image();
+		var self = this;
+		var img = new Image();
 		img.onload = function() {
 			self.set('profile_image_url', url);
 		};
@@ -637,20 +635,6 @@ nio.models.Tile = Backbone.Model.extend({
         content        : null
     },
 
-    initialize: function(options) {
-        this.resetDurations();
-    },
-
-    resetDurations: function() {
-        this.set('minNewDuration', nio.settings.tileDurations.minn);
-        var randOffset = nio.settings.tileDurations['randomOffset'],
-            configuredMin = nio.settings.tileDurations['min'],
-            minOld = configuredMin + (1.0 - 2 * Math.random()) * randOffset;
-
-        this.set('minOldDuration', minOld);
-        this.set('maxDuration', this.get('minOldDuration') * nio.settings.tileDurations['minMultiplier']);
-    }
-
 });
 
 nio.collections.Tiles = Backbone.Collection.extend({
@@ -660,34 +644,6 @@ nio.collections.Tiles = Backbone.Collection.extend({
 });
 
 },{}],5:[function(require,module,exports){
-nio.utils.extendGlobal('nio.settings', {
-
-    socketHost: null,
-
-    serviceHost: null,
-
-    tileHeight: 226,
-
-    tileWidth: 248,
-
-    tileDurations: {
-
-        // Minimum duration when being replaced by an old tile
-        min: 13,
-
-        // Minimum duration when being replaced by a new tile
-        minn: 2,
-
-        // +/- number of seconds to add to the minimum duration on each replacement
-        randomOffset: 5,
-
-        // How much to multiply the minimum by to obtain the maximum
-        minMultiplier: 3
-    }
-
-});
-
-},{}],6:[function(require,module,exports){
 var $ = jQuery;
 
 nio.utils.extendGlobal('nio.utils', {
@@ -978,7 +934,7 @@ nio.utils.extendGlobal('nio.utils', {
 
 });
 
-},{}],7:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 nio.views.LookBack = Backbone.View.extend({
 
 	initialize: function(args) {
@@ -1014,8 +970,6 @@ nio.views.LookBack = Backbone.View.extend({
 
 	},
 
-	events: {},
-
 	populateTiles: function(oResponse) {
 
 		var self = this;
@@ -1046,7 +1000,7 @@ nio.views.LookBack = Backbone.View.extend({
 
 });
 
-},{}],8:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 nio.views.RandomStream = nio.views.Stream.extend({
 
     handlePost: function(post) {
@@ -1103,7 +1057,7 @@ nio.views.RandomStream = nio.views.Stream.extend({
 
 });
 
-},{}],9:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 nio.views.SearchStream = nio.views.Stream.extend({
 
     handlePost: function(post) {
@@ -1155,7 +1109,7 @@ nio.views.SearchStream = nio.views.Stream.extend({
 
 });
 
-},{}],10:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 nio.views.Stream = Backbone.View.extend({
 
 	// tagName: 'div',
@@ -1183,8 +1137,6 @@ nio.views.Stream = Backbone.View.extend({
 		args.types = args.types || this.types || [];
 		args.names = args.names || this.names || [];
 
-		// console.log('renderTiles args: ', args);
-
 		this.types = _.compact(args.types);
 		this.names = _.compact(args.names);
 
@@ -1200,7 +1152,6 @@ nio.views.Stream = Backbone.View.extend({
 	setupSocket: function() {
 		// Connect to the socket.  Force a new connection only if
 		// there's not an existing connection.
-		// console.log(bNewConnection, App.sockets);
 		if (!this.ws)
 			this.ws = nio.utils.connectToWebSocket(this.socketHost, 'default');
 		this.ws.on('recvData', this.handleMsg);
@@ -1226,7 +1177,6 @@ nio.views.Stream = Backbone.View.extend({
 	getNumCols: function() {
 		/** Returns the number of columns for tiles based on the available space **/
 		//TODO: revert this
-		console.log(this.$el.width())
 		//var width = this.$el.width();
 		//var numCols = Math.floor(width/App.settings.tileWidth);
 		//return numCols;
@@ -1315,7 +1265,7 @@ nio.views.Stream = Backbone.View.extend({
 
 });
 
-},{}],11:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 nio.views.Tile = Backbone.View.extend({
 
 	tagName: 'div',
@@ -1359,7 +1309,6 @@ nio.views.Tile = Backbone.View.extend({
         'click a': 'killFunc',
         'click' : 'expandTile'
     },
-
 
 	filterByUser: function(ev) {
 		var el = $(ev.currentTarget).parent();
