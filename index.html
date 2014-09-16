@@ -17,8 +17,8 @@
 <script src=nio.js></script>
 <script>
 	window.onload = function () {
-		NIO.tiles({
-			el: '#nio_stream_div',
+		nio.tiles({
+			el: '#tiles',
 			socketHost: '54.85.159.254:443',
 			serviceHost: '54.85.159.254',
 			tileHeight: 226,
@@ -35,16 +35,6 @@
 
 <h1>nio.js</h1>
 <h2>Tiles</h2>
-<div class=main-content-wrap>
-	<div id=content>
-		<div id="streamwidget-3" class="widget widget_streamwidget">
-			<div class="stream-widget">
-				<div id="nio_stream_div"
-					class="nio-stream js-packery entry-content clearfix"
-					data-packery-options='{"itemSelector":".tile"}'>
-					asdf
-				</div>
-			</div>
-		</div>
-	</div>
+<div id=tiles class="nio-stream js-packery"
+	data-packery-options='{"itemSelector":".tile"}'>
 </div>

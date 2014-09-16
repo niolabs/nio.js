@@ -298,25 +298,7 @@ var htmlTemplates = htmlTemplates || {};htmlTemplates['youtube.html'] = '<div cl
     '';
 
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-NIO.utils.extendGlobal('NIO.constants', {
-	
-    environment: (function() {
-        var environments = {
-            local: ['127.0.0.1', 'localhost', 'test'],
-            dev: [''],
-            stage: ['']
-        };
-
-        for (var key in environments) {
-            for (iterator = 0; iterator < environments[key].length; iterator++) {
-                if (window.location.href.match(environments[key][iterator])) {
-                    return key;
-                }
-            }
-        }
-
-        return 'prod';
-    })(),
+nio.utils.extendGlobal('nio.constants', {
 
     scrollBarWidth: (function () {
         var inner = document.createElement('p');
@@ -352,89 +334,6 @@ NIO.utils.extendGlobal('NIO.constants', {
     currentHost: (function() {
         return window.location.host.replace('www.','');
     })(),
-
-    CAProvinces: [
-        {value: 'ON', label: 'Ontario'},
-        {value: 'QC', label: 'Quebec'},
-        {value: 'NS', label: 'Nova Scotia'},
-        {value: 'NB', label: 'New Brunswick'},
-        {value: 'MB', label: 'Manitoba'},
-        {value: 'BC', label: 'British Columbia'},
-        {value: 'PE', label: 'Prince Edward Island'},
-        {value: 'SK', label: 'Saskatchewan'},
-        {value: 'AB', label: 'Alberta'},
-        {value: 'NL', label: 'Newfoundland and Labrador'}
-    ],
-
-    USStates: [
-        {value: 'AL', label: 'Alabama'},
-        {value: 'AK', label: 'Alaska'},
-        {value: 'AZ', label: 'Arizona'},
-        {value: 'AR', label: 'Arkansas'},
-        {value: 'CA', label: 'California'},
-        {value: 'CO', label: 'Colorado'},
-        {value: 'CT', label: 'Connecticut'},
-        {value: 'DC', label: 'District of Columbia'},
-        {value: 'DE', label: 'Delaware'},
-        {value: 'FL', label: 'Florida'},
-        {value: 'GA', label: 'Georgia'},
-        {value: 'HI', label: 'Hawaii'},
-        {value: 'ID', label: 'Idaho'},
-        {value: 'IL', label: 'Illinois'},
-        {value: 'IN', label: 'Indiana'},
-        {value: 'IA', label: 'Iowa'},
-        {value: 'KS', label: 'Kansas'},
-        {value: 'KY', label: 'Kentucky'},
-        {value: 'LA', label: 'Louisiana'},
-        {value: 'ME', label: 'Maine'},
-        {value: 'MD', label: 'Maryland'},
-        {value: 'MA', label: 'Massachusetts'},
-        {value: 'MI', label: 'Michigan'},
-        {value: 'MN', label: 'Minnesota'},
-        {value: 'MS', label: 'Mississippi'},
-        {value: 'MO', label: 'Missouri'},
-        {value: 'MT', label: 'Montana'},
-        {value: 'NE', label: 'Nebraska'},
-        {value: 'NV', label: 'Nevada'},
-        {value: 'NH', label: 'New Hampshire'},
-        {value: 'NJ', label: 'New Jersey'},
-        {value: 'NM', label: 'New Mexico'},
-        {value: 'NY', label: 'New York'},
-        {value: 'NC', label: 'North Carolina'},
-        {value: 'ND', label: 'North Dakota'},
-        {value: 'OH', label: 'Ohio'},
-        {value: 'OK', label: 'Oklahoma'},
-        {value: 'OR', label: 'Oregon'},
-        {value: 'PA', label: 'Pennsylvania'},
-        {value: 'RI', label: 'Rhode Island'},
-        {value: 'SC', label: 'South Carolina'},
-        {value: 'SD', label: 'South Dakota'},
-        {value: 'TN', label: 'Tennessee'},
-        {value: 'TX', label: 'Texas'},
-        {value: 'UT', label: 'Utah'},
-        {value: 'VT', label: 'Vermont'},
-        {value: 'VA', label: 'Virginia'},
-        {value: 'WA', label: 'Washington'},
-        {value: 'WV', label: 'West Virginia'},
-        {value: 'WI', label: 'Wisconsin'},
-        {value: 'WY', label: 'Wyoming'}
-    ],
-
-    ISDCodes: [
-        {value: '001', label: 'United States'},
-        {value: '027', label: 'South Africa'},
-        {value: '033', label: 'France'},
-        {value: '039', label: 'Italy'},
-        {value: '041', label: 'Switzerland'},
-        {value: '044', label: 'Great Britain'},
-        {value: '049', label: 'Germany'},
-        {value: '052', label: 'Mexico'},
-        {value: '055', label: 'Brazil'},
-        {value: '061', label: 'Australia'},
-        {value: '086', label: 'China'},
-        {value: '000', label: 'Other'}
-    ]
-
 });
 
 },{}],2:[function(require,module,exports){
@@ -612,19 +511,19 @@ function makeTile(tileType, rows, cols, data) {
 		return ctx;
 	}
 
-	extendGlobal('NIO.utils', {
+	extendGlobal('nio.utils', {
 		extendGlobal: extendGlobal
 	});
 
 
-	NIO.utils.extendGlobal('NIO.staticData', {});
-	NIO.utils.extendGlobal('NIO.constants', {});
-	NIO.utils.extendGlobal('NIO.settings', {});
-	NIO.utils.extendGlobal('NIO.routers', {});
-	NIO.utils.extendGlobal('NIO.collections', {});
-	NIO.utils.extendGlobal('NIO.models', {});
-	NIO.utils.extendGlobal('NIO.templates', {});
-	NIO.utils.extendGlobal('NIO.views', {
+	nio.utils.extendGlobal('nio.staticData', {});
+	nio.utils.extendGlobal('nio.constants', {});
+	nio.utils.extendGlobal('nio.settings', {});
+	nio.utils.extendGlobal('nio.routers', {});
+	nio.utils.extendGlobal('nio.collections', {});
+	nio.utils.extendGlobal('nio.models', {});
+	nio.utils.extendGlobal('nio.templates', {});
+	nio.utils.extendGlobal('nio.views', {
 		'modules': {},
 		'pages': {}
 	});
@@ -642,16 +541,16 @@ function makeTile(tileType, rows, cols, data) {
 	require('./views/RandomStream.js');
 	require('./views/SearchStream.js');
 
-	NIO.tiles = function (opts) {
+	nio.tiles = function (opts) {
 		// TODO: These are done here rather than in the App object because of dependencies.
 		// Could this be fixed by implementing require?
-		var stream = new NIO.views.RandomStream(opts)
+		var stream = new nio.views.SearchStream(opts)
 	}
 
 }())
 
 },{"./constants.js":1,"./content.js":2,"./models/Post.js":4,"./models/Stat.js":5,"./models/Tile.js":6,"./settings.js":7,"./utils.js":8,"./views/LookBack.js":9,"./views/RandomStream.js":10,"./views/SearchStream.js":11,"./views/Stream.js":12,"./views/Tile.js":13}],4:[function(require,module,exports){
-NIO.models.Post = Backbone.Model.extend({
+nio.models.Post = Backbone.Model.extend({
 
 	initialize: function(args) {
 		args = args || {};
@@ -732,16 +631,16 @@ NIO.models.Post = Backbone.Model.extend({
 
 });
 
-NIO.collections.Posts = Backbone.Collection.extend({
+nio.collections.Posts = Backbone.Collection.extend({
 
-	model: NIO.models.Post,
+	model: nio.models.Post,
 
 });
 
-NIO.models.PostDictionary = Backbone.Model.extend({
+nio.models.PostDictionary = Backbone.Model.extend({
 
 	initialize: function(serviceHost) {
-		this.posts = new NIO.collections.Posts();
+		this.posts = new nio.collections.Posts();
 		this.serviceHost = serviceHost
 	},
 
@@ -755,15 +654,15 @@ NIO.models.PostDictionary = Backbone.Model.extend({
 		offset: 0,
 		next_offset: 0,
 		total: 0,
-		posts: new NIO.collections.Posts()
+		posts: new nio.collections.Posts()
 	}
 
 });
 
 
 },{}],5:[function(require,module,exports){
-NIO.models.Stat = Backbone.Model.extend({
-	
+nio.models.Stat = Backbone.Model.extend({
+
 	defaults: {
 		id          : 0,
 		id_value    : 1,
@@ -775,17 +674,17 @@ NIO.models.Stat = Backbone.Model.extend({
 		count       : 0,
 		percent     : 0
 	}
-	
+
 });
 
-NIO.collections.Stats = Backbone.Collection.extend({
-	
-	model: NIO.models.Stat
-	
+nio.collections.Stats = Backbone.Collection.extend({
+
+	model: nio.models.Stat
+
 });
 
 },{}],6:[function(require,module,exports){
-NIO.models.Tile = Backbone.Model.extend({
+nio.models.Tile = Backbone.Model.extend({
 
     defaults: {
         time           : 0,
@@ -812,25 +711,25 @@ NIO.models.Tile = Backbone.Model.extend({
     },
 
     resetDurations: function() {
-        this.set('minNewDuration', NIO.settings.tileDurations.minn);
-        var randOffset = NIO.settings.tileDurations['randomOffset'],
-            configuredMin = NIO.settings.tileDurations['min'],
+        this.set('minNewDuration', nio.settings.tileDurations.minn);
+        var randOffset = nio.settings.tileDurations['randomOffset'],
+            configuredMin = nio.settings.tileDurations['min'],
             minOld = configuredMin + (1.0 - 2 * Math.random()) * randOffset;
 
         this.set('minOldDuration', minOld);
-        this.set('maxDuration', this.get('minOldDuration') * NIO.settings.tileDurations['minMultiplier']);
+        this.set('maxDuration', this.get('minOldDuration') * nio.settings.tileDurations['minMultiplier']);
     }
 
 });
 
-NIO.collections.Tiles = Backbone.Collection.extend({
+nio.collections.Tiles = Backbone.Collection.extend({
 
-    model: NIO.models.Tile
+    model: nio.models.Tile
 
 });
 
 },{}],7:[function(require,module,exports){
-NIO.utils.extendGlobal('NIO.settings', {
+nio.utils.extendGlobal('nio.settings', {
 
     socketHost: null,
 
@@ -860,26 +759,7 @@ NIO.utils.extendGlobal('NIO.settings', {
 },{}],8:[function(require,module,exports){
 var $ = jQuery;
 
-NIO.utils.extendGlobal('NIO.utils', {
-
-	log: function(message) {
-        if (window.console) {
-			console.log(message);
-        };
-	},
-
-    getCurrentPath: function() {
-        return window.location.pathname;
-    },
-
-	navigate: function(uri){
-		if ( (uri.charAt(0)==='/' || uri.charAt(0)==='#') && uri.length > 1) {uri = uri.substring(1);}
-		if (location.hash.substring(1) === uri || location.pathname.substring(1) === uri){
-			Backbone.history.loadUrl();
-		} else {
-			Backbone.history.navigate(uri, {trigger:true});
-		}
-	},
+nio.utils.extendGlobal('nio.utils', {
 
     getParameterByName: function(name) {
         name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
@@ -888,73 +768,10 @@ NIO.utils.extendGlobal('NIO.utils', {
         return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
     },
 
-    useStaticData: function() {
-        var testData = NIO.utils.getParameterByName('testdata');
-        if ('on' === testData && ('local' === NIO.constants.environment || 'dev' === NIO.constants.environment)) {
-            return true;
-        }
-        return false;
-    },
-
-    validateEmail: function(email) {
-        var reg = /^([A-Za-z0-9_\-\.])+\@([A-Za-z0-9_\-\.])+\.([A-Za-z]{2,4})$/;
-        return reg.test(email);
-    },
-
     htmlDecode: function(input) {
         var e = document.createElement('div');
         e.innerHTML = input;
         return e.childNodes.length === 0 ? "" : e.childNodes[0].nodeValue;
-    },
-
-
-    /**
-     * Return a clone of the USStates array.
-     * This is so that the resulting array may be modified without affecting the original.
-     * @returns {Array}
-     */
-    getUSStates: function() {
-        var returnArr = [];
-        _.each(NIO.constants.USStates, function(item, index) {
-            returnArr.push(_.clone(item));
-        });
-        return returnArr;
-    },
-
-    /**
-     * See above comment
-     * @returns {Array}
-     */
-    getCAProvinces: function() {
-        var returnArr = [];
-        _.each(NIO.constants.CAProvinces, function(item, index) {
-            returnArr.push(_.clone(item));
-        });
-        return returnArr;
-    },
-
-    /**
-     * See above comment
-     * @returns {Array}
-     */
-    getCountries: function() {
-        var returnArr = [];
-        _.each(NIO.constants.countries, function(item, index) {
-            returnArr.push(_.clone(item));
-        });
-        return returnArr;
-    },
-
-    /**
-     * See above comment
-     * @returns {Array}
-     */
-    getISDCodes: function() {
-        var returnArr = [];
-        _.each(NIO.constants.ISDCodes, function(item, index) {
-            returnArr.push(_.clone(item));
-        });
-        return returnArr;
     },
 
     getCurrentTime: function() {
@@ -1002,7 +819,7 @@ NIO.utils.extendGlobal('NIO.utils', {
     */
     generateTile: function(ctx, tileArgs, contentArgs) {
 
-        var contentModel = ctx.contentModel || NIO.models.Post,
+        var contentModel = ctx.contentModel || nio.models.Post,
             tileContent = new contentModel(contentArgs);
 
         tileContent.set('seconds_ago', moment().diff(tileContent.get('time')), 'seconds');
@@ -1011,8 +828,8 @@ NIO.utils.extendGlobal('NIO.utils', {
 
         $.extend(tileArgs, {content : tileContent});
 
-        return new NIO.views.Tile({
-            model: new NIO.models.Tile(tileArgs)
+        return new nio.views.Tile({
+            model: new nio.models.Tile(tileArgs)
         });
 
     },
@@ -1085,8 +902,8 @@ NIO.utils.extendGlobal('NIO.utils', {
                 tileLocked = false;
             }
 
-			var tileDuration = NIO.utils.getCurrentTime() - tileModel.get('time'),
-				priorityDurations = NIO.utils.getTileDurations(tileModel, content.get('flag')),
+			var tileDuration = nio.utils.getCurrentTime() - tileModel.get('time'),
+				priorityDurations = nio.utils.getTileDurations(tileModel, content.get('flag')),
 				tileDurationAfterMin = tileDuration - priorityDurations[0],
 				tileDurationAfterMax = tileDuration - priorityDurations[1],
 				myDurationPct = tileDurationAfterMin / (tileDurationAfterMin - tileDurationAfterMax);
@@ -1127,20 +944,20 @@ NIO.utils.extendGlobal('NIO.utils', {
 				}
 
 				// Check the priority matches the spec for this tile
-				if ((! NIO.utils.checkPriority(tileModel.get('minPriority'), content.get('priority'), false)) ||
-					(! NIO.utils.checkPriority(tileModel.get('maxPriority'), content.get('priority'), true))) {
+				if ((! nio.utils.checkPriority(tileModel.get('minPriority'), content.get('priority'), false)) ||
+					(! nio.utils.checkPriority(tileModel.get('maxPriority'), content.get('priority'), true))) {
 					// console.log("Priority doesn't match");
 					continue;
 				}
 
 				// Check if the tile type is not in the available types
-				if (! NIO.utils.typesContains(tileModel.get('availableTypes'), content.get('type'), true)) {
+				if (! nio.utils.typesContains(tileModel.get('availableTypes'), content.get('type'), true)) {
 					// console.log("Tile type not included");
 					continue;
 				}
 
 				// Check if the tile type is in the excluded types
-				if (NIO.utils.typesContains(tileModel.get('excludedTypes'), content.get('type'), false)) {
+				if (nio.utils.typesContains(tileModel.get('excludedTypes'), content.get('type'), false)) {
 					// console.log("Tile type excluded");
 					continue;
 				}
@@ -1209,7 +1026,7 @@ NIO.utils.extendGlobal('NIO.utils', {
 		var content = new model(oMsg);
 		// console.log('content: ', content);
 
-        var tileToReplace = NIO.utils.findAvailableTile(tiles, content);
+        var tileToReplace = nio.utils.findAvailableTile(tiles, content);
 
         if (!tileToReplace) {
             // console.log("No available tile for " + oMsg);
@@ -1227,7 +1044,7 @@ NIO.utils.extendGlobal('NIO.utils', {
         // }
 
         tile.set({
-            'time': NIO.utils.getCurrentTime(),
+            'time': nio.utils.getCurrentTime(),
             'content': content
         });
         tile.resetDurations();
@@ -1244,7 +1061,7 @@ NIO.utils.extendGlobal('NIO.utils', {
             videoId: videoId,
             events: {
                 'onReady': function(e) {
-                    if (!NIO.utils.isMobileBrowser()) {
+                    if (!nio.utils.isMobileBrowser()) {
                         e.target.playVideo();
                     }
                 }
@@ -1262,13 +1079,13 @@ NIO.utils.extendGlobal('NIO.utils', {
 });
 
 },{}],9:[function(require,module,exports){
-NIO.views.LookBack = Backbone.View.extend({
+nio.views.LookBack = Backbone.View.extend({
 
 	initialize: function(args) {
 		_.bindAll(this);
 		var self = this;
 
-		this.contentModel = NIO.models.Post;
+		this.contentModel = nio.models.Post;
 
 		this.initializeTiles(args);
 	},
@@ -1318,7 +1135,7 @@ NIO.views.LookBack = Backbone.View.extend({
 
 		_.each(posts, function(post, index) {
 
-			var tile = NIO.utils.generateTile(this, {}, post);
+			var tile = nio.utils.generateTile(this, {}, post);
 
 			$('.body', self.$el).append(tile.el);
 
@@ -1330,12 +1147,12 @@ NIO.views.LookBack = Backbone.View.extend({
 });
 
 },{}],10:[function(require,module,exports){
-NIO.views.RandomStream = NIO.views.Stream.extend({
+nio.views.RandomStream = nio.views.Stream.extend({
 
     handlePost: function(post) {
         if (this.names.length === 0 || _.indexOf(this.names, post.name) != -1) {
             if (this.types.length === 0 || _.indexOf(this.types, post.type) != -1) {
-                var tile = NIO.utils.handleTileContent(this.tiles, post, NIO.models.Post);
+                var tile = nio.utils.handleTileContent(this.tiles, post, nio.models.Post);
                 if (tile) {
 					// console.log(tile);
 					tile.on('filterByUser', this.filterByUser);
@@ -1361,7 +1178,6 @@ NIO.views.RandomStream = NIO.views.Stream.extend({
 
 			var rows = this.getNumRows()
 			var cols = this.getNumCols()
-			console.log('looping', rows, cols)
             for (var row=0; row<rows; row++) {
                 for (var col=0; col<cols; col++) {
                     var tileArgs = {
@@ -1376,22 +1192,19 @@ NIO.views.RandomStream = NIO.views.Stream.extend({
                         tileArgs['maxPriority'] = 5 - Math.floor(row / 2);
                     }
 
-                    var tile = NIO.utils.generateTile(this, tileArgs, {});
+                    var tile = nio.utils.generateTile(this, tileArgs, {});
                     this.$el.append(tile.el);
                     this.tiles.push(tile);
-					//console.log('push tile', tile, tile.el, this.$el)
                 }
             }
-
             this.setupSocket();
-
         }
     }
 
 });
 
 },{}],11:[function(require,module,exports){
-NIO.views.SearchStream = NIO.views.Stream.extend({
+nio.views.SearchStream = nio.views.Stream.extend({
 
     handlePost: function(post) {
         var msgTime = moment(post.time);
@@ -1407,7 +1220,7 @@ NIO.views.SearchStream = NIO.views.Stream.extend({
 					} else if (msgTime.isAfter(this.latestTime)) {
 						this.tileCount++;
 						this.latestTime = msgTime;
-						var tile = NIO.utils.generateTile(this, {}, post);
+						var tile = nio.utils.generateTile(this, {}, post);
 						this.tiles.push(tile);
 						this.$el.prepend(tile.el);
 						// this.$el.closest('.js-packery').data('packery').layout();
@@ -1443,7 +1256,7 @@ NIO.views.SearchStream = NIO.views.Stream.extend({
 });
 
 },{}],12:[function(require,module,exports){
-NIO.views.Stream = Backbone.View.extend({
+nio.views.Stream = Backbone.View.extend({
 
 	// tagName: 'div',
 	// className: 'nio-stream js-packery entry-content clearfix',
@@ -1451,91 +1264,92 @@ NIO.views.Stream = Backbone.View.extend({
 	// attributes: {
 		// 'data-packery-options' : '{"itemSelector":".tile"}'
 	// },
-    initialize: function(args) {
-        _.bindAll(this);
+	initialize: function(args) {
+		_.bindAll(this);
 
 		this.types = [];
 		this.names = [];
 		this.socketHost = args.socketHost
 		this.serviceHost = args.serviceHost
-		this.model = new NIO.models.PostDictionary(this.serviceHost)
+		this.model = new nio.models.PostDictionary(this.serviceHost)
 
-        this.contentModel = NIO.models.Post;
+		this.contentModel = nio.models.Post;
 
-        this.renderTiles(args);
-    },
+		this.renderTiles(args);
+	},
 
-    renderTiles: function(args) {
-        args = args || {};
-        args.types = args.types || this.types || [];
-        args.names = args.names || this.names || [];
+	renderTiles: function(args) {
+		args = args || {};
+		args.types = args.types || this.types || [];
+		args.names = args.names || this.names || [];
 
 		// console.log('renderTiles args: ', args);
 
-        this.types = _.compact(args.types);
-        this.names = _.compact(args.names);
+		this.types = _.compact(args.types);
+		this.names = _.compact(args.names);
 
-        this.latestTime = moment(0);
-        this.tileCount = 0;
-        this.$el.html('');
-        this.tiles = [];
-        this.tileCount = this.getNumRows() * this.getNumCols();
+		this.latestTime = moment(0);
+		this.tileCount = 0;
+		this.$el.html('');
+		this.tiles = [];
+		this.tileCount = this.getNumRows() * this.getNumCols();
 
-        this.initializeTiles(args);
-    },
+		this.initializeTiles(args);
+	},
 
-    setupSocket: function() {
-        // Connect to the socket.  Force a new connection only if
-        // there's not an existing connection.
-        // console.log(bNewConnection, App.sockets);
+	setupSocket: function() {
+		// Connect to the socket.  Force a new connection only if
+		// there's not an existing connection.
+		// console.log(bNewConnection, App.sockets);
 		if (!this.ws)
-            this.ws = NIO.utils.connectToWebSocket(this.socketHost, 'default');
-        this.ws.on('recvData', this.handleMsg);
-        this.ws.socket.on('error', this.showFetchError);
-        this.ws.socket.on('connect_failed', this.showFetchError);
-    },
+			this.ws = nio.utils.connectToWebSocket(this.socketHost, 'default');
+		this.ws.on('recvData', this.handleMsg);
+		this.ws.socket.on('error', this.showFetchError);
+		this.ws.socket.on('connect_failed', this.showFetchError);
+	},
 
-    killEvents: function() {
-        //TODO: this interval only needs to be cleared in the SearchStream.
-        window.clearInterval(this.interval)
-        this.ws.removeAllListeners('recvData')
-    },
+	killEvents: function() {
+		//TODO: this interval only needs to be cleared in the SearchStream.
+		window.clearInterval(this.interval)
+		this.ws.removeAllListeners('recvData')
+	},
 
-    getNumRows: function() {
-        /** Returns the number of rows based on the available space **/
+	getNumRows: function() {
+		/** Returns the number of rows based on the available space **/
 		//TODO: revert this
-        //var height = jQuery('.main-content-wrap').height();
-        //var numRows = Math.ceil(height/App.settings.tileHeight);
-        //return Math.min(11, numRows);
+		//var height = jQuery('.main-content-wrap').height();
+		//var numRows = Math.ceil(height/App.settings.tileHeight);
+		//return Math.min(11, numRows);
 		return 5
-    },
+	},
 
-    getNumCols: function() {
-        /** Returns the number of columns for tiles based on the available space **/
+	getNumCols: function() {
+		/** Returns the number of columns for tiles based on the available space **/
 		//TODO: revert this
-        //var width = this.$el.width();
-        //var numCols = Math.floor(width/App.settings.tileWidth);
-        //return numCols;
+		console.log(this.$el.width())
+		//var width = this.$el.width();
+		//var numCols = Math.floor(width/App.settings.tileWidth);
+		//return numCols;
 		return 3
-    },
+	},
 
-    fetchTiles: function(args) {
-        var self  = this;
+	fetchTiles: function(args) {
+		var self  = this;
 
 		args.names = args.names.join(',');
 		args.types = args.types.join(',');
 
-        if (this.postXHR) {
-            this.postXHR.abort();
-        }
-        this.postXHR = this.model.fetch({
-            data: _.extend(args, {limit: this.tileCount})
-        });
-        this.postXHR
+		if (this.postXHR) {
+			this.postXHR.abort();
+		}
+		this.postXHR = this.model.fetch({
+			data: _.extend(args, {limit: this.tileCount})
+		});
+		this.postXHR
 			.done(this.populateSearchTiles)
 			.fail(this.showFetchError);
-        return this.postXHR;
-    },
+		return this.postXHR;
+	},
 
 	showFetchError: function (xhr, errMsg) {
 		this.$el.html([
@@ -1546,12 +1360,12 @@ NIO.views.Stream = Backbone.View.extend({
 		].join('\n'));
 	},
 
-    populateSearchTiles: function(oResponse) {
-        var self = this;
+	populateSearchTiles: function(oResponse) {
+		var self = this;
 
-        var posts = _.sortBy(oResponse.posts, function(post) {
-            return parseFloat(moment(post.time).format('X.SSS'));
-        });
+		var posts = _.sortBy(oResponse.posts, function(post) {
+			return parseFloat(moment(post.time).format('X.SSS'));
+		});
 
 		if (posts.length === 0) {
 			this.$el.html([
@@ -1562,29 +1376,29 @@ NIO.views.Stream = Backbone.View.extend({
 			].join('\n'));
 		}
 
-        _.each(posts, function(post, index) {
+		_.each(posts, function(post, index) {
 
-            var tile = NIO.utils.generateTile(self, {}, post);
-            var content = tile.model.get('content');
-            var contentTime = moment(content.get('time'));
-            if (contentTime.isAfter(self.latestTime)) {
-                self.latestTime = contentTime;
-            }
+			var tile = nio.utils.generateTile(self, {}, post);
+			var content = tile.model.get('content');
+			var contentTime = moment(content.get('time'));
+			if (contentTime.isAfter(self.latestTime)) {
+				self.latestTime = contentTime;
+			}
 
-            tile.on('filterByUser', self.filterByUser);
+			tile.on('filterByUser', self.filterByUser);
 
-            self.$el.prepend(tile.el);
-            self.tiles.push(tile);
+			self.$el.prepend(tile.el);
+			self.tiles.push(tile);
 
-        });
+		});
 
-    },
+	},
 
-    jumpToTiles: function() {
-	// Jump to tiles
-	var $offset = $("#sidebar").offset().top - $("#main-header").height();
-	$('html, body').animate({ scrollTop: $offset }, 1000);
-    },
+	jumpToTiles: function() {
+		// Jump to tiles
+		var $offset = $("#sidebar").offset().top - $("#main-header").height();
+		$('html, body').animate({ scrollTop: $offset }, 1000);
+	},
 
 	filterByUser: function(args) {
 		// console.log('triggered filterByUser in Stream');
@@ -1593,16 +1407,16 @@ NIO.views.Stream = Backbone.View.extend({
 		this.jumpToTiles();
 	},
 
-    handleMsg: function(msg) {
-        oMsg = $.parseJSON(msg);
-        oMsg.time = oMsg.time + ' UTC';
-        this.handlePost(oMsg);
-    }
+	handleMsg: function(msg) {
+		oMsg = $.parseJSON(msg);
+		oMsg.time = oMsg.time + ' UTC';
+		this.handlePost(oMsg);
+	}
 
 });
 
 },{}],13:[function(require,module,exports){
-NIO.views.Tile = Backbone.View.extend({
+nio.views.Tile = Backbone.View.extend({
 
 	tagName: 'div',
 	className: 'tile',

@@ -1,25 +1,6 @@
 var $ = jQuery;
 
-NIO.utils.extendGlobal('NIO.utils', {
-
-	log: function(message) {
-        if (window.console) {
-			console.log(message);
-        };
-	},
-
-    getCurrentPath: function() {
-        return window.location.pathname;
-    },
-
-	navigate: function(uri){
-		if ( (uri.charAt(0)==='/' || uri.charAt(0)==='#') && uri.length > 1) {uri = uri.substring(1);}
-		if (location.hash.substring(1) === uri || location.pathname.substring(1) === uri){
-			Backbone.history.loadUrl();
-		} else {
-			Backbone.history.navigate(uri, {trigger:true});
-		}
-	},
+nio.utils.extendGlobal('nio.utils', {
 
     getParameterByName: function(name) {
         name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
@@ -28,73 +9,10 @@ NIO.utils.extendGlobal('NIO.utils', {
         return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
     },
 
-    useStaticData: function() {
-        var testData = NIO.utils.getParameterByName('testdata');
-        if ('on' === testData && ('local' === NIO.constants.environment || 'dev' === NIO.constants.environment)) {
-            return true;
-        }
-        return false;
-    },
-
-    validateEmail: function(email) {
-        var reg = /^([A-Za-z0-9_\-\.])+\@([A-Za-z0-9_\-\.])+\.([A-Za-z]{2,4})$/;
-        return reg.test(email);
-    },
-
     htmlDecode: function(input) {
         var e = document.createElement('div');
         e.innerHTML = input;
         return e.childNodes.length === 0 ? "" : e.childNodes[0].nodeValue;
-    },
-
-
-    /**
-     * Return a clone of the USStates array.
-     * This is so that the resulting array may be modified without affecting the original.
-     * @returns {Array}
-     */
-    getUSStates: function() {
-        var returnArr = [];
-        _.each(NIO.constants.USStates, function(item, index) {
-            returnArr.push(_.clone(item));
-        });
-        return returnArr;
-    },
-
-    /**
-     * See above comment
-     * @returns {Array}
-     */
-    getCAProvinces: function() {
-        var returnArr = [];
-        _.each(NIO.constants.CAProvinces, function(item, index) {
-            returnArr.push(_.clone(item));
-        });
-        return returnArr;
-    },
-
-    /**
-     * See above comment
-     * @returns {Array}
-     */
-    getCountries: function() {
-        var returnArr = [];
-        _.each(NIO.constants.countries, function(item, index) {
-            returnArr.push(_.clone(item));
-        });
-        return returnArr;
-    },
-
-    /**
-     * See above comment
-     * @returns {Array}
-     */
-    getISDCodes: function() {
-        var returnArr = [];
-        _.each(NIO.constants.ISDCodes, function(item, index) {
-            returnArr.push(_.clone(item));
-        });
-        return returnArr;
     },
 
     getCurrentTime: function() {
@@ -142,7 +60,7 @@ NIO.utils.extendGlobal('NIO.utils', {
     */
     generateTile: function(ctx, tileArgs, contentArgs) {
 
-        var contentModel = ctx.contentModel || NIO.models.Post,
+        var contentModel = ctx.contentModel || nio.models.Post,
             tileContent = new contentModel(contentArgs);
 
         tileContent.set('seconds_ago', moment().diff(tileContent.get('time')), 'seconds');
@@ -151,8 +69,8 @@ NIO.utils.extendGlobal('NIO.utils', {
 
         $.extend(tileArgs, {content : tileContent});
 
-        return new NIO.views.Tile({
-            model: new NIO.models.Tile(tileArgs)
+        return new nio.views.Tile({
+            model: new nio.models.Tile(tileArgs)
         });
 
     },
@@ -225,8 +143,8 @@ NIO.utils.extendGlobal('NIO.utils', {
                 tileLocked = false;
             }
 
-			var tileDuration = NIO.utils.getCurrentTime() - tileModel.get('time'),
-				priorityDurations = NIO.utils.getTileDurations(tileModel, content.get('flag')),
+			var tileDuration = nio.utils.getCurrentTime() - tileModel.get('time'),
+				priorityDurations = nio.utils.getTileDurations(tileModel, content.get('flag')),
 				tileDurationAfterMin = tileDuration - priorityDurations[0],
 				tileDurationAfterMax = tileDuration - priorityDurations[1],
 				myDurationPct = tileDurationAfterMin / (tileDurationAfterMin - tileDurationAfterMax);
@@ -267,20 +185,20 @@ NIO.utils.extendGlobal('NIO.utils', {
 				}
 
 				// Check the priority matches the spec for this tile
-				if ((! NIO.utils.checkPriority(tileModel.get('minPriority'), content.get('priority'), false)) ||
-					(! NIO.utils.checkPriority(tileModel.get('maxPriority'), content.get('priority'), true))) {
+				if ((! nio.utils.checkPriority(tileModel.get('minPriority'), content.get('priority'), false)) ||
+					(! nio.utils.checkPriority(tileModel.get('maxPriority'), content.get('priority'), true))) {
 					// console.log("Priority doesn't match");
 					continue;
 				}
 
 				// Check if the tile type is not in the available types
-				if (! NIO.utils.typesContains(tileModel.get('availableTypes'), content.get('type'), true)) {
+				if (! nio.utils.typesContains(tileModel.get('availableTypes'), content.get('type'), true)) {
 					// console.log("Tile type not included");
 					continue;
 				}
 
 				// Check if the tile type is in the excluded types
-				if (NIO.utils.typesContains(tileModel.get('excludedTypes'), content.get('type'), false)) {
+				if (nio.utils.typesContains(tileModel.get('excludedTypes'), content.get('type'), false)) {
 					// console.log("Tile type excluded");
 					continue;
 				}
@@ -349,7 +267,7 @@ NIO.utils.extendGlobal('NIO.utils', {
 		var content = new model(oMsg);
 		// console.log('content: ', content);
 
-        var tileToReplace = NIO.utils.findAvailableTile(tiles, content);
+        var tileToReplace = nio.utils.findAvailableTile(tiles, content);
 
         if (!tileToReplace) {
             // console.log("No available tile for " + oMsg);
@@ -367,7 +285,7 @@ NIO.utils.extendGlobal('NIO.utils', {
         // }
 
         tile.set({
-            'time': NIO.utils.getCurrentTime(),
+            'time': nio.utils.getCurrentTime(),
             'content': content
         });
         tile.resetDurations();
@@ -384,7 +302,7 @@ NIO.utils.extendGlobal('NIO.utils', {
             videoId: videoId,
             events: {
                 'onReady': function(e) {
-                    if (!NIO.utils.isMobileBrowser()) {
+                    if (!nio.utils.isMobileBrowser()) {
                         e.target.playVideo();
                     }
                 }

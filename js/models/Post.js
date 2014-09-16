@@ -1,4 +1,4 @@
-NIO.models.Post = Backbone.Model.extend({
+nio.models.Post = Backbone.Model.extend({
 
 	initialize: function(args) {
 		args = args || {};
@@ -79,16 +79,16 @@ NIO.models.Post = Backbone.Model.extend({
 
 });
 
-NIO.collections.Posts = Backbone.Collection.extend({
+nio.collections.Posts = Backbone.Collection.extend({
 
-	model: NIO.models.Post,
+	model: nio.models.Post,
 
 });
 
-NIO.models.PostDictionary = Backbone.Model.extend({
+nio.models.PostDictionary = Backbone.Model.extend({
 
 	initialize: function(serviceHost) {
-		this.posts = new NIO.collections.Posts();
+		this.posts = new nio.collections.Posts();
 		this.serviceHost = serviceHost
 	},
 
@@ -102,7 +102,7 @@ NIO.models.PostDictionary = Backbone.Model.extend({
 		offset: 0,
 		next_offset: 0,
 		total: 0,
-		posts: new NIO.collections.Posts()
+		posts: new nio.collections.Posts()
 	}
 
 });

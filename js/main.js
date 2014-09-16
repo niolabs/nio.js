@@ -15,19 +15,19 @@
 		return ctx;
 	}
 
-	extendGlobal('NIO.utils', {
+	extendGlobal('nio.utils', {
 		extendGlobal: extendGlobal
 	});
 
 
-	NIO.utils.extendGlobal('NIO.staticData', {});
-	NIO.utils.extendGlobal('NIO.constants', {});
-	NIO.utils.extendGlobal('NIO.settings', {});
-	NIO.utils.extendGlobal('NIO.routers', {});
-	NIO.utils.extendGlobal('NIO.collections', {});
-	NIO.utils.extendGlobal('NIO.models', {});
-	NIO.utils.extendGlobal('NIO.templates', {});
-	NIO.utils.extendGlobal('NIO.views', {
+	nio.utils.extendGlobal('nio.staticData', {});
+	nio.utils.extendGlobal('nio.constants', {});
+	nio.utils.extendGlobal('nio.settings', {});
+	nio.utils.extendGlobal('nio.routers', {});
+	nio.utils.extendGlobal('nio.collections', {});
+	nio.utils.extendGlobal('nio.models', {});
+	nio.utils.extendGlobal('nio.templates', {});
+	nio.utils.extendGlobal('nio.views', {
 		'modules': {},
 		'pages': {}
 	});
@@ -45,10 +45,10 @@
 	require('./views/RandomStream.js');
 	require('./views/SearchStream.js');
 
-	NIO.tiles = function (opts) {
+	nio.tiles = function (opts) {
 		// TODO: These are done here rather than in the App object because of dependencies.
 		// Could this be fixed by implementing require?
-		var stream = new NIO.views.RandomStream(opts)
+		var stream = new nio.views.SearchStream(opts)
 	}
 
 }())

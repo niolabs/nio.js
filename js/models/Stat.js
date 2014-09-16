@@ -1,5 +1,5 @@
-NIO.models.Stat = Backbone.Model.extend({
-	
+nio.models.Stat = Backbone.Model.extend({
+
 	defaults: {
 		id          : 0,
 		id_value    : 1,
@@ -11,11 +11,11 @@ NIO.models.Stat = Backbone.Model.extend({
 		count       : 0,
 		percent     : 0
 	}
-	
+
 });
 
-NIO.collections.Stats = Backbone.Collection.extend({
-	
-	model: NIO.models.Stat
-	
+nio.collections.Stats = Backbone.Collection.extend({
+
+	model: nio.models.Stat
+
 });

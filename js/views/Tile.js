@@ -1,4 +1,4 @@
-NIO.views.Tile = Backbone.View.extend({
+nio.views.Tile = Backbone.View.extend({
 
 	tagName: 'div',
 	className: 'tile',

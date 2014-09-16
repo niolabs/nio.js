@@ -1,4 +1,4 @@
-NIO.views.SearchStream = NIO.views.Stream.extend({
+nio.views.SearchStream = nio.views.Stream.extend({
 
     handlePost: function(post) {
         var msgTime = moment(post.time);
@@ -14,7 +14,7 @@ NIO.views.SearchStream = NIO.views.Stream.extend({
 					} else if (msgTime.isAfter(this.latestTime)) {
 						this.tileCount++;
 						this.latestTime = msgTime;
-						var tile = NIO.utils.generateTile(this, {}, post);
+						var tile = nio.utils.generateTile(this, {}, post);
 						this.tiles.push(tile);
 						this.$el.prepend(tile.el);
 						// this.$el.closest('.js-packery').data('packery').layout();

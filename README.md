@@ -20,7 +20,7 @@ Display tiles (as seen on [gobuffs.io](//gobuffs.io)):
 ```html
 <div id=tiles></div>
 <script>
-	NIO.tiles({
+	nio.tiles({
 		el: '#tiles',
 		socketHost: '54.85.159.254:443',
 		serviceHost: '54.85.159.254'

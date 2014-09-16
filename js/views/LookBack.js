@@ -1,10 +1,10 @@
-NIO.views.LookBack = Backbone.View.extend({
+nio.views.LookBack = Backbone.View.extend({
 
 	initialize: function(args) {
 		_.bindAll(this);
 		var self = this;
 
-		this.contentModel = NIO.models.Post;
+		this.contentModel = nio.models.Post;
 
 		this.initializeTiles(args);
 	},
@@ -54,7 +54,7 @@ NIO.views.LookBack = Backbone.View.extend({
 
 		_.each(posts, function(post, index) {
 
-			var tile = NIO.utils.generateTile(this, {}, post);
+			var tile = nio.utils.generateTile(this, {}, post);
 
 			$('.body', self.$el).append(tile.el);
 

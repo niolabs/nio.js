@@ -1,4 +1,4 @@
-NIO.utils.extendGlobal('NIO.settings', {
+nio.utils.extendGlobal('nio.settings', {
 
     socketHost: null,
 

@@ -1,4 +1,4 @@
-NIO.models.Tile = Backbone.Model.extend({
+nio.models.Tile = Backbone.Model.extend({
 
     defaults: {
         time           : 0,
@@ -25,19 +25,19 @@ NIO.models.Tile = Backbone.Model.extend({
     },
 
     resetDurations: function() {
-        this.set('minNewDuration', NIO.settings.tileDurations.minn);
-        var randOffset = NIO.settings.tileDurations['randomOffset'],
-            configuredMin = NIO.settings.tileDurations['min'],
+        this.set('minNewDuration', nio.settings.tileDurations.minn);
+        var randOffset = nio.settings.tileDurations['randomOffset'],
+            configuredMin = nio.settings.tileDurations['min'],
             minOld = configuredMin + (1.0 - 2 * Math.random()) * randOffset;
 
         this.set('minOldDuration', minOld);
-        this.set('maxDuration', this.get('minOldDuration') * NIO.settings.tileDurations['minMultiplier']);
+        this.set('maxDuration', this.get('minOldDuration') * nio.settings.tileDurations['minMultiplier']);
     }
 
 });
 
-NIO.collections.Tiles = Backbone.Collection.extend({
+nio.collections.Tiles = Backbone.Collection.extend({
 
-    model: NIO.models.Tile
+    model: nio.models.Tile
 
 });
