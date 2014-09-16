@@ -1431,22 +1431,27 @@ require('./views/page/FrontPage.js');
 require('./views/page/SinglePage.js');
 require('./views/page/CategoryPage.js');
 
-window.onload = function () {
-	var app = require('./app');
-	window.App = new app();
+(function () {
 
-	// Add 'dev', 'test' or 'prod' as a class on the body tag.
-	// TODO: should this be on the html tag or in a data attribute?
-	jQuery('body').addClass(App.constants.environment);
+	NIO.tiles = function (selector) {
+		var app = require('./app');
+		window.App = new app();
 
-	// TODO: These are done here rather than in the App object because of dependencies.
-	// Could this be fixed by implementing require?
-	App.getViews();
-	App.views.Page = App.getPageView();
-	App.initializeTooltips();
+		// Add 'dev', 'test' or 'prod' as a class on the body tag.
+		// TODO: should this be on the html tag or in a data attribute?
+		jQuery('body').addClass(App.constants.environment);
 
-	Backbone.history.start({pushState: false, root: '/'});
-}
+		// TODO: These are done here rather than in the App object because of dependencies.
+		// Could this be fixed by implementing require?
+		App.getViews();
+		//App.views.Page = App.getPageView();
+		App.views.Page = new NIO.views.FrontPage({el: selector})
+		App.initializeTooltips();
+
+		Backbone.history.start({pushState: false, root: '/'});
+	}
+
+}())
 
 },{"./app":1,"./constants.js":2,"./content.js":3,"./custom.js":4,"./models/Post.js":6,"./models/Stat.js":7,"./models/Tile.js":8,"./settings.js":9,"./utils.js":10,"./views/module/LookBack.js":11,"./views/module/Monitoring.js":12,"./views/module/RandomStream.js":13,"./views/module/SearchStream.js":14,"./views/module/Stream.js":15,"./views/module/Tile.js":16,"./views/page/CategoryPage.js":17,"./views/page/FrontPage.js":18,"./views/page/SinglePage.js":19}],6:[function(require,module,exports){
 NIO.models.Post = Backbone.Model.extend({

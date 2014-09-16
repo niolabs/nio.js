@@ -52,19 +52,24 @@ require('./views/page/FrontPage.js');
 require('./views/page/SinglePage.js');
 require('./views/page/CategoryPage.js');
 
-window.onload = function () {
-	var app = require('./app');
-	window.App = new app();
+(function () {
 
-	// Add 'dev', 'test' or 'prod' as a class on the body tag.
-	// TODO: should this be on the html tag or in a data attribute?
-	jQuery('body').addClass(App.constants.environment);
+	NIO.tiles = function (selector) {
+		var app = require('./app');
+		window.App = new app();
 
-	// TODO: These are done here rather than in the App object because of dependencies.
-	// Could this be fixed by implementing require?
-	App.getViews();
-	App.views.Page = App.getPageView();
-	App.initializeTooltips();
+		// Add 'dev', 'test' or 'prod' as a class on the body tag.
+		// TODO: should this be on the html tag or in a data attribute?
+		jQuery('body').addClass(App.constants.environment);
 
-	Backbone.history.start({pushState: false, root: '/'});
-}
+		// TODO: These are done here rather than in the App object because of dependencies.
+		// Could this be fixed by implementing require?
+		App.getViews();
+		//App.views.Page = App.getPageView();
+		App.views.Page = new NIO.views.FrontPage({el: selector})
+		App.initializeTooltips();
+
+		Backbone.history.start({pushState: false, root: '/'});
+	}
+
+}())
