@@ -1,0 +1,35 @@
+{
+  "name": "nio.js",
+  "main": "nio.min.js",
+  "version": "0.0.0",
+  "homepage": "https://github.com/neutralio/nio.js",
+  "authors": [
+    "Liam Curry <lcurry@n.io>"
+  ],
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "static/components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "d3": "~3.4.11",
+    "doT": "~1.0.1",
+    "packery": "~1.2.4",
+    "jquery": "~2.1.1",
+    "handlebars": "~2.0.0",
+    "moment": "~2.8.3",
+    "lodash": "~2.4.1",
+    "backbone": "~1.1.2",
+    "qtip2": "~2.2.1",
+    "superfish": "~1.7.4",
+    "jquery.xdomainrequest": "~1.0.2"
+  },
+  "resolutions": {
+    "jquery": "~2.1.1"
+  }
+}
