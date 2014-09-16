@@ -3,6 +3,11 @@ nio.js
 
 nio.js is a Javascript library for interfacing with nio services.
 
+Examples
+--------
+
+Examples can be found in `index.html`.
+
 Usage
 -----
 
