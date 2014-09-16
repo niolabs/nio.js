@@ -21,6 +21,8 @@ _.forEach([
     compiledTemplates[name] = Handlebars.compile(template)
 })
 
+Handlebars.registerPartial('tile-footer', htmlTemplates['_tile-footer.html'])
+
 Handlebars.registerHelper('urlEscape', function(obj, options) {
     return encodeURIComponent(obj);
 });

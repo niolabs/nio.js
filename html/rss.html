@@ -19,27 +19,5 @@
 		<div class="time-since-flag {{#ifCond seconds_ago '<' 60}}is-new{{/ifCond}}">{{timeDiff seconds_ago}}</div>
 	{{/ifCond}}
 
-	<div class="tile-footer">
-		<ul class="tile-share">
-			<li class="twitter">
-			<a href="https://twitter.com/intent/tweet?url={{urlEscape link}}&amp;text={{urlEscape text}} - via @gobuffsio" title="Share on Twitter" target="_blank">
-				Share on Twitter</a>
-			</li>
-
-			<li class="facebook">
-			<a href="http://www.facebook.com/sharer/sharer.php?s=100&amp;p[url]={{urlEscape link}}&amp;p[images][0]={{HERE}}&amp;p[title]={{HERE}}" title="Share on Facebook" target="_blank">
-				Share on Facebook</a>
-			</li>
-
-			<li class="pinterest">
-			<a href="https://www.pinterest.com/pin/create/button/?url={{urlEscape link}}&amp;media={{HERE}}&amp;description={{text}}" title="Pin It" target="_blank">
-				Pin It</a>
-			</li>
-
-			<li class="email">
-			<a href="mailto:?subject=Check out this post from gobuffs.io&amp;body={{text}} -- {{urlEscape link}} -- via http://gobuffs.io" title="Email It" target="_blank"> Share via Email</a>
-			</li>
-		</ul>
-		<a href="{{link}}" title="View Post" target="_blank" class="post-link original-post">view post</a>
-	</div>
+	{{> tile-footer}}
 </div>

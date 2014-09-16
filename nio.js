@@ -1,3 +1,28 @@
+var htmlTemplates = htmlTemplates || {};htmlTemplates['_tile-footer.html'] = '<div class="tile-footer">\n' +
+    '	<ul class="tile-share">\n' +
+    '		<li class="twitter">\n' +
+    '			<a href="https://twitter.com/intent/tweet?url={{urlEscape link}}&amp;text={{urlEscape text}} - via @gobuffsio" title="Share on Twitter" target="_blank">\n' +
+    '				Share on Twitter\n' +
+    '			</a>\n' +
+    '		<li class="facebook">\n' +
+    '			<a href="http://www.facebook.com/sharer/sharer.php?s=100&amp;p[url]={{urlEscape link}}&amp;p[images][0]={{HERE}}&amp;p[title]={{HERE}}" title="Share on Facebook" target="_blank">\n' +
+    '				Share on Facebook\n' +
+    '			</a>\n' +
+    '		<li class="pinterest">\n' +
+    '			<a href="https://www.pinterest.com/pin/create/button/?url={{urlEscape link}}&amp;media={{HERE}}&amp;description={{text}}" title="Pin It" target="_blank">\n' +
+    '				Pin It\n' +
+    '			</a>\n' +
+    '		<li class="email">\n' +
+    '			<a href="mailto:?subject=Check out this post from gobuffs.io&amp;body={{text}} -- {{urlEscape link}} -- via http://gobuffs.io" title="Email It" target="_blank">\n' +
+    '				Share via Email\n' +
+    '			</a>\n' +
+    '	</ul>\n' +
+    '	<a href="{{link}}" title="View Post" target="_blank" class="post-link original-post">\n' +
+    '		view post\n' +
+    '	</a>\n' +
+    '</div>\n' +
+    '';
+
 var htmlTemplates = htmlTemplates || {};htmlTemplates['blank.html'] = '<div class="tile-content"></div>\n' +
     '';
 
@@ -21,29 +46,7 @@ var htmlTemplates = htmlTemplates || {};htmlTemplates['facebook.html'] = '<div c
     '		<div class="time-since-flag {{#ifCond seconds_ago \'<\' 60}}is-new{{/ifCond}}">{{timeDiff seconds_ago}}</div>\n' +
     '	{{/ifCond}}\n' +
     '\n' +
-    '	<div class="tile-footer">\n' +
-    '		<ul class="tile-share">\n' +
-    '			<li class="twitter">\n' +
-    '			<a href="https://twitter.com/intent/tweet?url={{urlEscape link}}&amp;text={{urlEscape text}} - via @gobuffsio" title="Share on Twitter" target="_blank">\n' +
-    '				Share on Twitter</a>\n' +
-    '			</li>\n' +
-    '\n' +
-    '			<li class="facebook">\n' +
-    '			<a href="http://www.facebook.com/sharer/sharer.php?s=100&amp;p[url]={{urlEscape link}}&amp;p[images][0]={{HERE}}&amp;p[title]={{HERE}}" title="Share on Facebook" target="_blank">\n' +
-    '				Share on Facebook</a>\n' +
-    '			</li>\n' +
-    '\n' +
-    '			<li class="pinterest">\n' +
-    '			<a href="https://www.pinterest.com/pin/create/button/?url={{urlEscape link}}&amp;media={{HERE}}&amp;description={{text}}" title="Pin It" target="_blank">\n' +
-    '				Pin It</a>\n' +
-    '			</li>\n' +
-    '\n' +
-    '			<li class="email">\n' +
-    '			<a href="mailto:?subject=Check out this post from gobuffs.io&amp;body={{text}} -- {{urlEscape link}} -- via http://gobuffs.io" title="Email It" target="_blank"> Share via Email</a>\n' +
-    '			</li>\n' +
-    '		</ul>\n' +
-    '		<a href="{{link}}" title="View Post" target="_blank" class="post-link original-post">view post</a>\n' +
-    '	</div>\n' +
+    '	{{> tile-footer}}\n' +
     '</div>\n' +
     '';
 
@@ -66,29 +69,7 @@ var htmlTemplates = htmlTemplates || {};htmlTemplates['gplus.html'] = '<div clas
     '		<div class="time-since-flag {{#ifCond seconds_ago \'<\' 60}}is-new{{/ifCond}}">{{timeDiff seconds_ago}}</div>\n' +
     '	{{/ifCond}}\n' +
     '\n' +
-    '	<div class="tile-footer">\n' +
-    '		<ul class="tile-share">\n' +
-    '			<li class="twitter">\n' +
-    '			<a href="https://twitter.com/intent/tweet?url={{urlEscape link}}&amp;text={{urlEscape text}} - via @gobuffsio" title="Share on Twitter" target="_blank">\n' +
-    '				Share on Twitter</a>\n' +
-    '			</li>\n' +
-    '\n' +
-    '			<li class="facebook">\n' +
-    '			<a href="http://www.facebook.com/sharer/sharer.php?s=100&amp;p[url]={{urlEscape link}}&amp;p[images][0]={{HERE}}&amp;p[title]={{HERE}}" title="Share on Facebook" target="_blank">\n' +
-    '				Share on Facebook</a>\n' +
-    '			</li>\n' +
-    '\n' +
-    '			<li class="pinterest">\n' +
-    '			<a href="https://www.pinterest.com/pin/create/button/?url={{urlEscape link}}&amp;media={{HERE}}&amp;description={{text}}" title="Pin It" target="_blank">\n' +
-    '				Pin It</a>\n' +
-    '			</li>\n' +
-    '\n' +
-    '			<li class="email">\n' +
-    '			<a href="mailto:?subject=Check out this post from gobuffs.io&amp;body={{text}} -- {{urlEscape link}} -- via http://gobuffs.io" title="Email It" target="_blank"> Share via Email</a>\n' +
-    '			</li>\n' +
-    '		</ul>\n' +
-    '		<a href="{{link}}" title="View Post" target="_blank" class="post-link original-post">view post</a>\n' +
-    '	</div>\n' +
+    '	{{> tile-footer}}\n' +
     '</div>\n' +
     '';
 
@@ -112,30 +93,7 @@ var htmlTemplates = htmlTemplates || {};htmlTemplates['instagram.html'] = '<div 
     '		<div class="time-since-flag {{#ifCond seconds_ago \'<\' 60}}is-new{{/ifCond}}">{{timeDiff seconds_ago}}</div>\n' +
     '	{{/ifCond}}\n' +
     '\n' +
-    '	<div class="tile-footer">\n' +
-    '		<div class="caption">{{text}}</div>\n' +
-    '		<ul class="tile-share">\n' +
-    '			<li class="twitter">\n' +
-    '			<a href="https://twitter.com/intent/tweet?url={{urlEscape link}}&amp;text={{urlEscape text}} - via @gobuffsio" title="Share on Twitter" target="_blank">\n' +
-    '				Share on Twitter</a>\n' +
-    '			</li>\n' +
-    '\n' +
-    '			<li class="facebook">\n' +
-    '			<a href="http://www.facebook.com/sharer/sharer.php?s=100&amp;p[url]={{urlEscape link}}&amp;p[images][0]={{HERE}}&amp;p[title]={{HERE}}" title="Share on Facebook" target="_blank">\n' +
-    '				Share on Facebook</a>\n' +
-    '			</li>\n' +
-    '\n' +
-    '			<li class="pinterest">\n' +
-    '			<a href="https://www.pinterest.com/pin/create/button/?url={{urlEscape link}}&amp;media={{HERE}}&amp;description={{text}}" title="Pin It" target="_blank">\n' +
-    '				Pin It</a>\n' +
-    '			</li>\n' +
-    '\n' +
-    '			<li class="email">\n' +
-    '			<a href="mailto:?subject=Check out this post from gobuffs.io&amp;body={{text}} -- {{urlEscape link}} -- via http://gobuffs.io" title="Email It" target="_blank"> Share via Email</a>\n' +
-    '			</li>\n' +
-    '		</ul>\n' +
-    '		<a href="{{link}}" title="View Post" target="_blank" class="post-link original-post">view post</a>\n' +
-    '	</div>\n' +
+    '	{{> tile-footer}}\n' +
     '</div>\n' +
     '';
 
@@ -158,29 +116,7 @@ var htmlTemplates = htmlTemplates || {};htmlTemplates['linkedin.html'] = '<div c
     '		<div class="time-since-flag {{#ifCond seconds_ago \'<\' 60}}is-new{{/ifCond}}">{{timeDiff seconds_ago}}</div>\n' +
     '	{{/ifCond}}\n' +
     '\n' +
-    '	<div class="tile-footer">\n' +
-    '		<ul class="tile-share">\n' +
-    '			<li class="twitter">\n' +
-    '			<a href="https://twitter.com/intent/tweet?url={{urlEscape link}}&amp;text={{urlEscape text}} - via @gobuffsio" title="Share on Twitter" target="_blank">\n' +
-    '				Share on Twitter</a>\n' +
-    '			</li>\n' +
-    '\n' +
-    '			<li class="facebook">\n' +
-    '			<a href="http://www.facebook.com/sharer/sharer.php?s=100&amp;p[url]={{urlEscape link}}&amp;p[images][0]={{HERE}}&amp;p[title]={{HERE}}" title="Share on Facebook" target="_blank">\n' +
-    '				Share on Facebook</a>\n' +
-    '			</li>\n' +
-    '\n' +
-    '			<li class="pinterest">\n' +
-    '			<a href="https://www.pinterest.com/pin/create/button/?url={{urlEscape link}}&amp;media={{HERE}}&amp;description={{text}}" title="Pin It" target="_blank">\n' +
-    '				Pin It</a>\n' +
-    '			</li>\n' +
-    '\n' +
-    '			<li class="email">\n' +
-    '			<a href="mailto:?subject=Check out this post from gobuffs.io&amp;body={{text}} -- {{urlEscape link}} -- via http://gobuffs.io" title="Email It" target="_blank"> Share via Email</a>\n' +
-    '			</li>\n' +
-    '		</ul>\n' +
-    '		<a href="{{link}}" title="View Post" target="_blank" class="post-link original-post">view post</a>\n' +
-    '	</div>\n' +
+    '	{{> tile-footer}}\n' +
     '</div>\n' +
     '';
 
@@ -205,29 +141,7 @@ var htmlTemplates = htmlTemplates || {};htmlTemplates['rss.html'] = '<div class=
     '		<div class="time-since-flag {{#ifCond seconds_ago \'<\' 60}}is-new{{/ifCond}}">{{timeDiff seconds_ago}}</div>\n' +
     '	{{/ifCond}}\n' +
     '\n' +
-    '	<div class="tile-footer">\n' +
-    '		<ul class="tile-share">\n' +
-    '			<li class="twitter">\n' +
-    '			<a href="https://twitter.com/intent/tweet?url={{urlEscape link}}&amp;text={{urlEscape text}} - via @gobuffsio" title="Share on Twitter" target="_blank">\n' +
-    '				Share on Twitter</a>\n' +
-    '			</li>\n' +
-    '\n' +
-    '			<li class="facebook">\n' +
-    '			<a href="http://www.facebook.com/sharer/sharer.php?s=100&amp;p[url]={{urlEscape link}}&amp;p[images][0]={{HERE}}&amp;p[title]={{HERE}}" title="Share on Facebook" target="_blank">\n' +
-    '				Share on Facebook</a>\n' +
-    '			</li>\n' +
-    '\n' +
-    '			<li class="pinterest">\n' +
-    '			<a href="https://www.pinterest.com/pin/create/button/?url={{urlEscape link}}&amp;media={{HERE}}&amp;description={{text}}" title="Pin It" target="_blank">\n' +
-    '				Pin It</a>\n' +
-    '			</li>\n' +
-    '\n' +
-    '			<li class="email">\n' +
-    '			<a href="mailto:?subject=Check out this post from gobuffs.io&amp;body={{text}} -- {{urlEscape link}} -- via http://gobuffs.io" title="Email It" target="_blank"> Share via Email</a>\n' +
-    '			</li>\n' +
-    '		</ul>\n' +
-    '		<a href="{{link}}" title="View Post" target="_blank" class="post-link original-post">view post</a>\n' +
-    '	</div>\n' +
+    '	{{> tile-footer}}\n' +
     '</div>\n' +
     '';
 
@@ -332,30 +246,7 @@ var htmlTemplates = htmlTemplates || {};htmlTemplates['twitter-photo.html'] = '<
     '		<div class="time-since-flag {{#ifCond seconds_ago \'<\' 60}}is-new{{/ifCond}}">{{timeDiff seconds_ago}}</div>\n' +
     '	{{/ifCond}}\n' +
     '\n' +
-    '	<div class="tile-footer">\n' +
-    '		<div class="caption">{{{linkUrl text}}}</div>\n' +
-    '		<ul class="tile-share">\n' +
-    '			<li class="twitter">\n' +
-    '			<a href="https://twitter.com/intent/tweet?url={{urlEscape link}}&amp;text={{urlEscape text}} - via @gobuffsio" title="Share on Twitter" target="_blank">\n' +
-    '				Share on Twitter</a>\n' +
-    '			</li>\n' +
-    '\n' +
-    '			<li class="facebook">\n' +
-    '			<a href="http://www.facebook.com/sharer/sharer.php?s=100&amp;p[url]={{urlEscape link}}&amp;p[images][0]={{HERE}}&amp;p[title]={{HERE}}" title="Share on Facebook" target="_blank">\n' +
-    '				Share on Facebook</a>\n' +
-    '			</li>\n' +
-    '\n' +
-    '			<li class="pinterest">\n' +
-    '			<a href="https://www.pinterest.com/pin/create/button/?url={{urlEscape link}}&amp;media={{HERE}}&amp;description={{text}}" title="Pin It" target="_blank">\n' +
-    '				Pin It</a>\n' +
-    '			</li>\n' +
-    '\n' +
-    '			<li class="email">\n' +
-    '			<a href="mailto:?subject=Check out this post from gobuffs.io&amp;body={{text}} -- {{urlEscape link}} -- via http://gobuffs.io" title="Email It" target="_blank"> Share via Email</a>\n' +
-    '			</li>\n' +
-    '		</ul>\n' +
-    '		<a href="{{link}}" title="View Post" target="_blank" class="post-link original-post">view post</a>\n' +
-    '	</div>\n' +
+    '	{{> tile-footer}}\n' +
     '</div>\n' +
     '';
 
@@ -379,29 +270,7 @@ var htmlTemplates = htmlTemplates || {};htmlTemplates['twitter.html'] = '<div cl
     '		<div class="time-since-flag {{#ifCond seconds_ago \'<\' 60}}is-new{{/ifCond}}">{{timeDiff seconds_ago}}</div>\n' +
     '	{{/ifCond}}\n' +
     '\n' +
-    '	<div class="tile-footer">\n' +
-    '		<ul class="tile-share">\n' +
-    '			<li class="twitter">\n' +
-    '			<a href="https://twitter.com/intent/tweet?url={{urlEscape link}}&amp;text={{urlEscape text}} - via @gobuffsio" title="Share on Twitter" target="_blank">\n' +
-    '				Share on Twitter</a>\n' +
-    '			</li>\n' +
-    '\n' +
-    '			<li class="facebook">\n' +
-    '			<a href="http://www.facebook.com/sharer/sharer.php?s=100&amp;p[url]={{urlEscape link}}&amp;p[images][0]={{HERE}}&amp;p[title]={{HERE}}" title="Share on Facebook" target="_blank">\n' +
-    '				Share on Facebook</a>\n' +
-    '			</li>\n' +
-    '\n' +
-    '			<li class="pinterest">\n' +
-    '			<a href="https://www.pinterest.com/pin/create/button/?url={{urlEscape link}}&amp;media={{HERE}}&amp;description={{text}}" title="Pin It" target="_blank">\n' +
-    '				Pin It</a>\n' +
-    '			</li>\n' +
-    '\n' +
-    '			<li class="email">\n' +
-    '			<a href="mailto:?subject=Check out this post from gobuffs.io&amp;body={{text}} -- {{urlEscape link}} -- via http://gobuffs.io" title="Email It" target="_blank"> Share via Email</a>\n' +
-    '			</li>\n' +
-    '		</ul>\n' +
-    '		<a href="{{link}}" title="View Post" target="_blank" class="post-link original-post">view post</a>\n' +
-    '	</div>\n' +
+    '	{{> tile-footer}}\n' +
     '</div>\n' +
     '';
 
@@ -424,29 +293,7 @@ var htmlTemplates = htmlTemplates || {};htmlTemplates['youtube.html'] = '<div cl
     '		<div class="time-since-flag {{#ifCond seconds_ago \'<\' 60}}is-new{{/ifCond}}">{{timeDiff seconds_ago}}</div>\n' +
     '	{{/ifCond}}\n' +
     '\n' +
-    '	<div class="tile-footer">\n' +
-    '		<ul class="tile-share">\n' +
-    '			<li class="twitter">\n' +
-    '			<a href="https://twitter.com/intent/tweet?url={{urlEscape link}}&amp;text={{urlEscape text}} - via @gobuffsio" title="Share on Twitter" target="_blank">\n' +
-    '				Share on Twitter</a>\n' +
-    '			</li>\n' +
-    '\n' +
-    '			<li class="facebook">\n' +
-    '			<a href="http://www.facebook.com/sharer/sharer.php?s=100&amp;p[url]={{urlEscape link}}&amp;p[images][0]={{HERE}}&amp;p[title]={{HERE}}" title="Share on Facebook" target="_blank">\n' +
-    '				Share on Facebook</a>\n' +
-    '			</li>\n' +
-    '\n' +
-    '			<li class="pinterest">\n' +
-    '			<a href="https://www.pinterest.com/pin/create/button/?url={{urlEscape link}}&amp;media={{HERE}}&amp;description={{text}}" title="Pin It" target="_blank">\n' +
-    '				Pin It</a>\n' +
-    '			</li>\n' +
-    '\n' +
-    '			<li class="email">\n' +
-    '			<a href="mailto:?subject=Check out this post from gobuffs.io&amp;body={{text}} -- {{urlEscape link}} -- via http://gobuffs.io" title="Email It" target="_blank"> Share via Email</a>\n' +
-    '			</li>\n' +
-    '		</ul>\n' +
-    '		<a href="{{link}}" title="View Post" target="_blank" class="post-link original-post">view post</a>\n' +
-    '	</div>\n' +
+    '	{{> tile-footer}}\n' +
     '</div>\n' +
     '';
 
@@ -667,6 +514,8 @@ _.forEach([
 	var template = htmlTemplates[name + '.html']
     compiledTemplates[name] = Handlebars.compile(template)
 })
+
+Handlebars.registerPartial('tile-footer', htmlTemplates['_tile-footer.html'])
 
 Handlebars.registerHelper('urlEscape', function(obj, options) {
     return encodeURIComponent(obj);
