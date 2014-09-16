@@ -6,13 +6,14 @@ NIO.views.Stream = Backbone.View.extend({
 	// attributes: {
 		// 'data-packery-options' : '{"itemSelector":".tile"}'
 	// },
-	model: new NIO.models.PostDictionary(),
-
     initialize: function(args) {
         _.bindAll(this);
 
 		this.types = [];
 		this.names = [];
+		this.socketHost = args.socketHost
+		this.serviceHost = args.serviceHost
+		this.model = new NIO.models.PostDictionary(this.serviceHost)
 
         this.contentModel = NIO.models.Post;
 
@@ -42,39 +43,35 @@ NIO.views.Stream = Backbone.View.extend({
         // Connect to the socket.  Force a new connection only if
         // there's not an existing connection.
         // console.log(bNewConnection, App.sockets);
-        if (!('default' in App.sockets)) {
-            App.sockets['default'] = App.utils.connectToWebSocket('default');
-        }
-        App.sockets['default'].on('recvData', this.handleMsg);
-        App.sockets['default'].socket.on('error', this.showFetchError);
-        App.sockets['default'].socket.on('connect_failed', this.showFetchError);
+		if (!this.ws)
+            this.ws = NIO.utils.connectToWebSocket(this.socketHost, 'default');
+        this.ws.on('recvData', this.handleMsg);
+        this.ws.socket.on('error', this.showFetchError);
+        this.ws.socket.on('connect_failed', this.showFetchError);
     },
 
     killEvents: function() {
-        var self = this;
         //TODO: this interval only needs to be cleared in the SearchStream.
-        window.clearInterval(self.interval);
-        App.sockets['default'].removeAllListeners('recvData');
+        window.clearInterval(this.interval)
+        this.ws.removeAllListeners('recvData')
     },
 
     getNumRows: function() {
         /** Returns the number of rows based on the available space **/
-        //var height = jQuery('.main-content-wrap').height();
 		//TODO: revert this
-		var height = 1000
-        var numRows = Math.ceil(height/App.settings.tileHeight);
-
-        return Math.min(11, numRows);
+        //var height = jQuery('.main-content-wrap').height();
+        //var numRows = Math.ceil(height/App.settings.tileHeight);
+        //return Math.min(11, numRows);
+		return 5
     },
 
     getNumCols: function() {
         /** Returns the number of columns for tiles based on the available space **/
-        //var width = this.$el.width();
 		//TODO: revert this
-		var width = 1000
-        var numCols = Math.floor(width/App.settings.tileWidth);
-
-        return numCols;
+        //var width = this.$el.width();
+        //var numCols = Math.floor(width/App.settings.tileWidth);
+        //return numCols;
+		return 3
     },
 
     fetchTiles: function(args) {
@@ -122,7 +119,7 @@ NIO.views.Stream = Backbone.View.extend({
 
         _.each(posts, function(post, index) {
 
-            var tile = App.utils.generateTile(self, {}, post);
+            var tile = NIO.utils.generateTile(self, {}, post);
             var content = tile.model.get('content');
             var contentTime = moment(content.get('time'));
             if (contentTime.isAfter(self.latestTime)) {

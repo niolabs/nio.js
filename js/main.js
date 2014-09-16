@@ -19,57 +19,36 @@
 		extendGlobal: extendGlobal
 	});
 
-})();
 
-NIO.utils.extendGlobal('NIO.staticData', {});
-NIO.utils.extendGlobal('NIO.constants', {});
-NIO.utils.extendGlobal('NIO.settings', {});
-NIO.utils.extendGlobal('NIO.routers', {});
-NIO.utils.extendGlobal('NIO.collections', {});
-NIO.utils.extendGlobal('NIO.models', {});
-NIO.utils.extendGlobal('NIO.templates', {});
-NIO.utils.extendGlobal('NIO.views', {
-	'modules': {},
-	'pages': {}
-});
+	NIO.utils.extendGlobal('NIO.staticData', {});
+	NIO.utils.extendGlobal('NIO.constants', {});
+	NIO.utils.extendGlobal('NIO.settings', {});
+	NIO.utils.extendGlobal('NIO.routers', {});
+	NIO.utils.extendGlobal('NIO.collections', {});
+	NIO.utils.extendGlobal('NIO.models', {});
+	NIO.utils.extendGlobal('NIO.templates', {});
+	NIO.utils.extendGlobal('NIO.views', {
+		'modules': {},
+		'pages': {}
+	});
 
-require('./content.js');
-require('./custom.js');
-require('./constants.js');
-require('./settings.js');
-require('./utils.js');
-require('./custom.js');
-require('./models/Post.js');
-require('./models/Stat.js');
-require('./models/Tile.js');
-require('./views/module/Tile.js');
-require('./views/module/LookBack.js');
-require('./views/module/Stream.js');
-require('./views/module/RandomStream.js');
-require('./views/module/SearchStream.js');
-require('./views/module/Monitoring.js');
-require('./views/page/FrontPage.js');
-require('./views/page/SinglePage.js');
-require('./views/page/CategoryPage.js');
+	require('./content.js');
+	require('./constants.js');
+	require('./settings.js');
+	require('./utils.js');
+	require('./models/Post.js');
+	require('./models/Stat.js');
+	require('./models/Tile.js');
+	require('./views/Tile.js');
+	require('./views/LookBack.js');
+	require('./views/Stream.js');
+	require('./views/RandomStream.js');
+	require('./views/SearchStream.js');
 
-(function () {
-
-	NIO.tiles = function (selector) {
-		var app = require('./app');
-		window.App = new app();
-
-		// Add 'dev', 'test' or 'prod' as a class on the body tag.
-		// TODO: should this be on the html tag or in a data attribute?
-		jQuery('body').addClass(App.constants.environment);
-
+	NIO.tiles = function (opts) {
 		// TODO: These are done here rather than in the App object because of dependencies.
 		// Could this be fixed by implementing require?
-		App.getViews();
-		//App.views.Page = App.getPageView();
-		App.views.Page = new NIO.views.FrontPage({el: selector})
-		App.initializeTooltips();
-
-		Backbone.history.start({pushState: false, root: '/'});
+		var stream = new NIO.views.RandomStream(opts)
 	}
 
 }())

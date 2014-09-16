@@ -11,15 +11,25 @@
 <script src=components/packery/dist/packery.pkgd.min.js></script>
 <script src=components/handlebars/handlebars.min.js></script>
 <script src=components/backbone/backbone.js></script>
-<script src=components/qtip2/jquery.qtip.min.js></script>
-<script src=components/superfish/dist/js/superfish.min.js></script>
 <script src=components/jquery.xdomainrequest/jquery.xdomainrequest.min.js></script>
 <script src='http://54.85.159.254:443/socket.io/socket.io.js?ver=3.9.2'></script>
 <link rel=stylesheet href=nio.css>
 <script src=nio.js></script>
 <script>
 	window.onload = function () {
-		NIO.tiles('#content')
+		NIO.tiles({
+			el: '#nio_stream_div',
+			socketHost: '54.85.159.254:443',
+			serviceHost: '54.85.159.254',
+			tileHeight: 226,
+			tileWidth: 248,
+			tileDurations: {
+				min: 13,
+				minn: 2,
+				randomOffset: 5,
+				minMultiplier: 3
+			}
+		})
 	}
 </script>
 
@@ -38,27 +48,3 @@
 		</div>
 	</div>
 </div>
-<script>
-
-	/*
-	nio.tiles({
-		el: document.getElementById('tiles'),
-		host: '54.85.159.254'
-	})
-	*/
-
-	/*
-	var tiles = document.getElementById('tiles')
-	nio.tiles(tiles, {
-		host: '54.85.159.254',
-		height: 226,
-		width: 248,
-		duration: {
-			min: 13,
-			minMultiplier: 3,
-			minNew: 2,
-			randomOffset: 5
-		}
-	})
-	*/
-</script>

@@ -3,7 +3,7 @@ NIO.views.RandomStream = NIO.views.Stream.extend({
     handlePost: function(post) {
         if (this.names.length === 0 || _.indexOf(this.names, post.name) != -1) {
             if (this.types.length === 0 || _.indexOf(this.types, post.type) != -1) {
-                var tile = App.utils.handleTileContent(this.tiles, post, NIO.models.Post);
+                var tile = NIO.utils.handleTileContent(this.tiles, post, NIO.models.Post);
                 if (tile) {
 					// console.log(tile);
 					tile.on('filterByUser', this.filterByUser);
@@ -44,7 +44,7 @@ NIO.views.RandomStream = NIO.views.Stream.extend({
                         tileArgs['maxPriority'] = 5 - Math.floor(row / 2);
                     }
 
-                    var tile = App.utils.generateTile(this, tileArgs, {});
+                    var tile = NIO.utils.generateTile(this, tileArgs, {});
                     this.$el.append(tile.el);
                     this.tiles.push(tile);
 					//console.log('push tile', tile, tile.el, this.$el)

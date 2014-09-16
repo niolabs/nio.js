@@ -298,60 +298,6 @@ var htmlTemplates = htmlTemplates || {};htmlTemplates['youtube.html'] = '<div cl
     '';
 
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-module.exports = Backbone.Router.extend({
-
-	routes: {
-		'' : 'home'
-	},
-
-	initialize: function () {
-        // _.bindAll(this);
-		this.isTransition = false; // will only be false on page load
-        this.isDirty = false;
-        this.constants = NIO.constants;
-        this.settings = NIO.settings;
-        this.utils = NIO.utils;
-        this.sockets = {};
-    },
-
-    initializeTooltips: function() {
-        jQuery('[tooltip-text!=""]').qtip({
-            content: {
-                attr: 'tooltip-text'
-            },
-            style: {
-                classes: 'qtip-dark qtip-tooltip'
-            },
-            position: {
-                my: 'top center',
-                at: 'bottom center',
-                viewport: jQuery(window)
-            },
-            hide: {
-                inactive: 2000,
-                delay: 200,
-                fixed: true
-            }
-        });
-    },
-
-    getViews: function() {
-        this.views = {
-            Page: {}
-        };
-        if (this.views.Overlay) {
-            this.showLoader = _.bind(this.views.Overlay.showLoader, this.views.Overlay);
-            this.hideLoader = _.bind(this.views.Overlay.hideLoader, this.views.Overlay);
-        }
-    },
-
-    getPageView: function() {
-		return new NIO.views.FrontPage({el: '#content'})
-    }
-
-});
-
-},{}],2:[function(require,module,exports){
 NIO.utils.extendGlobal('NIO.constants', {
 	
     environment: (function() {
@@ -491,7 +437,7 @@ NIO.utils.extendGlobal('NIO.constants', {
 
 });
 
-},{}],3:[function(require,module,exports){
+},{}],2:[function(require,module,exports){
 window.$ = jQuery;
 window.compiledTemplates = {};
 
@@ -648,735 +594,7 @@ function makeTile(tileType, rows, cols, data) {
         .html(compiledTemplates[tileType](data));
 }
 
-},{}],4:[function(require,module,exports){
-(
-
-function($) {
-
-},
-
-function($){
-    
-var $img_ratio = 1;
-var $tile_width = 248;
-var $tile_height = 226;
-
-	$.et_simple_slider = function(el, options) {
-		var settings = $.extend( {
-			slide         			: '.et-slide',				 	// slide class
-			arrows					: '.et-slider-arrows',			// arrows container class
-			prev_arrow				: '.et-arrow-prev',				// left arrow class
-			next_arrow				: '.et-arrow-next',				// right arrow class
-			controls 				: '.et-controllers a',			// control selector
-			control_active_class	: 'et-active-control',			// active control class name
-			previous_text			: 'Previous',					// previous arrow text
-			next_text				: 'Next',						// next arrow text
-			fade_speed				: 500,							// fade effect speed
-			use_arrows				: true,							// use arrows?
-			use_controls			: true,							// use controls?
-			manual_arrows			: '',							// html code for custom arrows
-			append_controls_to		: '',							// controls are appended to the slider element by default, here you can specify the element it should append to
-			controls_class			: 'et-controllers',				// controls container class name
-			slideshow				: false,						// automattic animation?
-			slideshow_speed			: 7000,							// automattic animation speed
-			show_progress_bar		: true,							// show progress bar if automattic animation is active
-			tabs_animation			: false
-		}, options );
-
-		var $et_slider 			= $(el),
-			$et_slide			= $et_slider.find( settings.slide ),
-			et_slides_number	= $et_slide.length,
-			et_fade_speed		= settings.fade_speed,
-			et_active_slide		= 0,
-			$et_slider_arrows,
-			$et_slider_prev,
-			$et_slider_next,
-			$et_slider_controls,
-			et_slider_timer,
-			controls_html = '',
-			$progress_bar = null,
-			progress_timer_count = 0;
-
-			$et_slider.et_animation_running = false;
-
-			$.data(el, "et_simple_slider", $et_slider);
-
-			$et_slide.eq(0).addClass( 'et-active-slide' );
-
-			if ( settings.use_arrows && et_slides_number > 1 ) {
-				if ( settings.manual_arrows == '' )
-					$et_slider.append( '<div class="et-slider-arrows"><a class="et-arrow-prev" href="#">' + settings.previous_text + '</a><a class="et-arrow-next" href="#">' + settings.next_text + '</a></div>' );
-				else
-					$et_slider.append( settings.manual_arrows );
-
-				$et_slider_arrows 	= $( settings.arrows );
-				$et_slider_prev 	= $et_slider.find( settings.prev_arrow );
-				$et_slider_next 	= $et_slider.find( settings.next_arrow );
-
-				$et_slider_next.click( function(){
-					if ( $et_slider.et_animation_running )	return false;
-
-					$et_slider.et_slider_move_to( 'next' );
-
-					return false;
-				} );
-
-				$et_slider_prev.click( function(){
-					if ( $et_slider.et_animation_running )	return false;
-
-					$et_slider.et_slider_move_to( 'previous' );
-
-					return false;
-				} );
-			}
-
-			if ( settings.use_controls && et_slides_number > 1 ) {
-				for ( var i = 1; i <= et_slides_number; i++ ) {
-					controls_html += '<a href="#"' + ( i == 1 ? ' class="' + settings.control_active_class + '"' : '' ) + '>' + i + '</a>';
-				}
-
-				controls_html =
-					'<div class="' + settings.controls_class + '">' +
-						controls_html +
-					'</div>';
-
-				if ( settings.append_controls_to == '' )
-					$et_slider.append( controls_html );
-				else
-					$( settings.append_controls_to ).append( controls_html );
-
-				$et_slider_controls	= $et_slider.find( settings.controls ),
-
-				$et_slider_controls.click( function(){
-					if ( $et_slider.et_animation_running )	return false;
-
-					$et_slider.et_slider_move_to( $(this).index() );
-
-					return false;
-				} );
-			}
-
-			if ( settings.slideshow && et_slides_number > 1 && settings.show_progress_bar ) {
-				$et_slider.append( '<div id="featured-progress-bar"><div id="progress-time"></div></div>' );
-				$progress_bar = $( '#progress-time' );
-
-				$et_slider.hover( function() {
-					$et_slider.addClass( 'et_slider_hovered' );
-				}, function() {
-					$et_slider.removeClass( 'et_slider_hovered' );
-					$progress_bar.animate( { 'width' : '100%' }, parseInt( settings.slideshow_speed - progress_timer_count ) );
-				} );
-			}
-
-			et_slider_auto_rotate();
-
-			function et_slider_auto_rotate(){
-				if ( settings.slideshow && et_slides_number > 1 ) {
-					$progress_bar.css( 'width', '0%' ).animate( { 'width' : '100%' }, parseInt( settings.slideshow_speed - progress_timer_count ) );
-
-					if ( $et_slider.hasClass( 'et_slider_hovered' ) && $progress_bar.length && settings.slideshow && et_slides_number > 1 )
-						$progress_bar.stop();
-
-					et_slider_timer = setInterval( function() {
-						if ( ! $et_slider.hasClass( 'et_slider_hovered' ) ) progress_timer_count += 100;
-
-						if ( $et_slider.hasClass( 'et_slider_hovered' ) && $progress_bar.length && settings.slideshow && et_slides_number > 1 )
-						$progress_bar.stop();
-
-						if ( progress_timer_count >= parseInt( settings.slideshow_speed ) ) {
-							progress_timer_count = 0;
-							clearInterval( et_slider_timer );
-
-							$et_slider.et_slider_move_to( 'next' );
-						}
-					}, 100 );
-				}
-			}
-
-			$et_slider.et_slider_move_to = function ( direction ) {
-				var $active_slide = $et_slide.eq( et_active_slide ),
-					$next_slide;
-
-				$et_slider.et_animation_running = true;
-
-				if ( direction == 'next' || direction == 'previous' ){
-
-					if ( direction == 'next' )
-						et_active_slide = ( et_active_slide + 1 ) < et_slides_number ? et_active_slide + 1 : 0;
-					else
-						et_active_slide = ( et_active_slide - 1 ) >= 0 ? et_active_slide - 1 : et_slides_number - 1;
-
-				} else {
-
-					if ( et_active_slide == direction ) {
-						$et_slider.et_animation_running = false;
-						return;
-					}
-
-					et_active_slide = direction;
-
-				}
-
-				if ( typeof et_slider_timer != 'undefined' )
-					clearInterval( et_slider_timer );
-
-				if ( $progress_bar !== null && $progress_bar.length != 0 ) {
-					progress_timer_count = 0;
-					$progress_bar.stop( true ).css( 'width', '0%' );
-				}
-
-				$next_slide	= $et_slide.eq( et_active_slide );
-
-				$et_slide.each( function(){
-					$(this).css( 'zIndex', 1 );
-				} );
-				$active_slide.css( 'zIndex', 2 ).removeClass( 'et-active-slide' );
-				$next_slide.css( { 'display' : 'block', opacity : 0 } ).addClass( 'et-active-slide' );
-
-				if ( settings.use_controls )
-					$et_slider_controls.removeClass( settings.control_active_class ).eq( et_active_slide ).addClass( settings.control_active_class );
-
-				if ( ! settings.tabs_animation ) {
-					$next_slide.delay(400).animate( { opacity : 1 }, et_fade_speed );
-					$active_slide.addClass( 'et_slide_transition' ).css( { 'display' : 'block', 'opacity' : 1 } ).delay(400).animate( { opacity : 0 }, et_fade_speed, function(){
-						$(this).css('display', 'none').removeClass( 'et_slide_transition' );
-						$et_slider.et_animation_running = false;
-					} );
-				} else {
-					$next_slide.css( { 'display' : 'none', opacity : 0 } );
-
-					$active_slide.addClass( 'et_slide_transition' ).css( { 'display' : 'block', 'opacity' : 1 } ).animate( { opacity : 0 }, et_fade_speed, function(){
-								$(this).css('display', 'none').removeClass( 'et_slide_transition' );
-
-								$next_slide.css( { 'display' : 'block', 'opacity' : 0 } ).animate( { opacity : 1 }, et_fade_speed, function() {
-									$et_slider.et_animation_running = false;
-								} );
-							} );
-				}
-
-				et_slider_auto_rotate();
-			}
-	}
-
-	$.fn.et_simple_slider = function( options ) {
-		return this.each(function() {
-			new $.et_simple_slider(this, options);
-		});
-	}
-
-	$(document).ready( function(){
-		var $et_top_menu              = $( 'ul.nav' ),
-			$comment_form             = $( '#commentform' ),
-			$home_popular_slider      = $( '.popular-posts-wrap' ),
-			$home_popular_slider_tabs = $home_popular_slider.find( '.popular-tabs li' ),
-			$categories_tabs_module   = $( '.categories-tabs-module' ),
-			$categories_tabs          = $categories_tabs_module.find( '.categories-tabs li' ),
-			$tabs_widget              = $( '.widget_ettabbedwidget' ),
-			$tabs_widget_li           = $tabs_widget.find( '.categories-tabs li' ),
-			$recent_videos            = $( '.widget_etrecentvideoswidget' ),
-			$recent_videos_tabs       = $recent_videos.find( '.et-recent-videos-wrap li' ),
-			$et_container             = $( '.container' ),
-			et_container_width;
-
-		et_container_width = $et_container.width();
-
-		$et_top_menu.superfish({
-			delay		: 500, 										// one second delay on mouseout
-			animation	: { opacity : 'show', height : 'show' },	// fade-in and slide-down animation
-			speed		: 'fast', 									// faster animation speed
-			autoArrows	: true, 									// disable generation of arrow mark-up
-			dropShadows	: false										// disable drop shadows
-		});
-
-		if ( $('ul.et_disable_top_tier').length ) $("ul.et_disable_top_tier > li > ul").prev('a').attr('href','#');
-
-		$('#et-social-icons a').hover(
-			function(){
-				$(this).find('.et-social-normal').css( { 'opacity' : 1 } ).stop(true,true).animate( { 'top' : '-59px', 'opacity' : 0 }, 300 );
-				$(this).find('.et-social-hover').stop(true,true).animate( { 'top' : '-62px' }, 300 );
-			}, function(){
-				$(this).find('.et-social-normal').stop(true,true).animate( { 'top' : '0', opacity : 1 }, 300 );
-				$(this).find('.et-social-hover').stop(true,true).animate( { 'top' : '0' }, 300 );
-			}
-		);
-
-		(function et_search_bar(){
-			var $searchform = $('.et-search-form'),
-				$searchinput = $searchform.find(".search_input"),
-				searchvalue = $searchinput.val();
-
-			$searchinput.focus(function(){
-				if (jQuery(this).val() === searchvalue) jQuery(this).val("");
-			}).blur(function(){
-				if (jQuery(this).val() === "") jQuery(this).val(searchvalue);
-			});
-		})();
-
-		et_duplicate_menu( $('#main-header ul.nav'), $('#top-navigation .mobile_nav'), 'mobile_menu', 'et_mobile_menu' );
-
-		function et_duplicate_menu( menu, append_to, menu_id, menu_class ){
-			var $cloned_nav;
-
-			menu.clone().attr('id',menu_id).removeClass().attr('class',menu_class).appendTo( append_to );
-			$cloned_nav = append_to.find('> ul');
-			$cloned_nav.find('.menu_slide').remove();
-			$cloned_nav.find('li:first').addClass('et_first_mobile_item');
-
-			append_to.click( function(){
-				if ( $(this).hasClass('closed') ){
-					$(this).removeClass( 'closed' ).addClass( 'opened' );
-					$cloned_nav.slideDown( 500 );
-				} else {
-					$(this).removeClass( 'opened' ).addClass( 'closed' );
-					$cloned_nav.slideUp( 500 );
-				}
-				return false;
-			} );
-
-			append_to.find('a').click( function(event){
-				event.stopPropagation();
-			} );
-		}
-
-		$( '.recent-module .load-more a' ).click( function() {
-			var $this_link = $(this);
-
-			$.ajax( {
-				type: "POST",
-				url: et_custom.ajaxurl,
-				data:
-				{
-					action      : 'et_recent_module_add_posts',
-					et_hb_nonce : et_custom.et_hb_nonce,
-					category    : $this_link.data('category'),
-					number      : $this_link.data('number'),
-					offset      : $this_link.closest('.recent-module').find('.recent-post').length
-				},
-				success: function( data ){
-					if ( '' == data )
-						$this_link.remove();
-					else
-						$this_link.closest('.recent-module').find('.module-content').append( data );
-				}
-			} );
-
-			return false;
-		} );
-
-		$( '.recent-reviews .load-more a' ).click( function() {
-			var $this_link = $(this);
-
-			$.ajax( {
-				type: "POST",
-				url: et_custom.ajaxurl,
-				data:
-				{
-					action      : 'et_reviews_module_add_posts',
-					et_hb_nonce : et_custom.et_hb_nonce,
-					category    : $this_link.data('category'),
-					number      : $this_link.data('number'),
-					offset      : $this_link.closest('.recent-reviews').find('.review-post').length
-				},
-				success: function( data ){
-					if ( '' == data )
-						$this_link.remove();
-					else
-						$this_link.closest('.recent-reviews').find('.reviews-content').append( data );
-				}
-			} );
-
-			return false;
-		} );
-
-		$( '.et-tabs .load-more a' ).click( function() {
-			var $this_link = $(this);
-
-			$.ajax( {
-				type: "POST",
-				url: et_custom.ajaxurl,
-				data:
-				{
-					action      : 'et_recent_module_add_posts',
-					et_hb_nonce : et_custom.et_hb_nonce,
-					category    : $this_link.data('category'),
-					number      : $this_link.data('number'),
-					offset      : $this_link.closest('.et-tabs').find('.et-tabs-wrap .recent-post').length
-				},
-				success: function( data ){
-					if ( '' == data )
-						$this_link.remove();
-					else
-						$this_link.closest('.et-tabs').find('.et-tabs-wrap').append( data );
-				}
-			} );
-
-			return false;
-		} );
-
-		if ( $categories_tabs_module.length ) {
-			$categories_tabs_module.et_simple_slider( {
-				use_controls   : false,
-				use_arrows     : false,
-				slide          : '.et-tabs',
-				tabs_animation : true
-			} );
-
-			$categories_tabs.click( function() {
-				var $this_el         = $(this),
-					$home_tabs       = $this_el.closest( '.categories-tabs-module' ).data('et_simple_slider');
-
-				if ( $home_tabs.et_animation_running ) return;
-
-				$this_el.addClass( 'home-tab-active' ).siblings().removeClass( 'home-tab-active' );
-
-				$home_tabs.data('et_simple_slider').et_slider_move_to( $this_el.index() );
-			} );
-
-			var $et_categories_mobile_arrows;
-
-			$et_categories_mobile_arrows = $categories_tabs_module.append( '<span class="et-popular-mobile-arrow et-popular-mobile-arrow-previous"></span>' + '<span class="et-popular-mobile-arrow et-popular-mobile-arrow-next"></span>' );
-
-			$categories_tabs_module.find( '.et-popular-mobile-arrow' ).click( function() {
-				var $this_el     = $(this),
-					direction    = $this_el.hasClass( 'et-popular-mobile-arrow-next' ) ? 'next' : 'previous',
-					$slider      = $this_el.closest( '.categories-tabs-module' ).data('et_simple_slider'),
-					$slider_tabs = $slider.find( '.categories-tabs li' ),
-					tabs_number  = $slider_tabs.length,
-					current_tab  = $slider.find( '.home-tab-active' ).index();
-
-				if ( $slider.et_animation_running ) return false;
-
-				if ( direction == 'next' ) {
-					next_tab = ( current_tab + 1 ) < tabs_number ? current_tab + 1 : 0;
-
-					$slider_tabs.eq( next_tab ).addClass( 'home-tab-active' ).siblings().removeClass( 'home-tab-active' );
-				}
-
-				if ( direction == 'previous' ) {
-					next_tab = current_tab - 1;
-
-					if ( next_tab === -1 ) next_tab = tabs_number - 1;
-
-					$slider_tabs.eq( next_tab ).addClass( 'home-tab-active' ).siblings().removeClass( 'home-tab-active' );
-				}
-
-				$slider.data('et_simple_slider').et_slider_move_to( next_tab );
-			} );
-		}
-
-		if ( $recent_videos.length ) {
-			$recent_videos.et_simple_slider( {
-				use_controls   : false,
-				use_arrows     : false,
-				slide          : '.et-recent-video',
-				tabs_animation : true
-			} );
-
-			$recent_videos_tabs.click( function() {
-				var $this_el         = $(this),
-					$home_tabs       = $this_el.closest( '.widget_etrecentvideoswidget' ).data('et_simple_slider');
-
-				if ( $home_tabs.et_animation_running ) return;
-
-				$this_el.addClass( 'et-video-active' ).siblings().removeClass( 'et-video-active' );
-
-				$home_tabs.data('et_simple_slider').et_slider_move_to( $this_el.index() );
-			} );
-
-			$recent_videos.find( '.et-recent-video-scroll a' ).click( function() {
-				var $this_el    = $(this),
-					direction   = $this_el.hasClass( 'et-scroll-video-top' ) ? 'previous' : 'next',
-					$slider     = $this_el.closest( '.widget_etrecentvideoswidget' ).data('et_simple_slider'),
-					$active_tab = $slider.find( '.et-recent-videos-wrap .et-video-active' ),
-					tabs_number = $slider.find( '.et-recent-videos-wrap li' ).length;
-
-				if ( $slider.et_animation_running ) return false;
-
-				if ( direction === 'next' ) {
-					next = $active_tab.index() + 1;
-
-					if ( next >= tabs_number ) next = 0;
-				} else {
-					next = $active_tab.index() - 1;
-
-					if ( next < 0 ) next = tabs_number - 1;
-				}
-
-				$slider.find( '.et-recent-videos-wrap li' ).eq(next).addClass( 'et-video-active' ).siblings().removeClass( 'et-video-active' );
-				$slider.data('et_simple_slider').et_slider_move_to( next );
-
-				return false;
-			} );
-		}
-
-		if ( $tabs_widget.length ) {
-			$tabs_widget.et_simple_slider( {
-				use_controls   : false,
-				use_arrows     : false,
-				slide          : '.et-tabbed-all-tabs > div',
-				tabs_animation : true
-			} );
-
-			$tabs_widget_li.click( function() {
-				var $this_el         = $(this),
-					$home_tabs       = $this_el.closest( '.widget_ettabbedwidget' ).data('et_simple_slider');
-
-				if ( $home_tabs.et_animation_running ) return false;
-
-				$this_el.addClass( 'home-tab-active' ).siblings().removeClass( 'home-tab-active' );
-
-				$home_tabs.data('et_simple_slider').et_slider_move_to( $this_el.index() );
-
-				return false;
-			} );
-		}
-
-		if ( $home_popular_slider.length ) {
-			$home_popular_slider.et_simple_slider( {
-				use_controls   : false,
-				use_arrows     : false,
-				slide          : '.popular-post',
-				tabs_animation : true
-			} );
-
-			$home_popular_slider_tabs.click( function() {
-				var $this_el         = $(this),
-					$home_tabs       = $this_el.closest( '.popular-posts-wrap' ).data('et_simple_slider'),
-					$tabs_container  = $home_tabs.find( '.popular-tabs ul' ),
-					active_tab_index = $home_tabs.find( '.popular-active' ).index(),
-					tabs_margin      = parseInt( $tabs_container.css( 'marginTop' ) ),
-					tabs_height      = 0;
-
-				if ( $home_tabs.et_animation_running ) return;
-
-				if ( $this_el.index() < 4 ) {
-					$tabs_container.css( 'marginTop', 0 );
-				} else {
-					$tabs_container.find( 'li' ).slice( $this_el.index() + 1, active_tab_index + 1 ).each( function() {
-						tabs_height += $( this ).innerHeight();
-					} );
-					$tabs_container.css( 'marginTop', tabs_margin + tabs_height );
-				}
-
-				$this_el.addClass( 'popular-active' ).siblings().removeClass( 'popular-active' );
-
-				$home_tabs.data('et_simple_slider').et_slider_move_to( $this_el.index() );
-			} );
-
-			$( '.et-scroll-arrows a' ).click( function() {
-				var $slider          = $(this).closest( '.popular-posts-wrap' ).data('et_simple_slider'),
-					$slider_tabs     = $slider.find( '.popular-tabs li' ),
-					tabs_number      = $slider_tabs.length,
-					current_tab      = $slider.find( '.popular-active' ).index(),
-					$tabs_container  = $slider.find( '.popular-tabs ul' ),
-					$tabs_top_margin = parseInt( $tabs_container.css( 'marginTop' ) ),
-					direction        = $(this).hasClass( 'et-scroll-arrows-bottom' ) ? 'next' : 'previous',
-					next_tab;
-
-				if ( $slider.et_animation_running ) return false;
-
-				if ( direction == 'next' ) {
-					next_tab = ( current_tab + 1 ) < tabs_number ? current_tab + 1 : 0;
-
-					$slider_tabs.eq( next_tab ).addClass( 'popular-active' ).siblings().removeClass( 'popular-active' );
-
-					if ( next_tab > 3 ) {
-						$tabs_container.css( 'marginTop', $tabs_top_margin - $slider_tabs.eq( next_tab ).innerHeight() );
-					} else if ( next_tab == 0 ) {
-						$tabs_container.css( 'marginTop', 0 );
-					}
-				}
-
-				if ( direction == 'previous' ) {
-					next_tab = current_tab - 1;
-
-					if ( next_tab === -1 ) return false;
-
-					$slider_tabs.eq( next_tab ).addClass( 'popular-active' ).siblings().removeClass( 'popular-active' );
-
-					if ( next_tab > 2 ) {
-						$tabs_container.css( 'marginTop', $tabs_top_margin + $slider_tabs.eq( current_tab ).innerHeight() );
-					}
-				}
-
-				$slider.data('et_simple_slider').et_slider_move_to( next_tab );
-
-				return false;
-			} );
-
-			var $et_popular_mobile_arrows;
-
-			$et_popular_mobile_arrows = $home_popular_slider.siblings( '.module-title' ).append( '<span class="et-popular-mobile-arrow et-popular-mobile-arrow-previous"></span>' + '<span class="et-popular-mobile-arrow et-popular-mobile-arrow-next"></span>' );
-
-			$et_popular_mobile_arrows.parent().find( '.et-popular-mobile-arrow' ).click( function() {
-				var $this_el     = $(this),
-					direction    = $this_el.hasClass( 'et-popular-mobile-arrow-next' ) ? 'next' : 'previous',
-					$slider      = $this_el.closest( '.popular-module' ).find( '.popular-posts-wrap' ).data('et_simple_slider'),
-					$slider_tabs = $slider.find( '.popular-tabs li' ),
-					tabs_number  = $slider_tabs.length,
-					current_tab  = $slider.find( '.popular-active' ).index();
-
-				if ( $slider.et_animation_running ) return false;
-
-				if ( direction == 'next' ) {
-					next_tab = ( current_tab + 1 ) < tabs_number ? current_tab + 1 : 0;
-
-					$slider_tabs.eq( next_tab ).addClass( 'popular-active' ).siblings().removeClass( 'popular-active' );
-				}
-
-				if ( direction == 'previous' ) {
-					next_tab = current_tab - 1;
-
-					if ( next_tab === -1 ) next_tab = tabs_number - 1;
-
-					$slider_tabs.eq( next_tab ).addClass( 'popular-active' ).siblings().removeClass( 'popular-active' );
-				}
-
-				$slider.data('et_simple_slider').et_slider_move_to( next_tab );
-			} );
-		}
-
-		function et_breadcrumbs_css() {
-			if ( $( '#breadcrumbs' ).hasClass( 'bcn_breadcrumbs' ) ) {
-				return;
-			}
-
-			$('.et_breadcrumbs_title').css( 'maxWidth', $('#breadcrumbs').width() - $('.et_breadcrumbs_content').width() - 3 );
-
-			setTimeout( function() {
-				var et_breadcrumbs_height = $('.et_breadcrumbs_title').height();
-				$('#breadcrumbs a, #breadcrumbs .raquo').css( 'minHeight', et_breadcrumbs_height );
-			}, 100 );
-		}
-
-		et_breadcrumbs_css();
-
-		et_popular_tabs_height_calculate();
-
-		function et_popular_tabs_height_calculate() {
-			if ( ! $home_popular_slider.length ) return;
-
-			$home_popular_slider.each( function() {
-				var $this_el      = $(this),
-					$tabs         = $this_el.find( '.popular-tabs' ),
-					$content      = $this_el.find( '.popular-posts' ),
-					$tabs_wrapper = $this_el.find( '.et-popular-tabs-wrap' );
-
-				if ( $tabs.find( 'li' ).length > 4 ) {
-					$tabs_wrapper.height( $tabs.find( 'li' ).eq(0).innerHeight() + $tabs.find( 'li' ).eq(1).innerHeight() + $tabs.find( 'li' ).eq(2).innerHeight() + $tabs.find( 'li' ).eq(3).innerHeight() );
-				}
-
-				$content.css( 'minHeight', $tabs_wrapper.innerHeight() + parseInt( $tabs.css( 'paddingTop' ) ) + parseInt( $tabs.css( 'paddingBottom' ) ) - 80 )
-			} );
-		}
-	
-		/* Shrink header when scrolling */
-                $(window).scroll(function() {
-                    if ($(document).scrollTop() > 0) {
-                        $('body').addClass('small-header');
-                    } else {
-                        $('body').removeClass('small-header');
-                    }
-                });
-	
-		resize_function = function() {
-                        et_popular_tabs_height_calculate();
-
-                        /* Resize featured content */
-                        if ($("body").hasClass("home") || $("body").hasClass("single")) {
-                            if ($("#sidebar").css("float") != "none" && $("#sidebar").css("display") != "none") {
-                                $("#content").width($(".main-content-wrap").width() - $("#sidebar").width() - 1);
-                            } else {
-                                $("#content").css("width", "");
-                            }
-                        }
-
-                        /* Resize featured article images, keeping ratio */
-                        var $post_width = $(".et-featured-post").width();
-                        var $post_height = $(".et-featured-post").height();
-                        var $post_ratio = $post_height/$post_width;
-
-                        if ($post_ratio > $img_ratio) {
-                            $(".et-featured-post img").height($post_height);
-                            $(".et-featured-post img").width(Math.floor($post_height / $img_ratio));
-                        } else {
-                            $(".et-featured-post img").width($post_width);
-                            $(".et-featured-post img").height(Math.floor($post_width * $img_ratio));
-                        }
-                       
-                        if ( et_container_width != $et_container.width() ) {
-                                et_breadcrumbs_css();
-
-                                et_container_width = $et_container.width();
-                        }
-
-			/* Remove padding-top when category list goes under social icons */
-			if ($('#left-area .entry-content').width() < ($('.share-box').outerWidth() + $('.see-more').outerWidth())) {
-				$('.see-more').css('padding', '0 0 20px 0');
-			} else {
-				$('.see-more').css('padding', '');
-			}
-                };
-	
-		$(document).ready( function() {
-			$("#logo").attr("alt", $("#logo").width());
-                        
-                        /* Get some original values before resizing */
-                        var $img_width = $(".et-featured-post img").width();
-                        var $img_height = $(".et-featured-post img").height();
-                        $img_ratio = $img_height/$img_width;
-			
-
-                        resize_function();
-		} );
-	
-		$(window).resize( function() {
-                    resize_function();
-                });
-
-		$(".et-featured-post").click( function() {
-			window.open($(this).find("a").attr("href"), "_self");
-                });
-
-		$comment_form.find('input:text, textarea').each(function(index,domEle){
-			var $et_current_input = jQuery(domEle),
-				$et_comment_label = $et_current_input.siblings('label'),
-				et_comment_label_value = $et_current_input.siblings('label').text();
-			if ( $et_comment_label.length ) {
-				$et_comment_label.hide();
-				if ( $et_current_input.siblings('span.required') ) {
-					et_comment_label_value += $et_current_input.siblings('span.required').text();
-					$et_current_input.siblings('span.required').hide();
-				}
-				$et_current_input.val(et_comment_label_value);
-			}
-		}).bind('focus',function(){
-			var et_label_text = jQuery(this).siblings('label').text();
-			if ( jQuery(this).siblings('span.required').length ) et_label_text += jQuery(this).siblings('span.required').text();
-			if (jQuery(this).val() === et_label_text) jQuery(this).val("");
-		}).bind('blur',function(){
-			var et_label_text = jQuery(this).siblings('label').text();
-			if ( jQuery(this).siblings('span.required').length ) et_label_text += jQuery(this).siblings('span.required').text();
-			if (jQuery(this).val() === "") jQuery(this).val( et_label_text );
-		});
-
-		// remove placeholder text before form submission
-		$comment_form.submit(function(){
-			$comment_form.find('input:text, textarea').each(function(index,domEle){
-				var $et_current_input = jQuery(domEle),
-					$et_comment_label = $et_current_input.siblings('label'),
-					et_comment_label_value = $et_current_input.siblings('label').text();
-
-				if ( $et_comment_label.length && $et_comment_label.is(':hidden') ) {
-					if ( $et_comment_label.text() == $et_current_input.val() )
-						$et_current_input.val( '' );
-				}
-			});
-		});
-	});
-})(jQuery)
-
-},{}],5:[function(require,module,exports){
+},{}],3:[function(require,module,exports){
 /**
  * Set up the major namespaces.
  * The following function uses _.extend internally but also creates each
@@ -1398,64 +616,43 @@ var $tile_height = 226;
 		extendGlobal: extendGlobal
 	});
 
-})();
 
-NIO.utils.extendGlobal('NIO.staticData', {});
-NIO.utils.extendGlobal('NIO.constants', {});
-NIO.utils.extendGlobal('NIO.settings', {});
-NIO.utils.extendGlobal('NIO.routers', {});
-NIO.utils.extendGlobal('NIO.collections', {});
-NIO.utils.extendGlobal('NIO.models', {});
-NIO.utils.extendGlobal('NIO.templates', {});
-NIO.utils.extendGlobal('NIO.views', {
-	'modules': {},
-	'pages': {}
-});
+	NIO.utils.extendGlobal('NIO.staticData', {});
+	NIO.utils.extendGlobal('NIO.constants', {});
+	NIO.utils.extendGlobal('NIO.settings', {});
+	NIO.utils.extendGlobal('NIO.routers', {});
+	NIO.utils.extendGlobal('NIO.collections', {});
+	NIO.utils.extendGlobal('NIO.models', {});
+	NIO.utils.extendGlobal('NIO.templates', {});
+	NIO.utils.extendGlobal('NIO.views', {
+		'modules': {},
+		'pages': {}
+	});
 
-require('./content.js');
-require('./custom.js');
-require('./constants.js');
-require('./settings.js');
-require('./utils.js');
-require('./custom.js');
-require('./models/Post.js');
-require('./models/Stat.js');
-require('./models/Tile.js');
-require('./views/module/Tile.js');
-require('./views/module/LookBack.js');
-require('./views/module/Stream.js');
-require('./views/module/RandomStream.js');
-require('./views/module/SearchStream.js');
-require('./views/module/Monitoring.js');
-require('./views/page/FrontPage.js');
-require('./views/page/SinglePage.js');
-require('./views/page/CategoryPage.js');
+	require('./content.js');
+	require('./constants.js');
+	require('./settings.js');
+	require('./utils.js');
+	require('./models/Post.js');
+	require('./models/Stat.js');
+	require('./models/Tile.js');
+	require('./views/Tile.js');
+	require('./views/LookBack.js');
+	require('./views/Stream.js');
+	require('./views/RandomStream.js');
+	require('./views/SearchStream.js');
 
-(function () {
-
-	NIO.tiles = function (selector) {
-		var app = require('./app');
-		window.App = new app();
-
-		// Add 'dev', 'test' or 'prod' as a class on the body tag.
-		// TODO: should this be on the html tag or in a data attribute?
-		jQuery('body').addClass(App.constants.environment);
-
+	NIO.tiles = function (opts) {
 		// TODO: These are done here rather than in the App object because of dependencies.
 		// Could this be fixed by implementing require?
-		App.getViews();
-		//App.views.Page = App.getPageView();
-		App.views.Page = new NIO.views.FrontPage({el: selector})
-		App.initializeTooltips();
-
-		Backbone.history.start({pushState: false, root: '/'});
+		var stream = new NIO.views.RandomStream(opts)
 	}
 
 }())
 
-},{"./app":1,"./constants.js":2,"./content.js":3,"./custom.js":4,"./models/Post.js":6,"./models/Stat.js":7,"./models/Tile.js":8,"./settings.js":9,"./utils.js":10,"./views/module/LookBack.js":11,"./views/module/Monitoring.js":12,"./views/module/RandomStream.js":13,"./views/module/SearchStream.js":14,"./views/module/Stream.js":15,"./views/module/Tile.js":16,"./views/page/CategoryPage.js":17,"./views/page/FrontPage.js":18,"./views/page/SinglePage.js":19}],6:[function(require,module,exports){
+},{"./constants.js":1,"./content.js":2,"./models/Post.js":4,"./models/Stat.js":5,"./models/Tile.js":6,"./settings.js":7,"./utils.js":8,"./views/LookBack.js":9,"./views/RandomStream.js":10,"./views/SearchStream.js":11,"./views/Stream.js":12,"./views/Tile.js":13}],4:[function(require,module,exports){
 NIO.models.Post = Backbone.Model.extend({
-	
+
 	initialize: function(args) {
 		args = args || {};
 
@@ -1481,16 +678,16 @@ NIO.models.Post = Backbone.Model.extend({
 				}
 			}
 		}
-		
+
 		var shortenedTextLength = 145;
 		var shortenedText = this.get('text').substr(0, shortenedTextLength);
-	    if (shortenedText !== this.get('text')) {
-		    shortenedText = shortenedText.substr(0, Math.min(shortenedText.length, shortenedText.lastIndexOf(" ")));
-	    	shortenedText += '&hellip; (more)';
-	    }
+		if (shortenedText !== this.get('text')) {
+			shortenedText = shortenedText.substr(0, Math.min(shortenedText.length, shortenedText.lastIndexOf(" ")));
+			shortenedText += '&hellip; (more)';
+		}
 		this.set('shortenedText', shortenedText);
 	},
-	
+
 	defaults: {
 		id                : 0,
 		id_value          : 1,
@@ -1507,14 +704,14 @@ NIO.models.Post = Backbone.Model.extend({
 		status_flag       : '',
 		seconds_ago       : 360000
 	},
-	
+
 	testImage: function(url) {
 	var self = this;
     var img = new Image();
-	    img.onload = function() {
-	    	self.set('profile_image_url', url);
-	    };
-	    img.onerror = function() {
+		img.onload = function() {
+			self.set('profile_image_url', url);
+		};
+		img.onerror = function() {
 			switch (self.get('type')) {
 				case 'twitter-photo':
 				case 'instagram':
@@ -1529,29 +726,30 @@ NIO.models.Post = Backbone.Model.extend({
 				default:
 					self.set('profile_image_url', '/wp-content/themes/wp-theme/images/profile-default.png');
 			}
-	    };
-	    img.src = url;
+		};
+		img.src = url;
 	}
-	
+
 });
 
 NIO.collections.Posts = Backbone.Collection.extend({
-	
+
 	model: NIO.models.Post,
-	
+
 });
 
 NIO.models.PostDictionary = Backbone.Model.extend({
-	
-	initialize: function() {
+
+	initialize: function(serviceHost) {
 		this.posts = new NIO.collections.Posts();
+		this.serviceHost = serviceHost
 	},
-	
+
 	url: function() {
-		return 'http://' + App.settings.serviceHost + '/posts';
+		return 'http://' + this.serviceHost + '/posts';
 		// return 'http://127.0.0.1:8123/posts';
 	},
-	
+
 	defaults: {
 		count: 0,
 		offset: 0,
@@ -1559,11 +757,11 @@ NIO.models.PostDictionary = Backbone.Model.extend({
 		total: 0,
 		posts: new NIO.collections.Posts()
 	}
-	
+
 });
 
 
-},{}],7:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 NIO.models.Stat = Backbone.Model.extend({
 	
 	defaults: {
@@ -1586,7 +784,7 @@ NIO.collections.Stats = Backbone.Collection.extend({
 	
 });
 
-},{}],8:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 NIO.models.Tile = Backbone.Model.extend({
 
     defaults: {
@@ -1595,7 +793,7 @@ NIO.models.Tile = Backbone.Model.extend({
         cols           : 1,
         minPriority    : 1,
         maxPriority    : 5,
-        
+
         // Minimum duration when being replaced by an old tile
         minOldDuration: 10,
 
@@ -1614,13 +812,13 @@ NIO.models.Tile = Backbone.Model.extend({
     },
 
     resetDurations: function() {
-        this.set('minNewDuration', App.settings.tileDurations.minn);
-        var randOffset = App.settings.tileDurations['randomOffset'],
-            configuredMin = App.settings.tileDurations['min'],
+        this.set('minNewDuration', NIO.settings.tileDurations.minn);
+        var randOffset = NIO.settings.tileDurations['randomOffset'],
+            configuredMin = NIO.settings.tileDurations['min'],
             minOld = configuredMin + (1.0 - 2 * Math.random()) * randOffset;
-    
+
         this.set('minOldDuration', minOld);
-        this.set('maxDuration', this.get('minOldDuration') * App.settings.tileDurations['minMultiplier']);
+        this.set('maxDuration', this.get('minOldDuration') * NIO.settings.tileDurations['minMultiplier']);
     }
 
 });
@@ -1631,19 +829,19 @@ NIO.collections.Tiles = Backbone.Collection.extend({
 
 });
 
-},{}],9:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 NIO.utils.extendGlobal('NIO.settings', {
 
-    socketHost: '54.85.159.254:443',
-    
-    serviceHost: '54.85.159.254',
-    
+    socketHost: null,
+
+    serviceHost: null,
+
     tileHeight: 226,
-    
+
     tileWidth: 248,
-    
+
     tileDurations: {
-        
+
         // Minimum duration when being replaced by an old tile
         min: 13,
 
@@ -1659,14 +857,14 @@ NIO.utils.extendGlobal('NIO.settings', {
 
 });
 
-},{}],10:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 var $ = jQuery;
 
 NIO.utils.extendGlobal('NIO.utils', {
 
 	log: function(message) {
         if (window.console) {
-        	console.log(message);
+			console.log(message);
         };
 	},
 
@@ -1692,7 +890,7 @@ NIO.utils.extendGlobal('NIO.utils', {
 
     useStaticData: function() {
         var testData = NIO.utils.getParameterByName('testdata');
-        if ('on' === testData && ('local' === App.constants.environment || 'dev' === App.constants.environment)) {
+        if ('on' === testData && ('local' === NIO.constants.environment || 'dev' === NIO.constants.environment)) {
             return true;
         }
         return false;
@@ -1711,13 +909,13 @@ NIO.utils.extendGlobal('NIO.utils', {
 
 
     /**
-     * Return a clone of the USStates array.  
+     * Return a clone of the USStates array.
      * This is so that the resulting array may be modified without affecting the original.
      * @returns {Array}
      */
     getUSStates: function() {
         var returnArr = [];
-        _.each(App.constants.USStates, function(item, index) {
+        _.each(NIO.constants.USStates, function(item, index) {
             returnArr.push(_.clone(item));
         });
         return returnArr;
@@ -1729,7 +927,7 @@ NIO.utils.extendGlobal('NIO.utils', {
      */
     getCAProvinces: function() {
         var returnArr = [];
-        _.each(App.constants.CAProvinces, function(item, index) {
+        _.each(NIO.constants.CAProvinces, function(item, index) {
             returnArr.push(_.clone(item));
         });
         return returnArr;
@@ -1741,7 +939,7 @@ NIO.utils.extendGlobal('NIO.utils', {
      */
     getCountries: function() {
         var returnArr = [];
-        _.each(App.constants.countries, function(item, index) {
+        _.each(NIO.constants.countries, function(item, index) {
             returnArr.push(_.clone(item));
         });
         return returnArr;
@@ -1753,7 +951,7 @@ NIO.utils.extendGlobal('NIO.utils', {
      */
     getISDCodes: function() {
         var returnArr = [];
-        _.each(App.constants.ISDCodes, function(item, index) {
+        _.each(NIO.constants.ISDCodes, function(item, index) {
             returnArr.push(_.clone(item));
         });
         return returnArr;
@@ -1762,13 +960,13 @@ NIO.utils.extendGlobal('NIO.utils', {
     getCurrentTime: function() {
         if (Date.now) {
             return Math.round(Date.now() / 1000);
-       	}
+		}
         return Math.round(new Date().getTime() / 1000);
     },
 
-    connectToWebSocket: function(room) {
-    	var namespace = null;
-    	var socket = null;
+    connectToWebSocket: function(host, room) {
+		var namespace = null;
+		var socket = null;
 
         try {
 			// TODO: Settle on a good IE-safe console.log and console.error.  Uncomment these when done.
@@ -1776,17 +974,17 @@ NIO.utils.extendGlobal('NIO.utils', {
 
             var room = room || 'default';
 
-            namespace = io.connect('http://' + App.settings.socketHost, {'force new connection': true});
+            namespace = io.connect('http://' + host, {'force new connection': true});
 			socket = namespace.socket;
             socket.on('connect', function(data) {
                 // console.log("connected to room " + room);
                 namespace.emit('ready', room);
             });
             socket.on('connect_failed', function(data) {
-            	// console.log('connection failed');
+				// console.log('connection failed');
             });
             socket.on('error', function(data) {
-            	// console.log('connection error');
+				// console.log('connection error');
             });
 
         } catch(e) {
@@ -1800,13 +998,13 @@ NIO.utils.extendGlobal('NIO.utils', {
     /**
     * This will generate the HTML for a tile with a default 'blank' content.
     * It will also create the tile model, add the tile to the calling object's
-    * array of tiles, and display it on the page.  
+    * array of tiles, and display it on the page.
     */
     generateTile: function(ctx, tileArgs, contentArgs) {
 
         var contentModel = ctx.contentModel || NIO.models.Post,
             tileContent = new contentModel(contentArgs);
-        
+
         tileContent.set('seconds_ago', moment().diff(tileContent.get('time')), 'seconds');
 
         tileArgs = tileArgs || {};
@@ -1830,7 +1028,7 @@ NIO.utils.extendGlobal('NIO.utils', {
             return myPriority >= prioritySpec;
         }
     },
-	
+
     /***
      * Returns whether or not type is contained in the types list
      * Specify return_on_empty with what to return if the list is empty
@@ -1862,23 +1060,23 @@ NIO.utils.extendGlobal('NIO.utils', {
 
         return [theMin, theMax];
     },
-	    
+
     findAvailableTile: function(tiles, content) {
-    	
+
         var availableTiles = [],
             currentScore = {
                 afterMax: -1, //number of seconds after the max
                 minMaxPct: 0.0 //percent of the way into the range
             };
-        
+
         // console.log("Finding an available tile for " + type + " - " + priority);
         for (var i=0; i<tiles.length; i++) {
             var tile = tiles[i],
-            	tileModel = tile.model,
+				tileModel = tile.model,
                 tileDiv = tile.$el;
-            
-            var tileLocked = (tileDiv.hasClass("locked-click") || 
-                                tileDiv.hasClass("locked-mouse") || 
+
+            var tileLocked = (tileDiv.hasClass("locked-click") ||
+                                tileDiv.hasClass("locked-mouse") ||
                                 tileDiv.hasClass("flipped")) ||
                                 tileDiv.hasClass("tile-full");
 
@@ -1886,28 +1084,28 @@ NIO.utils.extendGlobal('NIO.utils', {
                 // blank tiles can't be locked
                 tileLocked = false;
             }
-                                
-	        var tileDuration = App.utils.getCurrentTime() - tileModel.get('time'),
-	            priorityDurations = App.utils.getTileDurations(tileModel, content.get('flag')),
-	            tileDurationAfterMin = tileDuration - priorityDurations[0],
-	            tileDurationAfterMax = tileDuration - priorityDurations[1],
-	            myDurationPct = tileDurationAfterMin / (tileDurationAfterMin - tileDurationAfterMax);
 
-		    // console.log(tileModel.get('time'));
+			var tileDuration = NIO.utils.getCurrentTime() - tileModel.get('time'),
+				priorityDurations = NIO.utils.getTileDurations(tileModel, content.get('flag')),
+				tileDurationAfterMin = tileDuration - priorityDurations[0],
+				tileDurationAfterMax = tileDuration - priorityDurations[1],
+				myDurationPct = tileDurationAfterMin / (tileDurationAfterMin - tileDurationAfterMax);
 
-	        var setTile = function() {
-	            availableTiles = [tile];
-	            currentScore = {
-	                afterMax: tileDurationAfterMax,
-	                minMaxPct: myDurationPct
-	            };
-	        };
-	
+			// console.log(tileModel.get('time'));
+
+			var setTile = function() {
+				availableTiles = [tile];
+				currentScore = {
+					afterMax: tileDurationAfterMax,
+					minMaxPct: myDurationPct
+				};
+			};
+
             // console.log("Checking tile...");
 
             // Check if the tile already exists here
             if (tileModel.get('content').get('id') == content.get('id')) {
-            	
+
                 if (tileModel.get('content').get('id_value') == content.get('id_value') || tileLocked) {
                     // It has the same ID and has the same data, we aren't going to replace ANY tile
                     // OR
@@ -1920,69 +1118,69 @@ NIO.utils.extendGlobal('NIO.utils', {
                     // It has the same ID but has new data, return this tile for updating
                     return tile;
                 }
-                
+
             } else { // We know it's not our original tile.
-            	
-            	if (tileLocked) {
-	                // The tile is locked, move along
-	                continue;
-	            }
 
-	            // Check the priority matches the spec for this tile
-	            if ((! App.utils.checkPriority(tileModel.get('minPriority'), content.get('priority'), false)) ||
-	                (! App.utils.checkPriority(tileModel.get('maxPriority'), content.get('priority'), true))) {
-	                // console.log("Priority doesn't match");
-	                continue;
-	            }
-	
-	            // Check if the tile type is not in the available types
-	            if (! App.utils.typesContains(tileModel.get('availableTypes'), content.get('type'), true)) {
-	                // console.log("Tile type not included");
-	                continue;
-	            }
-	
-	            // Check if the tile type is in the excluded types
-	            if (App.utils.typesContains(tileModel.get('excludedTypes'), content.get('type'), false)) {
-	                // console.log("Tile type excluded");
-	                continue;
-	            }
+				if (tileLocked) {
+					// The tile is locked, move along
+					continue;
+				}
 
-	            if (tileDurationAfterMin < 0) {
-	                // We haven't had the minimum time yet on this tile
-	                // console.log("Tile hasn't hit minimum");
-	                continue;
-	            }
+				// Check the priority matches the spec for this tile
+				if ((! NIO.utils.checkPriority(tileModel.get('minPriority'), content.get('priority'), false)) ||
+					(! NIO.utils.checkPriority(tileModel.get('maxPriority'), content.get('priority'), true))) {
+					// console.log("Priority doesn't match");
+					continue;
+				}
 
-	            if (currentScore.afterMax > 0) {
-	                // The current one is after the max, we better be too then
-	                if (tileDurationAfterMax > currentScore.afterMax) {
-	                    // This tile is more after the max than the previous tile, so it's useable
-	                    setTile();
-	                } else if (tileDurationAfterMax == currentScore.afterMax) {
-	                    // we have an after max tie, join the party!
-	                    availableTiles.push(tile);
-	                } else {
-	                    // we are after max, but not as much so as the best option(s)
-	                }
-	                continue;
-	            }
+				// Check if the tile type is not in the available types
+				if (! NIO.utils.typesContains(tileModel.get('availableTypes'), content.get('type'), true)) {
+					// console.log("Tile type not included");
+					continue;
+				}
 
-	            if (tileDurationAfterMax > 0) {
-	                // we are after the max and no one else is, use this tile
-	                setTile();
-	                continue;
-	            }
+				// Check if the tile type is in the excluded types
+				if (NIO.utils.typesContains(tileModel.get('excludedTypes'), content.get('type'), false)) {
+					// console.log("Tile type excluded");
+					continue;
+				}
 
-	            // If we are here, that means we are after the min but before the max
-	            
-	            // Nothing available yet, I guess that's me!
-	            if (availableTiles.length == 0) {
-	                setTile();
-	                continue;
-	            }
+				if (tileDurationAfterMin < 0) {
+					// We haven't had the minimum time yet on this tile
+					// console.log("Tile hasn't hit minimum");
+					continue;
+				}
+
+				if (currentScore.afterMax > 0) {
+					// The current one is after the max, we better be too then
+					if (tileDurationAfterMax > currentScore.afterMax) {
+						// This tile is more after the max than the previous tile, so it's useable
+						setTile();
+					} else if (tileDurationAfterMax == currentScore.afterMax) {
+						// we have an after max tie, join the party!
+						availableTiles.push(tile);
+					} else {
+						// we are after max, but not as much so as the best option(s)
+					}
+					continue;
+				}
+
+				if (tileDurationAfterMax > 0) {
+					// we are after the max and no one else is, use this tile
+					setTile();
+					continue;
+				}
+
+				// If we are here, that means we are after the min but before the max
+
+				// Nothing available yet, I guess that's me!
+				if (availableTiles.length == 0) {
+					setTile();
+					continue;
+				}
 
 			}
-			
+
             // Find out if we are more replaceable than the current one
             // by comparing how far into the range [minDuration, maxDuration] we are
             var myDurationPct = tileDurationAfterMin / (tileDurationAfterMin - tileDurationAfterMax),
@@ -2000,7 +1198,7 @@ NIO.utils.extendGlobal('NIO.utils', {
             // console.log('no available tiles');
             return false;
         } else {
-        	// console.log('random tile');
+			// console.log('random tile');
             // return a random tile from the list of possibles
             return availableTiles[Math.floor(Math.random() * availableTiles.length)];
         }
@@ -2010,8 +1208,8 @@ NIO.utils.extendGlobal('NIO.utils', {
 
 		var content = new model(oMsg);
 		// console.log('content: ', content);
-        
-        var tileToReplace = App.utils.findAvailableTile(tiles, content);
+
+        var tileToReplace = NIO.utils.findAvailableTile(tiles, content);
 
         if (!tileToReplace) {
             // console.log("No available tile for " + oMsg);
@@ -2019,7 +1217,7 @@ NIO.utils.extendGlobal('NIO.utils', {
         }
 
 		var tile = tileToReplace.model;
-		// console.log('tile: ', tile);		
+		// console.log('tile: ', tile);
 
         // Define what swap function we want to use
         // var swapFunc = App.utils.swapTile;
@@ -2029,26 +1227,50 @@ NIO.utils.extendGlobal('NIO.utils', {
         // }
 
         tile.set({
-            'time': App.utils.getCurrentTime(),
+            'time': NIO.utils.getCurrentTime(),
             'content': content
         });
         tile.resetDurations();
-            
+
         return tileToReplace;
+    },
+
+    launchPlayer: function(playerDiv) {
+        var videoId = playerDiv.attr('id');
+
+        player = new YT.Player(videoId, {
+            height: '100%',
+            width: '100%',
+            videoId: videoId,
+            events: {
+                'onReady': function(e) {
+                    if (!NIO.utils.isMobileBrowser()) {
+                        e.target.playVideo();
+                    }
+                }
+            }
+        });
+    },
+
+    isMobileBrowser: function() {
+        var check = false;
+        (function(a){if(/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows (ce|phone)|xda|xiino/i.test(a)||/1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(a.substr(0,4)))check = true})(navigator.userAgent||navigator.vendor||window.opera);
+        return check;
     }
+
 
 });
 
-},{}],11:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 NIO.views.LookBack = Backbone.View.extend({
-	
+
 	initialize: function(args) {
 		_.bindAll(this);
 		var self = this;
 
 		this.contentModel = NIO.models.Post;
-		
-		this.initializeTiles(args);		
+
+		this.initializeTiles(args);
 	},
 
 	initializeTiles: function(args) {
@@ -2057,12 +1279,12 @@ NIO.views.LookBack = Backbone.View.extend({
 			numTiles = args.numTiles || 16,
 			maxDate = args.maxDate || moment().utc(),
 			daysLookBack = args.daysLookBack || 1;
-		
+
 		this.tiles = [];
 		this.numTiles = numTiles;
 		this.maxDate = maxDate;
         this.minDate = moment(maxDate).subtract('days', daysLookBack);
-		
+
 		this.xhr = this.model.fetch({
 			data: {
 				limit: this.numTiles,
@@ -2074,17 +1296,17 @@ NIO.views.LookBack = Backbone.View.extend({
 		this.xhr.done(self.populateTiles);
 
 	},
-	
+
 	events: {},
-	
+
 	populateTiles: function(oResponse) {
 
 		var self = this;
 
 		jQuery('.body', this.$el).html(''); // clear current tiles
-		
+
 		var posts = oResponse.posts;
-		
+
 		if (posts.length == 0) {
 			$('.body', this.$el).append([
 				'<div class="no-results">',
@@ -2093,87 +1315,27 @@ NIO.views.LookBack = Backbone.View.extend({
 			].join('\n'));
 			return;
 		}
-		
+
 		_.each(posts, function(post, index) {
-			
-			var tile = App.utils.generateTile(this, {}, post);
-			
+
+			var tile = NIO.utils.generateTile(this, {}, post);
+
 			$('.body', self.$el).append(tile.el);
-			
+
 		});
 
 		// console.log('CUSearch tiles:', this.tiles);
 	}
-	
+
 });
 
-},{}],12:[function(require,module,exports){
-NIO.views.Monitoring = Backbone.View.extend({
-	
-	initialize: function(args) {
-		_.bindAll(this);
-		var self = this;
-		
-		this.contentModel = NIO.models.Stat;
-		
-		this.tiles = [];
-		
-		this.numTiles = 18;
-		
-		var contentConfig = [
-			{ id: 'time- twitter'         },
-			{ id: 'counts- twitter'       },
-			{ id: 'time- twitter-photo'   },
-			{ id: 'counts- twitter-photo' },
-			{ id: 'time- linkedin'        },
-			{ id: 'counts- linkedin'      },
-			{ id: 'time- gplus'           },
-			{ id: 'counts- gplus'         },
-			{ id: 'time- youtube'         },
-			{ id: 'counts- youtube'       },
-			{ id: 'time- facebook'        },
-			{ id: 'counts- facebook'      },
-			{ id: 'time- instagram'       },
-			{ id: 'counts- instagram'     },
-			{ id: 'time- rss'             },
-			{ id: 'counts- rss'           },
-			{ id: 'disk'                  },
-			{ id: 'cpu'                   }
-		];
-		
-		_.each(contentConfig, jQuery.proxy(function(config, index) {
-			
-			// console.log(this.$el);
-			
-			var tile = App.utils.generateTile(this, {
-				availableTypes: ['stat-count', 'stat-time', 'stat-percent']
-			}, config)
-			
-			this.$el.append(tile.el);
-						
-			this.tiles.push(tile);
-			
-		}), this);
-		
-		var bNewConnection = !App.sockets['monitoring'];
-		if (bNewConnection) {
-			App.sockets['monitoring'] = App.utils.connectToWebSocket('monitoring', bNewConnection);
-		}
-		App.sockets['monitoring'].on('recvData', function(msg) {
-			App.utils.handleTileContent(self.tiles, msg, NIO.models.Stat);
-		});
-		
-	}
-	
-});
-
-},{}],13:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 NIO.views.RandomStream = NIO.views.Stream.extend({
 
     handlePost: function(post) {
         if (this.names.length === 0 || _.indexOf(this.names, post.name) != -1) {
             if (this.types.length === 0 || _.indexOf(this.types, post.type) != -1) {
-                var tile = App.utils.handleTileContent(this.tiles, post, NIO.models.Post);
+                var tile = NIO.utils.handleTileContent(this.tiles, post, NIO.models.Post);
                 if (tile) {
 					// console.log(tile);
 					tile.on('filterByUser', this.filterByUser);
@@ -2214,7 +1376,7 @@ NIO.views.RandomStream = NIO.views.Stream.extend({
                         tileArgs['maxPriority'] = 5 - Math.floor(row / 2);
                     }
 
-                    var tile = App.utils.generateTile(this, tileArgs, {});
+                    var tile = NIO.utils.generateTile(this, tileArgs, {});
                     this.$el.append(tile.el);
                     this.tiles.push(tile);
 					//console.log('push tile', tile, tile.el, this.$el)
@@ -2228,30 +1390,30 @@ NIO.views.RandomStream = NIO.views.Stream.extend({
 
 });
 
-},{}],14:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 NIO.views.SearchStream = NIO.views.Stream.extend({
 
     handlePost: function(post) {
         var msgTime = moment(post.time);
 		if (this.names.length === 0 || _.indexOf(this.names, post.name) != -1) {
-	        if (this.types.length === 0 || _.indexOf(this.types, post.type) != -1) {
-	            if (post.flag == 'new') {
-	                if (msgTime.isSame(this.latestTime)) {
-	                    // compare the ids.  if they don't match, then display it.
-	                    // there will need to be some logic to make sure we don't have a string 
-	                    // of posts with the exact same moment.  Maybe we should keep a simple 
-	                    // array of all the ids.  Otherwise we could repeat the second-to-last 
-	                    // post, USW.
-	                } else if (msgTime.isAfter(this.latestTime)) {
-	                    this.tileCount++;
-	                    this.latestTime = msgTime;
-	                    var tile = App.utils.generateTile(this, {}, post);
-	                    this.tiles.push(tile);
-	                    this.$el.prepend(tile.el);
-	                    // this.$el.closest('.js-packery').data('packery').layout();
-	                }
-	            }
-	        }
+			if (this.types.length === 0 || _.indexOf(this.types, post.type) != -1) {
+				if (post.flag == 'new') {
+					if (msgTime.isSame(this.latestTime)) {
+						// compare the ids.  if they don't match, then display it.
+						// there will need to be some logic to make sure we don't have a string
+						// of posts with the exact same moment.  Maybe we should keep a simple
+						// array of all the ids.  Otherwise we could repeat the second-to-last
+						// post, USW.
+					} else if (msgTime.isAfter(this.latestTime)) {
+						this.tileCount++;
+						this.latestTime = msgTime;
+						var tile = NIO.utils.generateTile(this, {}, post);
+						this.tiles.push(tile);
+						this.$el.prepend(tile.el);
+						// this.$el.closest('.js-packery').data('packery').layout();
+					}
+				}
+			}
         }
     },
 
@@ -2261,8 +1423,8 @@ NIO.views.SearchStream = NIO.views.Stream.extend({
 
         xhr.done(function(oResponse) {
             self.setupSocket();
-            
-            // every second, change the seconds_ago property on 
+
+            // every second, change the seconds_ago property on
             // the content, forcing the tile to re-render.
             /* TO DISABLE TIME-AGO UPDATING, COMMENT FROM HERE */
             self.interval = setInterval(function() {
@@ -2280,7 +1442,7 @@ NIO.views.SearchStream = NIO.views.Stream.extend({
 
 });
 
-},{}],15:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 NIO.views.Stream = Backbone.View.extend({
 
 	// tagName: 'div',
@@ -2289,13 +1451,14 @@ NIO.views.Stream = Backbone.View.extend({
 	// attributes: {
 		// 'data-packery-options' : '{"itemSelector":".tile"}'
 	// },
-	model: new NIO.models.PostDictionary(),
-
     initialize: function(args) {
         _.bindAll(this);
 
 		this.types = [];
 		this.names = [];
+		this.socketHost = args.socketHost
+		this.serviceHost = args.serviceHost
+		this.model = new NIO.models.PostDictionary(this.serviceHost)
 
         this.contentModel = NIO.models.Post;
 
@@ -2325,39 +1488,35 @@ NIO.views.Stream = Backbone.View.extend({
         // Connect to the socket.  Force a new connection only if
         // there's not an existing connection.
         // console.log(bNewConnection, App.sockets);
-        if (!('default' in App.sockets)) {
-            App.sockets['default'] = App.utils.connectToWebSocket('default');
-        }
-        App.sockets['default'].on('recvData', this.handleMsg);
-        App.sockets['default'].socket.on('error', this.showFetchError);
-        App.sockets['default'].socket.on('connect_failed', this.showFetchError);
+		if (!this.ws)
+            this.ws = NIO.utils.connectToWebSocket(this.socketHost, 'default');
+        this.ws.on('recvData', this.handleMsg);
+        this.ws.socket.on('error', this.showFetchError);
+        this.ws.socket.on('connect_failed', this.showFetchError);
     },
 
     killEvents: function() {
-        var self = this;
         //TODO: this interval only needs to be cleared in the SearchStream.
-        window.clearInterval(self.interval);
-        App.sockets['default'].removeAllListeners('recvData');
+        window.clearInterval(this.interval)
+        this.ws.removeAllListeners('recvData')
     },
 
     getNumRows: function() {
         /** Returns the number of rows based on the available space **/
-        //var height = jQuery('.main-content-wrap').height();
 		//TODO: revert this
-		var height = 1000
-        var numRows = Math.ceil(height/App.settings.tileHeight);
-
-        return Math.min(11, numRows);
+        //var height = jQuery('.main-content-wrap').height();
+        //var numRows = Math.ceil(height/App.settings.tileHeight);
+        //return Math.min(11, numRows);
+		return 5
     },
 
     getNumCols: function() {
         /** Returns the number of columns for tiles based on the available space **/
-        //var width = this.$el.width();
 		//TODO: revert this
-		var width = 1000
-        var numCols = Math.floor(width/App.settings.tileWidth);
-
-        return numCols;
+        //var width = this.$el.width();
+        //var numCols = Math.floor(width/App.settings.tileWidth);
+        //return numCols;
+		return 3
     },
 
     fetchTiles: function(args) {
@@ -2405,7 +1564,7 @@ NIO.views.Stream = Backbone.View.extend({
 
         _.each(posts, function(post, index) {
 
-            var tile = App.utils.generateTile(self, {}, post);
+            var tile = NIO.utils.generateTile(self, {}, post);
             var content = tile.model.get('content');
             var contentTime = moment(content.get('time'));
             if (contentTime.isAfter(self.latestTime)) {
@@ -2442,7 +1601,7 @@ NIO.views.Stream = Backbone.View.extend({
 
 });
 
-},{}],16:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 NIO.views.Tile = Backbone.View.extend({
 
 	tagName: 'div',
@@ -2549,32 +1708,6 @@ NIO.views.Tile = Backbone.View.extend({
         ev.stopPropagation();
     },
 
-    // TODO: should go into App.utils
-    launchPlayer: function(playerDiv) {
-        var self = this;
-        var videoId = playerDiv.attr('id');
-
-        player = new YT.Player(videoId, {
-            height: '100%',
-            width: '100%',
-            videoId: videoId,
-            events: {
-                'onReady': function(e) {
-                    if (! self.isMobileBrowser()) {
-                        e.target.playVideo();
-                    }
-                }
-            }
-        });
-    },
-
-    // TODO: should go into App.utils
-    isMobileBrowser: function() {
-        var check = false;
-        (function(a){if(/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows (ce|phone)|xda|xiino/i.test(a)||/1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(a.substr(0,4)))check = true})(navigator.userAgent||navigator.vendor||window.opera);
-        return check;
-    },
-
     openContent: function(ev) {
         ev.preventDefault();
         ev.stopPropagation();
@@ -2586,7 +1719,6 @@ NIO.views.Tile = Backbone.View.extend({
     },
 
     closeTile: function(ev) {
-        var self = this;
         ev.preventDefault();
         ev.stopPropagation();
 
@@ -2650,132 +1782,4 @@ NIO.views.Tile = Backbone.View.extend({
 
 });
 
-},{}],17:[function(require,module,exports){
-NIO.views.CategoryPage = Backbone.View.extend({
-	
-	initialize: function(args) {
-		_.bindAll(this);
-		var self = this;
-		
-		this.args = {};
-	}
-	
-});
-
-},{}],18:[function(require,module,exports){
-NIO.views.FrontPage = Backbone.View.extend({
-
-	initialize: function(args) {
-		_.bindAll(this);
-		var self = this;
-
-		this.args = {};
-		this.streamView = 'RandomStream';
-
-		this.initializeViews();
-		this.initializeListeners();
-	},
-
-	initializeListeners: function() {
-		// $(window).on('resize', this.refreshViews);
-		this.Stream.on('filterByUser', this.filterByUser);
-	},
-
-	filterByUser: function(args) {
-		// console.log('triggered filterByUser in Page');
-		this.Header.filterByUser(args);
-	},
-
-	switchViews: function(args) {
-		args = args || this.args;
-		this.args = args;
-		// console.log(args);
-		// this.Stream.remove();
-		// TODO: I would like to use remove() here but it gets rid of the view's el as well.
-		this.Stream.$el.html('');
-		this.Stream.killEvents();
-		this.Stream.stopListening();
-		this.Stream.undelegateEvents();
-		this.Stream = new NIO.views[args.view]({
-			el: '#nio_stream_div'
-		});
-	},
-
-	refreshViews: function(args) {
-		// console.log('refreshViews args: ', args);
-		if (args.originalEvent) { args = {}; }
-		args = args || this.args;
-		this.args = args;
-		this.Stream.renderTiles(args);
-	},
-
-	initializeViews: function() {
-		this.Stream = new NIO.views[this.streamView]({
-			el: '#nio_stream_div'
-		});
-	},
-
-    getStartOfToday: function() {
-        return moment().hours(0).minutes(0).seconds(0).utc();
-    }
-
-});
-
-},{}],19:[function(require,module,exports){
-NIO.views.SinglePage = Backbone.View.extend({
-
-	initialize: function(args) {
-		_.bindAll(this);
-		this.args = {};
-		this.initializeViews();
-		this.initializeListeners();
-	},
-
-	initializeListeners: function() {
-		var self = this;
-
-		this.Stream.on('filterByUser', this.filterByUser);
-	},
-
-	filterByUser: function(args) {
-		// console.log('triggered filterByUser in Page');
-		//this.Header.filterByUser(args);
-	},
-
-	switchViews: function(args) {
-		args = args || this.args;
-		this.args = args;
-		// console.log(args);
-		// this.Stream.remove();
-		// TODO: I would like to use remove() here but it gets rid of the view's el as well.
-		this.Stream.$el.html('');
-		this.Stream.killEvents();
-		this.Stream.stopListening();
-		this.Stream.undelegateEvents();
-		this.Stream = new NIO.views[args.view]({
-			el: '#nio_stream_div'
-		});
-	},
-
-	refreshViews: function(args) {
-		// console.log('refreshViews args: ', args);
-		if (args.originalEvent) { args = {}; }
-		args = args || this.args;
-		this.args = args;
-		this.Stream.renderTiles(args);
-	},
-
-	initializeViews: function() {
-
-		this.Stream = new NIO.views.RandomStream({
-			el: '#nio_stream_div'
-		});
-	},
-
-    getStartOfToday: function() {
-        return moment().hours(0).minutes(0).seconds(0).utc();
-    }
-
-});
-
-},{}]},{},[5])
+},{}]},{},[3])

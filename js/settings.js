@@ -1,15 +1,15 @@
 NIO.utils.extendGlobal('NIO.settings', {
 
-    socketHost: '54.85.159.254:443',
-    
-    serviceHost: '54.85.159.254',
-    
+    socketHost: null,
+
+    serviceHost: null,
+
     tileHeight: 226,
-    
+
     tileWidth: 248,
-    
+
     tileDurations: {
-        
+
         // Minimum duration when being replaced by an old tile
         min: 13,
 

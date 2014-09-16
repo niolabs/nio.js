@@ -1,12 +1,12 @@
 NIO.views.LookBack = Backbone.View.extend({
-	
+
 	initialize: function(args) {
 		_.bindAll(this);
 		var self = this;
 
 		this.contentModel = NIO.models.Post;
-		
-		this.initializeTiles(args);		
+
+		this.initializeTiles(args);
 	},
 
 	initializeTiles: function(args) {
@@ -15,12 +15,12 @@ NIO.views.LookBack = Backbone.View.extend({
 			numTiles = args.numTiles || 16,
 			maxDate = args.maxDate || moment().utc(),
 			daysLookBack = args.daysLookBack || 1;
-		
+
 		this.tiles = [];
 		this.numTiles = numTiles;
 		this.maxDate = maxDate;
         this.minDate = moment(maxDate).subtract('days', daysLookBack);
-		
+
 		this.xhr = this.model.fetch({
 			data: {
 				limit: this.numTiles,
@@ -32,17 +32,17 @@ NIO.views.LookBack = Backbone.View.extend({
 		this.xhr.done(self.populateTiles);
 
 	},
-	
+
 	events: {},
-	
+
 	populateTiles: function(oResponse) {
 
 		var self = this;
 
 		jQuery('.body', this.$el).html(''); // clear current tiles
-		
+
 		var posts = oResponse.posts;
-		
+
 		if (posts.length == 0) {
 			$('.body', this.$el).append([
 				'<div class="no-results">',
@@ -51,16 +51,16 @@ NIO.views.LookBack = Backbone.View.extend({
 			].join('\n'));
 			return;
 		}
-		
+
 		_.each(posts, function(post, index) {
-			
-			var tile = App.utils.generateTile(this, {}, post);
-			
+
+			var tile = NIO.utils.generateTile(this, {}, post);
+
 			$('.body', self.$el).append(tile.el);
-			
+
 		});
 
 		// console.log('CUSearch tiles:', this.tiles);
 	}
-	
+
 });
