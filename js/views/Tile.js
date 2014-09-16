@@ -168,6 +168,22 @@ nio.views.Tile = Backbone.View.extend({
 
     },
 
+    launchPlayer: function(playerDiv) {
+        var videoId = playerDiv.attr('id');
+        var player = new YT.Player(videoId, {
+            height: '100%',
+            width: '100%',
+            videoId: videoId,
+            events: {
+                'onReady': function(e) {
+                    if (!nio.utils.isMobileBrowser()) {
+                        e.target.playVideo();
+                    }
+                }
+            }
+        });
+    },
+
     lockTile: function(ev) {
         this.$el.addClass('locked-mouse');
     },

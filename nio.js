@@ -298,45 +298,6 @@ var htmlTemplates = htmlTemplates || {};htmlTemplates['youtube.html'] = '<div cl
     '';
 
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-nio.utils.extendGlobal('nio.constants', {
-
-    scrollBarWidth: (function () {
-        var inner = document.createElement('p');
-        inner.style.width = "100%";
-        inner.style.height = "200px";
-
-        var outer = document.createElement('div');
-        outer.style.position = "absolute";
-        outer.style.top = "0px";
-        outer.style.left = "0px";
-        outer.style.visibility = "hidden";
-        outer.style.width = "200px";
-        outer.style.height = "150px";
-        outer.style.overflow = "hidden";
-        outer.appendChild (inner);
-
-        // TODO: remove this conditional when all of the js is loaded at the end of the DOM
-        if (!document.body) {
-            return false;
-        }
-
-        document.body.appendChild (outer);
-        var w1 = inner.offsetWidth;
-        outer.style.overflow = 'scroll';
-        var w2 = inner.offsetWidth;
-        if (w1 == w2) w2 = outer.clientWidth;
-
-        document.body.removeChild (outer);
-
-        return (w1 - w2);
-    })(),
-
-    currentHost: (function() {
-        return window.location.host.replace('www.','');
-    })(),
-});
-
-},{}],2:[function(require,module,exports){
 window.$ = jQuery;
 window.compiledTemplates = {};
 
@@ -493,7 +454,7 @@ function makeTile(tileType, rows, cols, data) {
         .html(compiledTemplates[tileType](data));
 }
 
-},{}],3:[function(require,module,exports){
+},{}],2:[function(require,module,exports){
 /**
  * Set up the major namespaces.
  * The following function uses _.extend internally but also creates each
@@ -514,26 +475,19 @@ function makeTile(tileType, rows, cols, data) {
 	extendGlobal('nio.utils', {
 		extendGlobal: extendGlobal
 	});
-
-
-	nio.utils.extendGlobal('nio.staticData', {});
-	nio.utils.extendGlobal('nio.constants', {});
-	nio.utils.extendGlobal('nio.settings', {});
-	nio.utils.extendGlobal('nio.routers', {});
-	nio.utils.extendGlobal('nio.collections', {});
-	nio.utils.extendGlobal('nio.models', {});
-	nio.utils.extendGlobal('nio.templates', {});
-	nio.utils.extendGlobal('nio.views', {
+	extendGlobal('nio.settings', {});
+	extendGlobal('nio.collections', {});
+	extendGlobal('nio.models', {});
+	extendGlobal('nio.templates', {});
+	extendGlobal('nio.views', {
 		'modules': {},
 		'pages': {}
 	});
 
 	require('./content.js');
-	require('./constants.js');
 	require('./settings.js');
 	require('./utils.js');
 	require('./models/Post.js');
-	require('./models/Stat.js');
 	require('./models/Tile.js');
 	require('./views/Tile.js');
 	require('./views/LookBack.js');
@@ -549,7 +503,7 @@ function makeTile(tileType, rows, cols, data) {
 
 }())
 
-},{"./constants.js":1,"./content.js":2,"./models/Post.js":4,"./models/Stat.js":5,"./models/Tile.js":6,"./settings.js":7,"./utils.js":8,"./views/LookBack.js":9,"./views/RandomStream.js":10,"./views/SearchStream.js":11,"./views/Stream.js":12,"./views/Tile.js":13}],4:[function(require,module,exports){
+},{"./content.js":1,"./models/Post.js":3,"./models/Tile.js":4,"./settings.js":5,"./utils.js":6,"./views/LookBack.js":7,"./views/RandomStream.js":8,"./views/SearchStream.js":9,"./views/Stream.js":10,"./views/Tile.js":11}],3:[function(require,module,exports){
 nio.models.Post = Backbone.Model.extend({
 
 	initialize: function(args) {
@@ -660,30 +614,7 @@ nio.models.PostDictionary = Backbone.Model.extend({
 });
 
 
-},{}],5:[function(require,module,exports){
-nio.models.Stat = Backbone.Model.extend({
-
-	defaults: {
-		id          : 0,
-		id_value    : 1,
-		time        : 0,
-		seconds_ago : 0,
-		type        : 'blank',
-		name        : '',
-		source_type : '',
-		count       : 0,
-		percent     : 0
-	}
-
-});
-
-nio.collections.Stats = Backbone.Collection.extend({
-
-	model: nio.models.Stat
-
-});
-
-},{}],6:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 nio.models.Tile = Backbone.Model.extend({
 
     defaults: {
@@ -728,7 +659,7 @@ nio.collections.Tiles = Backbone.Collection.extend({
 
 });
 
-},{}],7:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 nio.utils.extendGlobal('nio.settings', {
 
     socketHost: null,
@@ -756,23 +687,10 @@ nio.utils.extendGlobal('nio.settings', {
 
 });
 
-},{}],8:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 var $ = jQuery;
 
 nio.utils.extendGlobal('nio.utils', {
-
-    getParameterByName: function(name) {
-        name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
-        var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
-            results = regex.exec(location.search);
-        return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
-    },
-
-    htmlDecode: function(input) {
-        var e = document.createElement('div');
-        e.innerHTML = input;
-        return e.childNodes.length === 0 ? "" : e.childNodes[0].nodeValue;
-    },
 
     getCurrentTime: function() {
         if (Date.now) {
@@ -1052,33 +970,15 @@ nio.utils.extendGlobal('nio.utils', {
         return tileToReplace;
     },
 
-    launchPlayer: function(playerDiv) {
-        var videoId = playerDiv.attr('id');
-
-        player = new YT.Player(videoId, {
-            height: '100%',
-            width: '100%',
-            videoId: videoId,
-            events: {
-                'onReady': function(e) {
-                    if (!nio.utils.isMobileBrowser()) {
-                        e.target.playVideo();
-                    }
-                }
-            }
-        });
-    },
-
     isMobileBrowser: function() {
         var check = false;
         (function(a){if(/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows (ce|phone)|xda|xiino/i.test(a)||/1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(a.substr(0,4)))check = true})(navigator.userAgent||navigator.vendor||window.opera);
         return check;
     }
 
-
 });
 
-},{}],9:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 nio.views.LookBack = Backbone.View.extend({
 
 	initialize: function(args) {
@@ -1146,7 +1046,7 @@ nio.views.LookBack = Backbone.View.extend({
 
 });
 
-},{}],10:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 nio.views.RandomStream = nio.views.Stream.extend({
 
     handlePost: function(post) {
@@ -1203,7 +1103,7 @@ nio.views.RandomStream = nio.views.Stream.extend({
 
 });
 
-},{}],11:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 nio.views.SearchStream = nio.views.Stream.extend({
 
     handlePost: function(post) {
@@ -1255,7 +1155,7 @@ nio.views.SearchStream = nio.views.Stream.extend({
 
 });
 
-},{}],12:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 nio.views.Stream = Backbone.View.extend({
 
 	// tagName: 'div',
@@ -1415,7 +1315,7 @@ nio.views.Stream = Backbone.View.extend({
 
 });
 
-},{}],13:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 nio.views.Tile = Backbone.View.extend({
 
 	tagName: 'div',
@@ -1586,6 +1486,22 @@ nio.views.Tile = Backbone.View.extend({
 
     },
 
+    launchPlayer: function(playerDiv) {
+        var videoId = playerDiv.attr('id');
+        var player = new YT.Player(videoId, {
+            height: '100%',
+            width: '100%',
+            videoId: videoId,
+            events: {
+                'onReady': function(e) {
+                    if (!nio.utils.isMobileBrowser()) {
+                        e.target.playVideo();
+                    }
+                }
+            }
+        });
+    },
+
     lockTile: function(ev) {
         this.$el.addClass('locked-mouse');
     },
@@ -1596,4 +1512,4 @@ nio.views.Tile = Backbone.View.extend({
 
 });
 
-},{}]},{},[3])
+},{}]},{},[2])
