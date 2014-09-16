@@ -1,8 +1,7 @@
 nio.js
 ======
 
-nio.js is a Javascript library for interfacing with nio. It is small and
-extensible.
+nio.js is a Javascript library for interfacing with nio services.
 
 Development
 -----------
