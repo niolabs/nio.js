@@ -7,10 +7,12 @@ var uglify = require('gulp-uglify')
 var rename = require('gulp-rename')
 var compass = require('gulp-compass')
 var browserify = require('gulp-browserify')
+var minifyHTML = require('gulp-minify-html')
 var jsifyTemplates = require('gulp-jsify-html-templates')
 
 gulp.task('html', function () {
 	return gulp.src('html/**/*.html')
+		//.pipe(minifyHTML())
 		.pipe(jsifyTemplates())
 		.pipe(concat('html.js'))
 		.pipe(gulp.dest('build'))

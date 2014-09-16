@@ -10,7 +10,7 @@ watch:
 	./node_modules/.bin/gulp watch
 
 clean:
-	rm -Rf node_modules components build
+	rm -Rf node_modules components build .sass-cache
 
 run:
 	python -m SimpleHTTPServer 8001

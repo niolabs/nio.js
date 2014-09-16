@@ -9,25 +9,11 @@ NIO.views.FrontPage = Backbone.View.extend({
 
 		this.initializeViews();
 		this.initializeListeners();
-		this.$el.html('please work')
-		this.$el.remove()
-		console.log(this.$el)
 	},
 
 	initializeListeners: function() {
-		var self = this;
-
 		// $(window).on('resize', this.refreshViews);
-
-		/*this.Header.on('search', this.refreshViews);
-
-		this.Footer.on('switch', this.switchViews);*/
-
 		this.Stream.on('filterByUser', this.filterByUser);
-		// this.Content.on('refreshStreamTiles', function(args) {
-			// self.RandomStream.refreshTiles(args);
-		// });
-
 	},
 
 	filterByUser: function(args) {
@@ -59,54 +45,9 @@ NIO.views.FrontPage = Backbone.View.extend({
 	},
 
 	initializeViews: function() {
-
-		/*
-		this.Header = new NIO.views.Header({
-			el: 'header'
-		});
-
-		this.Footer = new NIO.views.Footer({
-			el: 'footer'
-		});
-
-		this.Content = new NIO.views.Content({
-			el: '#content'
-		});
-	   */
-
 		this.Stream = new NIO.views[this.streamView]({
 			el: '#nio_stream_div'
 		});
-
-        // this.SearchStream = new NIO.views.SearchStream({
-                // el: '#nio_stream_div',
-                // model: new NIO.models.PostDictionary()
-        // });
-
-		// this.Yesterday = new NIO.views.LookBack({
-			// el: '.time-frame.yesterday',
-			// model: new NIO.models.PostDictionary(),
-                        // maxDate: this.getStartOfToday(),
-                        // daysLookBack: 1
-		// });
-		// this.TwoDaysAgo = new NIO.views.LookBack({
-			// el: '.time-frame.2-days-ago',
-			// model: new NIO.models.PostDictionary(),
-                        // maxDate: this.getStartOfToday().subtract('days', 1),
-                        // daysLookBack: 1
-		// });
-		// this.LastWeek = new NIO.views.LookBack({
-			// el: '.time-frame.last-week',
-			// model: new NIO.models.PostDictionary(),
-                        // maxDate: this.getStartOfToday().subtract('days', 2),
-                        // daysLookBack: 7,
-                        // numTiles: 32
-		// });
-
-		// this.Monitoring = new NIO.views.Monitoring({
-			// el: '#monitor-stream'
-		// });
-
 	},
 
     getStartOfToday: function() {

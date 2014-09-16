@@ -2,13 +2,9 @@ NIO.views.SinglePage = Backbone.View.extend({
 
 	initialize: function(args) {
 		_.bindAll(this);
-		var self = this;
-
 		this.args = {};
-
 		this.initializeViews();
 		this.initializeListeners();
-
 	},
 
 	initializeListeners: function() {

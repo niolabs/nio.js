@@ -499,12 +499,7 @@ module.exports = Backbone.Router.extend({
     },
 
     getPageView: function() {
-		//var pageName = jQuery('html').data('pagename');
-		var pageName = 'FrontPage'
-        if (NIO.views[pageName]) {
-            return new NIO.views[pageName]({el: '#content'});
-        }
-        return {};
+		return new NIO.views.FrontPage({el: '#content'})
     }
 
 });
@@ -1587,22 +1582,22 @@ require('./views/page/FrontPage.js');
 require('./views/page/SinglePage.js');
 require('./views/page/CategoryPage.js');
 
-var app = require('./app');
+window.onload = function () {
+	var app = require('./app');
+	window.App = new app();
 
-window.App = new app();
+	// Add 'dev', 'test' or 'prod' as a class on the body tag.
+	// TODO: should this be on the html tag or in a data attribute?
+	jQuery('body').addClass(App.constants.environment);
 
-// Add 'dev', 'test' or 'prod' as a class on the body tag.
-// TODO: should this be on the html tag or in a data attribute?
-jQuery('body').addClass(App.constants.environment);
+	// TODO: These are done here rather than in the App object because of dependencies.
+	// Could this be fixed by implementing require?
+	App.getViews();
+	App.views.Page = App.getPageView();
+	App.initializeTooltips();
 
-// TODO: These are done here rather than in the App object because of dependencies.
-// Could this be fixed by implementing require?
-App.getViews();
-App.views.Page = App.getPageView();
-App.initializeTooltips();
-
-Backbone.history.start({pushState: false, root: '/'});
-
+	Backbone.history.start({pushState: false, root: '/'});
+}
 
 },{"./app":1,"./constants.js":2,"./content.js":3,"./custom.js":4,"./models/Post.js":6,"./models/Stat.js":7,"./models/Tile.js":8,"./settings.js":9,"./utils.js":10,"./views/module/LookBack.js":11,"./views/module/Monitoring.js":12,"./views/module/RandomStream.js":13,"./views/module/SearchStream.js":14,"./views/module/Stream.js":15,"./views/module/Tile.js":16,"./views/page/CategoryPage.js":17,"./views/page/FrontPage.js":18,"./views/page/SinglePage.js":19}],6:[function(require,module,exports){
 NIO.models.Post = Backbone.Model.extend({
@@ -2334,12 +2329,8 @@ NIO.views.RandomStream = NIO.views.Stream.extend({
     },
 
     initializeTiles: function(args) {
-		console.log('initializing tiles')
         var self = this;
 
-		this.$el.css('background', 'red')
-		this.$el.html('<div>hello world</div>')
-		console.log(this.$el, this.$el.html())
         // If we have filters, fetch the tiles then do the socket
         if (this.types.length || this.names.length) {
 
@@ -2370,7 +2361,6 @@ NIO.views.RandomStream = NIO.views.Stream.extend({
                     }
 
                     var tile = App.utils.generateTile(this, tileArgs, {});
-					this.$el.append('hello world')
                     this.$el.append(tile.el);
                     this.tiles.push(tile);
 					//console.log('push tile', tile, tile.el, this.$el)
@@ -2499,6 +2489,7 @@ NIO.views.Stream = Backbone.View.extend({
     getNumRows: function() {
         /** Returns the number of rows based on the available space **/
         //var height = jQuery('.main-content-wrap').height();
+		//TODO: revert this
 		var height = 1000
         var numRows = Math.ceil(height/App.settings.tileHeight);
 
@@ -2508,6 +2499,7 @@ NIO.views.Stream = Backbone.View.extend({
     getNumCols: function() {
         /** Returns the number of columns for tiles based on the available space **/
         //var width = this.$el.width();
+		//TODO: revert this
 		var width = 1000
         var numCols = Math.floor(width/App.settings.tileWidth);
 
@@ -2828,25 +2820,11 @@ NIO.views.FrontPage = Backbone.View.extend({
 
 		this.initializeViews();
 		this.initializeListeners();
-		this.$el.html('please work')
-		this.$el.remove()
-		console.log(this.$el)
 	},
 
 	initializeListeners: function() {
-		var self = this;
-
 		// $(window).on('resize', this.refreshViews);
-
-		/*this.Header.on('search', this.refreshViews);
-
-		this.Footer.on('switch', this.switchViews);*/
-
 		this.Stream.on('filterByUser', this.filterByUser);
-		// this.Content.on('refreshStreamTiles', function(args) {
-			// self.RandomStream.refreshTiles(args);
-		// });
-
 	},
 
 	filterByUser: function(args) {
@@ -2878,54 +2856,9 @@ NIO.views.FrontPage = Backbone.View.extend({
 	},
 
 	initializeViews: function() {
-
-		/*
-		this.Header = new NIO.views.Header({
-			el: 'header'
-		});
-
-		this.Footer = new NIO.views.Footer({
-			el: 'footer'
-		});
-
-		this.Content = new NIO.views.Content({
-			el: '#content'
-		});
-	   */
-
 		this.Stream = new NIO.views[this.streamView]({
 			el: '#nio_stream_div'
 		});
-
-        // this.SearchStream = new NIO.views.SearchStream({
-                // el: '#nio_stream_div',
-                // model: new NIO.models.PostDictionary()
-        // });
-
-		// this.Yesterday = new NIO.views.LookBack({
-			// el: '.time-frame.yesterday',
-			// model: new NIO.models.PostDictionary(),
-                        // maxDate: this.getStartOfToday(),
-                        // daysLookBack: 1
-		// });
-		// this.TwoDaysAgo = new NIO.views.LookBack({
-			// el: '.time-frame.2-days-ago',
-			// model: new NIO.models.PostDictionary(),
-                        // maxDate: this.getStartOfToday().subtract('days', 1),
-                        // daysLookBack: 1
-		// });
-		// this.LastWeek = new NIO.views.LookBack({
-			// el: '.time-frame.last-week',
-			// model: new NIO.models.PostDictionary(),
-                        // maxDate: this.getStartOfToday().subtract('days', 2),
-                        // daysLookBack: 7,
-                        // numTiles: 32
-		// });
-
-		// this.Monitoring = new NIO.views.Monitoring({
-			// el: '#monitor-stream'
-		// });
-
 	},
 
     getStartOfToday: function() {
@@ -2939,13 +2872,9 @@ NIO.views.SinglePage = Backbone.View.extend({
 
 	initialize: function(args) {
 		_.bindAll(this);
-		var self = this;
-
 		this.args = {};
-
 		this.initializeViews();
 		this.initializeListeners();
-
 	},
 
 	initializeListeners: function() {

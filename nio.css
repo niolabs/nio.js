@@ -12,35 +12,35 @@
     width: 100% !important;
   }
 }
-/* line 4, ../css/stream.scss */
+/* line 5, ../css/stream.scss */
 .nio-stream {
   background: transparent;
 }
-/* line 6, ../css/stream.scss */
+/* line 7, ../css/stream.scss */
 .nio-stream * {
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
   box-sizing: border-box;
 }
-/* line 8, ../css/stream.scss */
+/* line 9, ../css/stream.scss */
 .nio-stream .no-results,
 .nio-stream .fetch-error {
   text-align: center;
   margin-top: 20px;
 }
-/* line 13, ../css/stream.scss */
+/* line 14, ../css/stream.scss */
 .nio-stream .no-results .text,
 .nio-stream .fetch-error .text {
   font-size: 15px;
   font-weight: bold;
 }
-/* line 18, ../css/stream.scss */
+/* line 19, ../css/stream.scss */
 .nio-stream .no-results .subtext,
 .nio-stream .fetch-error .subtext {
   font-size: 13px;
   margin-top: 5px;
 }
-/* line 28, ../css/stream.scss */
+/* line 29, ../css/stream.scss */
 .nio-stream div.tile {
   float: left;
   position: relative;
@@ -48,7 +48,7 @@
   color: white;
   font-size: 14px;
 }
-/* line 35, ../css/stream.scss */
+/* line 36, ../css/stream.scss */
 .nio-stream div.tile .tile-container {
   margin: 0px 0px 10px 10px;
   position: absolute;
@@ -69,24 +69,24 @@
   font-weight: 100;
   overflow: hidden;
 }
-/* line 50, ../css/stream.scss */
+/* line 51, ../css/stream.scss */
 .nio-stream div.tile .tile-container a, .nio-stream div.tile .tile-container a:visited {
   color: white;
 }
-/* line 55, ../css/stream.scss */
+/* line 56, ../css/stream.scss */
 .nio-stream div.tile .tile-container .tile-content {
   width: 100%;
   height: 100%;
   padding: 45px 8px;
 }
-/* line 60, ../css/stream.scss */
+/* line 61, ../css/stream.scss */
 .nio-stream div.tile .tile-container .tile-content .content {
   display: none;
   height: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-/* line 76, ../css/stream.scss */
+/* line 77, ../css/stream.scss */
 .nio-stream div.tile .tile-container .tile-info {
   position: absolute;
   top: 0;
@@ -99,7 +99,7 @@
     text-decoration: underline;
   }*/
 }
-/* line 86, ../css/stream.scss */
+/* line 87, ../css/stream.scss */
 .nio-stream div.tile .tile-container .tile-info .profile-pic {
   position: absolute;
   top: 8px;
@@ -112,7 +112,7 @@
   background-position: center center;
   background-size: contain;
 }
-/* line 100, ../css/stream.scss */
+/* line 101, ../css/stream.scss */
 .nio-stream div.tile .tile-container .tile-info .originator-name {
   font-weight: 500;
   font-size: 14px;
@@ -127,7 +127,7 @@
   display: inline-block;
   padding-right: 2px;
 }
-/* line 119, ../css/stream.scss */
+/* line 120, ../css/stream.scss */
 .nio-stream div.tile .tile-container .tile-info .pinned {
   cursor: pointer;
   width: 15px;
@@ -148,7 +148,7 @@
   -webkit-transition: all 0.5s ease;
   transition: all 0.5s ease;
 }
-/* line 136, ../css/stream.scss */
+/* line 137, ../css/stream.scss */
 .nio-stream div.tile .tile-container .tile-info .tile-logo {
   width: 30px;
   height: 30px;
@@ -162,7 +162,7 @@
   top: 8px;
   right: 8px;
 }
-/* line 151, ../css/stream.scss */
+/* line 152, ../css/stream.scss */
 .nio-stream div.tile .tile-container .pinned {
   cursor: pointer;
   width: 15px;
@@ -183,7 +183,7 @@
   -webkit-transition: all 0.5s ease;
   transition: all 0.5s ease;
 }
-/* line 168, ../css/stream.scss */
+/* line 169, ../css/stream.scss */
 .nio-stream div.tile .tile-container .close-tile {
   display: none;
   cursor: pointer;
@@ -198,7 +198,7 @@
   top: 14px;
   right: 12px;
 }
-/* line 183, ../css/stream.scss */
+/* line 184, ../css/stream.scss */
 .nio-stream div.tile .tile-container .time-since-flag {
   position: absolute;
   bottom: 25px;
@@ -206,7 +206,7 @@
   font-size: 12px;
   z-index: 4;
 }
-/* line 191, ../css/stream.scss */
+/* line 192, ../css/stream.scss */
 .nio-stream div.tile .tile-container .tile-footer {
   position: absolute;
   left: 0px;
@@ -215,7 +215,7 @@
   height: 46px;
   z-index: 3;
 }
-/* line 199, ../css/stream.scss */
+/* line 200, ../css/stream.scss */
 .nio-stream div.tile .tile-container .tile-footer .post-link {
   position: absolute;
   bottom: 8px;
@@ -371,33 +371,33 @@
   white-space: nowrap;
   overflow: hidden;
 }
-/* line 211, ../css/stream.scss */
+/* line 212, ../css/stream.scss */
 .nio-stream div.tile .tile-container.youtube {
   background-color: #000;
 }
-/* line 214, ../css/stream.scss */
+/* line 215, ../css/stream.scss */
 .nio-stream div.tile .tile-container.linkedin .originator-name,
 .nio-stream div.tile .tile-container.gplus .originator-name,
 .nio-stream div.tile .tile-container.youtube .originator-name,
 .nio-stream div.tile .tile-container.rss .originator-name {
   left: 9px;
 }
-/* line 221, ../css/stream.scss */
+/* line 222, ../css/stream.scss */
 .nio-stream div.tile .tile-container.instagram .tile-footer,
 .nio-stream div.tile .tile-container.twitter-photo .tile-footer {
   bottom: -46px;
   transition: all 0.2s ease;
 }
-/* line 227, ../css/stream.scss */
+/* line 228, ../css/stream.scss */
 .nio-stream div.tile .tile-container.instagram:hover .tile-footer, .nio-stream div.tile.tile-full .tile-container.instagram .tile-footer,
 .nio-stream div.tile .tile-container.twitter-photo:hover .tile-footer, .nio-stream div.tile.tile-full .tile-container.twitter-photo .tile-footer {
   bottom: 0px;
 }
-/* line 235, ../css/stream.scss */
+/* line 236, ../css/stream.scss */
 .nio-stream div.tile.locked-mouse, .nio-stream div.tile.locked-click {
   z-index: 100;
 }
-/* line 239, ../css/stream.scss */
+/* line 240, ../css/stream.scss */
 .nio-stream div.tile.locked-mouse .tile-container, .nio-stream div.tile.locked-click .tile-container {
   -moz-transform: scale(1.025, 1.025);
   -ms-transform: scale(1.025, 1.025);
@@ -408,7 +408,7 @@
   -webkit-transition: scale 0.5s;
   transition: scale 0.5s;
 }
-/* line 247, ../css/stream.scss */
+/* line 248, ../css/stream.scss */
 .nio-stream div.tile.locked-click .pinned {
   display: block;
   width: 19px !important;
@@ -506,7 +506,7 @@
 .nio-stream div.tile.w4.h4 {
   height: 904px;
 }
-/* line 267, ../css/stream.scss */
+/* line 268, ../css/stream.scss */
 .nio-stream div.tile.tile-full {
   /* @each $max-width, $tile-info in $responsive-sizes {
        $tile-dimension: percentage(1 / nth($tile-info, 1));
@@ -514,8 +514,8 @@
        $full-tile-height-mult: nth($tile-info, 3);
        @media only screen and ( max-width: $max-width ) {
            @include tile-sizes(
-               $tile-dimension * $full-tile-width-mult, 
-               'auto', 
+               $tile-dimension * $full-tile-width-mult,
+               'auto',
                $full-tile-height-mult / $full-tile-width-mult);
        }
    }*/
@@ -639,19 +639,19 @@
 .nio-stream div.tile.tile-full .links a.profile-link, .nio-stream div.tile.tile-full .links a:visited.profile-link {
   background-image: url("../../_media/profile_icon_wht.svg");
 }
-/* line 292, ../css/stream.scss */
+/* line 293, ../css/stream.scss */
 .nio-stream div.tile.tile-full .tile-container .close-tile {
   display: block;
 }
-/* line 296, ../css/stream.scss */
+/* line 297, ../css/stream.scss */
 .nio-stream div.tile.tile-full .tile-container .tile-content .shortContent {
   display: none;
 }
-/* line 300, ../css/stream.scss */
+/* line 301, ../css/stream.scss */
 .nio-stream div.tile.tile-full .tile-container .tile-content .content {
   display: block;
 }
-/* line 304, ../css/stream.scss */
+/* line 305, ../css/stream.scss */
 .nio-stream div.tile.tile-full .tile-container .tile-content .content .headline {
   font-weight: bold;
 }
@@ -1017,7 +1017,7 @@
 .nio-stream div.tile.tile-full .youtube .tile-logo {
   display: none;
 }
-/* line 312, ../css/stream.scss */
+/* line 313, ../css/stream.scss */
 .nio-stream .clearfix:after {
   content: ' ';
   display: block;

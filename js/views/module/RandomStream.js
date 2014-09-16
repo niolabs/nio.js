@@ -13,12 +13,8 @@ NIO.views.RandomStream = NIO.views.Stream.extend({
     },
 
     initializeTiles: function(args) {
-		console.log('initializing tiles')
         var self = this;
 
-		this.$el.css('background', 'red')
-		this.$el.html('<div>hello world</div>')
-		console.log('init', this.el, this.$el, this.$el.html())
         // If we have filters, fetch the tiles then do the socket
         if (this.types.length || this.names.length) {
 
@@ -49,7 +45,6 @@ NIO.views.RandomStream = NIO.views.Stream.extend({
                     }
 
                     var tile = App.utils.generateTile(this, tileArgs, {});
-					this.$el.append('hello world')
                     this.$el.append(tile.el);
                     this.tiles.push(tile);
 					//console.log('push tile', tile, tile.el, this.$el)

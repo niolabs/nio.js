@@ -46,12 +46,7 @@ module.exports = Backbone.Router.extend({
     },
 
     getPageView: function() {
-		//var pageName = jQuery('html').data('pagename');
-		var pageName = 'FrontPage'
-        if (NIO.views[pageName]) {
-            return new NIO.views[pageName]({el: '#content'});
-        }
-        return {};
+		return new NIO.views.FrontPage({el: '#content'})
     }
 
 });

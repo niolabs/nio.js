@@ -60,6 +60,7 @@ NIO.views.Stream = Backbone.View.extend({
     getNumRows: function() {
         /** Returns the number of rows based on the available space **/
         //var height = jQuery('.main-content-wrap').height();
+		//TODO: revert this
 		var height = 1000
         var numRows = Math.ceil(height/App.settings.tileHeight);
 
@@ -69,6 +70,7 @@ NIO.views.Stream = Backbone.View.extend({
     getNumCols: function() {
         /** Returns the number of columns for tiles based on the available space **/
         //var width = this.$el.width();
+		//TODO: revert this
 		var width = 1000
         var numCols = Math.floor(width/App.settings.tileWidth);
 

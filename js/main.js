@@ -52,19 +52,19 @@ require('./views/page/FrontPage.js');
 require('./views/page/SinglePage.js');
 require('./views/page/CategoryPage.js');
 
-var app = require('./app');
+window.onload = function () {
+	var app = require('./app');
+	window.App = new app();
 
-window.App = new app();
+	// Add 'dev', 'test' or 'prod' as a class on the body tag.
+	// TODO: should this be on the html tag or in a data attribute?
+	jQuery('body').addClass(App.constants.environment);
 
-// Add 'dev', 'test' or 'prod' as a class on the body tag.
-// TODO: should this be on the html tag or in a data attribute?
-jQuery('body').addClass(App.constants.environment);
+	// TODO: These are done here rather than in the App object because of dependencies.
+	// Could this be fixed by implementing require?
+	App.getViews();
+	App.views.Page = App.getPageView();
+	App.initializeTooltips();
 
-// TODO: These are done here rather than in the App object because of dependencies.
-// Could this be fixed by implementing require?
-App.getViews();
-App.views.Page = App.getPageView();
-App.initializeTooltips();
-
-Backbone.history.start({pushState: false, root: '/'});
-
+	Backbone.history.start({pushState: false, root: '/'});
+}
