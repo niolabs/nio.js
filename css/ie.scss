@@ -1,0 +1,64 @@
+div.sponsored-flag p { padding-bottom: 4px; }
+
+.tile-info { height: 55px; color: rgb(255,255,255); }
+
+.originator-name { color: rgb(255,255,255); font-weight: 700!important; }
+
+.tile-info .counts span:before { top: 1px; }
+
+.tile-info .counts span.favorites:before { background: url('../../_media/png/star_icon.png') center center no-repeat; }
+.tile-info .counts span.retweets:before { background: url('../../_media/png/retweet_icon.png') center center no-repeat; }
+.tile-info .counts span.likes:before { background: url('../../_media/png/like_icon.png') center center no-repeat; }
+.tile-info .counts span.hearts:before { background: url('../../_media/png/heart_icon.png') center center no-repeat; }
+.tile-info .counts span.views:before { background: url('../../_media/png/views_icon.png') center center no-repeat; }
+
+ul.tile-share .twitter,
+ul.tile-share .twitter-photo,
+ul.tile-share .gplus,
+ul.tile-share .facebook,
+ul.tile-share .instagram,
+ul.tile-share .linkedin,
+ul.tile-share .evernote,
+ul.tile-share .pinterest,
+ul.tile-share .pocket { -ms-filter: "progid:DXImageTransform.Microsoft.gradient (enabled=false)"; /* IE 8-9 */ }
+
+ul.tile-share .twitter a { background-image: url('../../_media/png/twitter_icon_wht.png'); background-color: transparent; }
+ul.tile-share .gplus a { background-image: url('../../_media/png/gplus_icon_wht.png'); background-color: transparent; }
+ul.tile-share .facebook a { background-image: url('../../_media/png/facebook_icon_wht.png'); background-color: transparent; }
+ul.tile-share .linkedin a { background-image: url('../../_media/png/linkedin_icon_wht.png'); background-color: transparent; }
+ul.tile-share .evernote a { background-image: url('../../_media/png/evernote_icon_wht.png'); background-color: transparent; }
+ul.tile-share .pinterest a { background-image: url('../../_media/png/pinterest_icon_wht.png'); background-color: transparent; }
+ul.tile-share .pocket a { background-image: url('../../_media/png/pocket_icon_wht.png'); background-color: transparent; }
+
+.tile-info .close a { background: url('../../_media/png/share_close_icon.png') center center no-repeat; }
+.tile-info .links .source a { background: url('../../_media/png/source_link_icon.png') center center no-repeat; }
+.tile .pinned {	background: url('../../_media/pinned_icon.png') center center no-repeat; filter: alpha(opacity=0); /* IE 5-7 */ }
+.tile.locked-mouse .pinned,
+.tile.locked-click .pinned { filter: alpha(opacity=80); /* IE 5-7 */ }
+
+.flipped .tile-info,
+.nio-stream .flipped .twitter .tile-info,
+.nio-stream .flipped .twitter-photo .tile-info,
+.nio-stream .flipped .instagram .tile-info,
+.nio-stream .flipped .youtube .tile-info,
+.nio-stream .flipped .gplus .tile-info,
+.nio-stream .flipped .facebook .tile-info,
+.nio-stream .flipped .stat-count .tile-info,
+.nio-stream .flipped .stat-time .tile-info {
+	background:transparent;
+    filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#5000000000,endColorstr=#50000000); 
+    zoom: 1;
+}
+
+.video-cover-image .play-button a {
+	border: 2px solid rgb(243,243,243);
+	background: transparent;
+    filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#50000000,endColorstr=#50000000); 
+    zoom: 1;
+}
+
+.nio-stream .blank-tile .tile-content {
+	background: url('../../_media/png/loading-icon.png') center center no-repeat;
+	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=20)"; /* IE 8 */
+	filter: alpha(opacity=20); /* IE 5-7 */
+}

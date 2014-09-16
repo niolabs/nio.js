@@ -1,0 +1,26 @@
+.instagram {
+    .tile-content {
+        background-color: #000;
+
+        .tile-info, .tile-footer {
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .tile-logo {
+            background: url('/wp-content/themes/nexus-child/images/tile/instagram-tile.png') no-repeat left top;
+        }
+
+        img {
+            padding: 0px;
+            max-height: none;
+            z-index: 3;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .caption {
+            display: none;
+        }
+    }
+}

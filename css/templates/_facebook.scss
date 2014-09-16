@@ -1,0 +1,26 @@
+.facebook, .facebook-photo {
+    .tile-content {
+        background-color: #3b5998;
+
+        .tile-logo {
+            background: url('/wp-content/themes/nexus-child/images/tile/facebook-tile.png') no-repeat left top;
+        }
+
+        .content-image {
+            width: 100%;
+            height: 50%;
+            position: absolute;
+            bottom: 0px;
+            left: 0px; 
+            background-repeat: no-repeat;
+            background-position: center center;
+            background-size: cover;
+            z-index: 98;
+            overflow: hidden;
+        }
+    }
+
+    /*.tile-footer {
+	@include tile-info-gradient(59, 89, 152);
+    }*/
+}

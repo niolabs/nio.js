@@ -1,0 +1,55 @@
+.twitter {
+    .tile-content {
+        background-color: #00aced;
+    }
+
+    /*.tile-footer {
+	@include tile-info-gradient(00, 172, 237);
+    }*/
+
+}
+
+.twitter-photo .tile-content {
+    background-color: #000;
+}
+
+.twitter,
+.twitter-photo {
+
+    .tile-content {
+        img {
+            padding: 0px;
+            max-height: none;
+            z-index: 3;
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            margin: auto;
+        }
+    }
+
+    .caption {
+        display: none;
+    }
+}
+
+.twitter {
+    .tile-content {
+        .tile-logo {
+            background-image: url('/wp-content/themes/nexus-child/images/tile/twitter-tile.png');
+        }
+    }
+}
+
+.twitter-photo {
+    .tile-info, .tile-footer {
+        background-color: rgba(0,0,0,0.5);
+    }
+    .tile-content {
+        .tile-logo {
+            background-image: url('/wp-content/themes/nexus-child/images/tile/twitter-photo-tile.png');
+        }
+    }
+}

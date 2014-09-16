@@ -1,0 +1,65 @@
+.stat-count,
+.stat-time,
+.stat-percent {
+
+    %monitor-style {
+        color: rgb(255,255,255);
+    }
+
+    .source-wrapper {
+        height: 100%;
+
+        .tile-content {
+            @extend %monitor-style;
+
+            .number {
+                display: block;
+                text-align: center;
+                font-size: 50px;
+                margin: 55px 0px 25px 0px;
+            }
+
+            .percentage {
+                display: block;
+                position: relative;
+                text-align: center;
+                font-size: 127px;
+                margin: 55px 0px 25px 0px;
+                sup {
+                    position: absolute;
+                    font-size: 30px;
+                    top: -28px;
+                }
+            }
+
+            .time-stamp {
+                display: block;
+                text-align: center;
+                font-size: 60px;
+                margin: 50px 0px 25px 0px;
+
+                .ampm {
+                    font-size: 30px;
+                    text-transform: lowercase;
+                }
+            }
+
+            .duration-passed {
+                display: block;
+                text-align: center;
+                font-size: 14px;
+                margin-bottom: 15px;
+            }
+        }
+
+        .tile-info {
+            @extend %monitor-style;
+        }
+
+    }
+
+    // fix for youtube padding
+    .youtube .tile-content {
+        padding-top: 25%;
+    }
+}

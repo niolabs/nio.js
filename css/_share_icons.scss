@@ -1,0 +1,71 @@
+// The parent of these selectors will be the tile container
+@mixin social-share-icon(
+    $icon-url : false,
+    $bg-color-1 : false,
+    $bg-color-2 : false,
+    $num-icons-across : 4
+) {
+    margin: 4px 2px;
+    padding: 0;
+    list-style-type: none;
+    float: left;
+    width: percentage(1/$num-icons-across);
+    height: 16px;
+    width: 16px;
+
+    @include responsive-rule('x-small') { 
+        width: 20px;
+        height: 20px;
+    }
+
+    // no background image when not active/hovered
+    background-image: none;
+    background-color: transparent;
+
+    a {
+        background: url($icon-url) center center no-repeat;
+        background-size: 100%;
+        text-decoration: none;
+        width: 100%;
+        height: 100%;
+        padding: 50% 0;
+        text-align: center;
+        display: block;
+        text-indent: 101%;
+        white-space: nowrap;
+        overflow: hidden;
+    }
+}
+
+.tile-share {
+    position: absolute;
+    bottom: 3px;
+    left: 3px;
+    padding: 0;
+    margin: 0;
+
+    &:before {
+        content: 'SHARE:';
+        display: block;
+        text-align: left;
+        font-size: 10px;
+        padding-left: 6px;
+        height: 16px;
+    }
+
+    .twitter {
+        @include social-share-icon('../../_media/png/twitter-share.png', rgb(95,169,221), rgb(75,144,193));
+    }
+
+    .facebook {
+        @include social-share-icon('../../_media/png/fb-share.png', rgb(121,148,204), rgb(60,90,153));
+    }
+
+    .pinterest {
+        @include social-share-icon('../../_media/png/pin-share.png', rgb(223,34,38), rgb(188,32,38));
+    }
+
+    .email {
+        @include social-share-icon('../../_media/png/mail-share.png', rgb(9,119,181), rgb(0,97,151));
+    }
+}

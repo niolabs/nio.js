@@ -1,0 +1,370 @@
+@mixin transition($attr, $time) {
+    -webkit-transition: $attr $time;
+    -moz-transition: $attr $time;
+    -ms-transition: $attr $time;
+    -o-transition: $attr $time;
+    transition: $attr $time;
+}
+
+/* Shrink header and disappear elements when page is scrolled */
+.home.small-header {
+    #main-header {
+        height: 46px;
+        @include transition(height, 0.3s);
+
+        .search { 
+            padding-top: 2px;
+            @include transition(padding-top, 0.3s);
+        }
+
+        .sitelogo, .connect, .fan-count, #show-filter { 
+            display: none;
+        }
+    }
+
+    .page-wrap {
+        margin-top: 46px;
+        @include transition(margin-top, 0.3s);
+    }
+}
+
+#main-header {
+
+    /* Header background image */
+    background-color: #191919;
+    background: url('../../images/header-banner-dark.png') no-repeat;
+    background-position: center;
+    background-size: 100% 100%;
+    height: 106px;
+    padding: 0;
+    position: relative;
+    overflow: hidden;
+
+    .home & { 
+        /* Fix the header to the top on the homepage */
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 150;
+        height: 106px;
+        @include transition(height, 0.3s);
+    }
+
+    .sitelogo {
+        float: left;
+        padding: 10px;
+        position: relative;
+
+        h1 a {
+            font-weight: bold;
+            margin-top: 40px;
+
+            &:hover {
+                text-decoration: none;
+            }
+        }
+
+        #logo {
+            padding: 0px 3px;
+            margin-bottom: 0px;
+            margin-top: 10px;
+            width: 330px;
+        }
+
+        .tagline {
+            color: #c9c9c9 !important;
+            display: inline-block;
+            font-size: 13px;
+            letter-spacing: 0.16px;
+            position: relative;
+            top: -13px;
+            left: 97px;
+        }
+    }
+
+
+    /* Search Filters - Show label*/
+    #show-filter { 
+        text-align: center;
+        margin-bottom: 0px;
+        width: 375px;
+        height: 0px;
+        top: 37px;
+
+        p {
+            position: relative;
+            text-align:center;
+            padding-bottom: 0;
+            line-height: 12px;
+
+            span {
+                display: inline-block;
+                padding: 0 10px;
+                background: #191919;
+                color: #fff;
+                font-size: 12px;
+            }
+
+            &:before {
+                content:"";
+                display:block;
+                position:absolute;
+                z-index:-1;
+                left:0;
+                right:0;
+                top:50%;
+                height:1px;
+                background:#aaa;
+            }
+        }
+    }
+
+    /* Search Filters */
+    .search { 
+        width: 375px;
+        height: 0px;
+        margin: 0 auto;
+        padding-top: 50px;
+        white-space: nowrap;
+    }
+
+    .filter {
+	padding: 7px;
+
+        .link {
+            width: 25px;
+            height: 35px;
+	    float: left;
+	    margin: 0 5px;
+        }
+
+        .all {
+            background: url('../../images/filter/all-inactive.png') no-repeat; 
+            width: 33px;
+            &.selected { background: url('../../images/filter/all.png') no-repeat; }
+        }
+
+        .user {
+            background: url('../../images/filter/user-inactive.png') no-repeat;
+            &.selected { background: url('../../images/filter/user.png') no-repeat; }
+            width: 18px;
+        }
+
+        .facebook {
+            background: url('../../images/filter/fb-inactive.png') no-repeat;
+            &.selected { background: url('../../images/filter/fb.png') no-repeat; }
+        }
+
+        .gplus {
+            background: url('../../images/filter/gplus-inactive.png') no-repeat;
+            &.selected { background: url('../../images/filter/gplus.png') no-repeat; }
+        }
+
+        .instagram {
+            background: url('../../images/filter/instagram-inactive.png') no-repeat;
+            &.selected { background: url('../../images/filter/instagram.png') no-repeat; }
+        }
+
+        .linkedin {
+            background: url('../../images/filter/linkedin-inactive.png') no-repeat;
+            &.selected { background: url('../../images/filter/linkedin.png') no-repeat; }
+        }
+
+        .rss {
+            background: url('../../images/filter/rss-inactive.png') no-repeat;
+            &.selected { background: url('../../images/filter/rss.png') no-repeat; }
+        }
+
+        .twitter {
+            background: url('../../images/filter/twitter-inactive.png') no-repeat;
+            &.selected { background: url('../../images/filter/twitter.png') no-repeat; }
+            width: 29px;
+        }
+
+        .twitter-photo {
+            background: url('../../images/filter/twitter-photo-inactive.png') no-repeat;
+            &.selected { background: url('../../images/filter/twitter-photo.png') no-repeat; }
+            width: 31px;
+        }
+
+        .youtube {
+            background: url('../../images/filter/youtube-inactive.png') no-repeat;
+            &.selected { background: url('../../images/filter/youtube.png') no-repeat; }
+        }
+    }
+
+    /* Search Filters - No Results */
+    .no-results {
+	    color: #999;
+	    font-style: italic;
+	    margin: 18px 0 8px 0;
+	    text-align: center;
+    }
+
+    /* Connect */
+    .connect {
+	position: absolute;
+	top: 0;
+	right: 15px;
+	height: 15px;
+
+        /* Don't display connect links on single pages */
+        display: none;
+        .home & { display: block; }
+
+        .tab {
+	    float: left;
+	    margin: 0 4px;
+	    height: 23px;
+	    overflow: hidden;
+
+            .text {
+	        color: #fff;
+	        font-size: 11px;
+	        padding: 4px 8px 2px 22px;
+	        position: relative;
+	        float: left;
+	        top: 3px;
+	        z-index: 2;
+	        cursor: pointer;
+
+                a { color: #fff; }
+            }
+
+            &.featured {
+	        background: url("../../images/featured-tab.png") no-repeat left top;
+            }
+
+            &.about {
+	        background: url("../../images/about-tab.png") no-repeat left top;
+            }
+
+            &.visit {
+	        background: url("../../images/visit-tab.png") no-repeat left top;
+
+                &:hover .icons {
+	            left: 5px;
+	            transition: all 0.3s ease;
+                }
+            }
+        }
+
+        .social {
+	    float: left;
+	    position: relative;
+	    overflow: hidden;
+        }
+
+        .icons {
+	    float: left;
+	    position: relative;
+	    left: -185px;
+	    transition: all 0.3s ease;
+        }
+
+        .icon {
+	    float: left;
+	    width: 20px;
+	    height: 20px;
+	    background: transparent no-repeat scroll left top;
+	    margin: 2px 3px;
+	    cursor: pointer;
+	    z-index: 1;
+
+            &.facebook { background-image: url('../../images/visit/facebook-visit.png'); }
+            &.gplus { background-image: url('../../images/visit/gplus-visit.png'); }
+            &.instagram { background-image: url('../../images/visit/instagram-visit.png'); }
+            &.linkedin { background-image: url('../../images/visit/linkedin-visit.png'); }
+            &.rss { background-image: url('../../images/visit/rss-visit.png'); }
+            &.twitter { background-image: url('../../images/visit/twitter-visit.png'); width: 23px; }
+            &.youtube { background-image: url('../../images/visit/youtube-visit.png'); }
+        }
+    }
+
+    .fan-count {
+        font-size: 78px;
+        font-family: "bebas-neue", "Helvetica Neue";
+        font-weight: normal;
+        text-transform: uppercase;
+        float: right;
+        padding: 24px 10px 0;
+        color: #fff;
+        text-align: right;
+        letter-spacing: 1px;
+        margin-top: -50px;
+    }
+}
+
+
+/* Responsive Adjustments */
+@media only screen and ( max-width: 1197px ) {
+    header {
+        .fan-count { display: none; }
+        #show-filter, .search { float: right; }
+    }
+}
+
+@media only screen and ( max-width: 800px ) {
+    .home {
+        #main-header { 
+            height: 152px;
+            .connect { display: none; }
+        }
+        .page-wrap { margin-top: 152px; }
+    }
+
+    #main-header {
+        .sitelogo { float: none; margin: 0 auto; width: 384px; height: 80px; padding: 0px; }
+        #show-filter { float: none; top: 14px; }
+        .search { 
+            float: none;
+            margin: 0 auto;
+            padding-top: 26px;
+
+            .label {
+                float: left;
+                padding-top: 5px;
+                margin: 0 3px 0 0;
+            }
+        }
+    }
+}
+
+@media only screen and ( max-width: 390px ) {
+    .home {
+        #main-header {
+            height: 135px;
+            .connect { display: none; }
+        }
+    }
+
+    #main-header {
+        .sitelogo { 
+            width: 302px;
+
+            .tagline {
+                font-size: 10px;
+                left: 75px;
+            }
+        }
+
+        #show-filter { top: 2px; width: 302px; }
+
+        .search { width: 302px; padding-top: 16px; }
+
+        .filter {
+            .link { margin: 0 4px; width: 20px; height: 28px; }
+            .all { background-size: 26px 28px !important; width: 26px; }
+            .user { background-size: 14px 28px !important; width: 14px; }
+            .facebook { background-size: 20px 28px !important; }
+            .gplus { background-size: 20px 28px !important; }
+            .instagram { background-size: 20px 28px !important; }
+            .linkedin { background-size: 20px 28px !important; }
+            .rss { background-size: 20px 28px !important; }
+            .twitter { background-size: 24px 28px !important; width: 24px; }
+            .twitter-photo { background-size: 28px 28px !important; width: 28px; }
+            .youtube { background-size: 20px 28px !important; margin-right: 0; }
+        }
+    }
+}
