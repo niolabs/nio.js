@@ -2,6 +2,7 @@ window.$ = jQuery
 window.compiledTemplates = {}
 
 _.forEach([
+	'tile',
 	'blank',
 	'facebook',
 	'gplus',
@@ -151,5 +152,5 @@ function makeTile(tileType, rows, cols, data) {
 		.addClass("tile-container")
 		.addClass(tileType)
 		.data('tileData', data)
-		.html(compiledTemplates[tileType](data))
+		.html(compiledTemplates.tile(data))
 }

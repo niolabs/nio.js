@@ -5,7 +5,7 @@ window.nio.utils = {
 	truncate: function (str, len) {
 		var txt = str.substr(0, len)
 		if (txt !== str)
-			txt = txt.trim + '&hellip (more)'
+			txt = txt.trim() + '&hellip; (more)'
 		return txt
 	},
 
@@ -282,7 +282,7 @@ window.nio.utils = {
 			'time': nio.utils.getCurrentTime(),
 			'content': content
 		})
-		tile.resetDurations()
+		//tile.resetDurations()
 
 		return tileToReplace
 	},

@@ -26,47 +26,57 @@ var htmlTemplates = htmlTemplates || {};htmlTemplates['_tile-footer.html'] = '<d
 var htmlTemplates = htmlTemplates || {};htmlTemplates['blank.html'] = '<div class="tile-content"></div>\n' +
     '';
 
-var htmlTemplates = htmlTemplates || {};htmlTemplates['facebook.html'] = '<div class="tile-content">\n' +
+var htmlTemplates = htmlTemplates || {};htmlTemplates['facebook.html'] = '<div class=tile-content>\n' +
     '	<div class="tile-info clearfix">\n' +
-    '		<div class="profile-pic" style="background-image: url(\'{{profile_image_url}}?type=normal\');"></div>\n' +
-    '		<div class="originator-name" title="{{name}}"><a class="originator-link">{{name}}</a></div>\n' +
-    '		<div class="pinned"><p>Pinned</p></div>\n' +
-    '		<div class="tile-logo"></div>\n' +
+    '		<div class=profile-pic style="background-image: url(\'{{profile_image_url}}?type=normal\');"></div>\n' +
+    '		<div class=originator-name title="{{name}}">\n' +
+    '			<a class=originator-link>{{name}}</a>\n' +
+    '		</div>\n' +
+    '		<div class=pinned><p>Pinned</div>\n' +
+    '		<div class=tile-logo></div>\n' +
     '	</div>\n' +
     '\n' +
-    '	<div class="shortContent">\n' +
+    '	<div class=shortContent>\n' +
     '		{{{linkUrl shortenedText}}}\n' +
     '	</div>\n' +
     '\n' +
-    '	<div class="content">\n' +
+    '	<div class=content>\n' +
     '		{{{linkUrl text}}}\n' +
     '	</div>\n' +
     '\n' +
     '	{{#ifCond seconds_ago "<" 3600}}\n' +
-    '		<div class="time-since-flag {{#ifCond seconds_ago \'<\' 60}}is-new{{/ifCond}}">{{timeDiff seconds_ago}}</div>\n' +
+    '		<div class="time-since-flag {{#ifCond seconds_ago \'<\' 60}}is-new{{/ifCond}}">\n' +
+    '			{{timeDiff seconds_ago}}\n' +
+    '		</div>\n' +
     '	{{/ifCond}}\n' +
     '\n' +
     '	{{> tile-footer}}\n' +
     '</div>\n' +
     '';
 
-var htmlTemplates = htmlTemplates || {};htmlTemplates['gplus.html'] = '<div class="tile-content">\n' +
+var htmlTemplates = htmlTemplates || {};htmlTemplates['gplus.html'] = '<div class=tile-content>\n' +
     '	<div class="tile-info clearfix">\n' +
-    '		<div class="originator-name" title="{{name}}"><a class="originator-link">{{name}}</a></div>\n' +
-    '		<div class="pinned"><p>Pinned</p></div>\n' +
-    '		<div class="tile-logo"></div>\n' +
+    '		<div class=originator-name title="{{name}}">\n' +
+    '			<a class="originator-link">\n' +
+    '				{{name}}\n' +
+    '			</a>\n' +
+    '		</div>\n' +
+    '		<div class=pinned><p>Pinned</div>\n' +
+    '		<div class=tile-logo></div>\n' +
     '	</div>\n' +
     '\n' +
-    '	<div class="shortContent">\n' +
+    '	<div class=shortContent>\n' +
     '		{{{linkUrl shortenedText}}}\n' +
     '	</div>\n' +
     '\n' +
-    '	<div class="content">\n' +
+    '	<div class=content>\n' +
     '		{{{alt_text}}}\n' +
     '	</div>\n' +
     '\n' +
     '	{{#ifCond seconds_ago "<" 3600}}\n' +
-    '		<div class="time-since-flag {{#ifCond seconds_ago \'<\' 60}}is-new{{/ifCond}}">{{timeDiff seconds_ago}}</div>\n' +
+    '		<div class="time-since-flag {{#ifCond seconds_ago \'<\' 60}}is-new{{/ifCond}}">\n' +
+    '			{{timeDiff seconds_ago}}\n' +
+    '		</div>\n' +
     '	{{/ifCond}}\n' +
     '\n' +
     '	{{> tile-footer}}\n' +
@@ -229,6 +239,56 @@ var htmlTemplates = htmlTemplates || {};htmlTemplates['stat-time.html'] = '<div 
     '</div><!-- /.source-wrapper -->\n' +
     '';
 
+var htmlTemplates = htmlTemplates || {};htmlTemplates['tile.html'] = '<div class=tile-content>\n' +
+    '	<div class="tile-info clearfix">\n' +
+    '		<div class=profile-pic style="background-image: url(\'{{profile_image_url}}?type=normal\');"></div>\n' +
+    '		<div class=originator-name title="{{name}}">\n' +
+    '			<a class=originator-link>{{name}}</a>\n' +
+    '		</div>\n' +
+    '		<div class=pinned><p>Pinned</div>\n' +
+    '		<div class=tile-logo></div>\n' +
+    '	</div>\n' +
+    '\n' +
+    '	<div class=shortContent>\n' +
+    '		{{{linkUrl shortenedText}}}\n' +
+    '	</div>\n' +
+    '\n' +
+    '	<div class=content>\n' +
+    '		{{{linkUrl text}}}\n' +
+    '	</div>\n' +
+    '\n' +
+    '	{{#ifCond seconds_ago "<" 3600}}\n' +
+    '		<div class="time-since-flag {{#ifCond seconds_ago \'<\' 60}}is-new{{/ifCond}}">\n' +
+    '			{{timeDiff seconds_ago}}\n' +
+    '		</div>\n' +
+    '	{{/ifCond}}\n' +
+    '\n' +
+    '	<div class=tile-footer>\n' +
+    '		<ul class=tile-share>\n' +
+    '			<li class=twitter>\n' +
+    '				<a target=_blank href="https://twitter.com/intent/tweet?url={{urlEscape link}}&amp;text={{urlEscape text}} - via @gobuffsio" title="Share on Twitter">\n' +
+    '					Share on Twitter\n' +
+    '				</a>\n' +
+    '			<li class=facebook>\n' +
+    '				<a target=_blank href="http://www.facebook.com/sharer/sharer.php?s=100&amp;p[url]={{urlEscape link}}&amp;p[images][0]={{HERE}}&amp;p[title]={{HERE}}" title="Share on Facebook">\n' +
+    '					Share on Facebook\n' +
+    '				</a>\n' +
+    '			<li class=pinterest>\n' +
+    '				<a target=_blank href="https://www.pinterest.com/pin/create/button/?url={{urlEscape link}}&amp;media={{HERE}}&amp;description={{text}}" title="Pin It">\n' +
+    '					Pin It\n' +
+    '				</a>\n' +
+    '			<li class=email>\n' +
+    '				<a target=_blank href="mailto:?subject=Check out this post from gobuffs.io&amp;body={{text}} -- {{urlEscape link}} -- via http://gobuffs.io" title="Email It">\n' +
+    '					Share via Email\n' +
+    '				</a>\n' +
+    '		</ul>\n' +
+    '		<a target=_blank href="{{link}}" title="View Post" class="post-link original-post">\n' +
+    '			view post\n' +
+    '		</a>\n' +
+    '	</div>\n' +
+    '</div>\n' +
+    '';
+
 var htmlTemplates = htmlTemplates || {};htmlTemplates['twitter-photo.html'] = '<div class="tile-content">\n' +
     '	<img src="{{media_url}}" alt="{{text}}" onError="this.onerror=null;this.parentNode.removeChild(this);" />\n' +
     '	<div class="tile-info clearfix">\n' +
@@ -302,6 +362,7 @@ window.$ = jQuery
 window.compiledTemplates = {}
 
 _.forEach([
+	'tile',
 	'blank',
 	'facebook',
 	'gplus',
@@ -451,7 +512,7 @@ function makeTile(tileType, rows, cols, data) {
 		.addClass("tile-container")
 		.addClass(tileType)
 		.data('tileData', data)
-		.html(compiledTemplates[tileType](data))
+		.html(compiledTemplates.tile(data))
 }
 
 },{}],2:[function(require,module,exports){
@@ -474,7 +535,7 @@ function makeTile(tileType, rows, cols, data) {
 	require('./views/SearchStream.js')
 
 	nio.tiles = function (opts) {
-		return new nio.views.SearchStream(opts)
+		return new nio.views.RandomStream(opts)
 	}
 
 }())
@@ -623,7 +684,7 @@ window.nio.utils = {
 	truncate: function (str, len) {
 		var txt = str.substr(0, len)
 		if (txt !== str)
-			txt = txt.trim + '&hellip (more)'
+			txt = txt.trim() + '&hellip; (more)'
 		return txt
 	},
 
@@ -900,7 +961,7 @@ window.nio.utils = {
 			'time': nio.utils.getCurrentTime(),
 			'content': content
 		})
-		tile.resetDurations()
+		//tile.resetDurations()
 
 		return tileToReplace
 	},
@@ -1239,7 +1300,9 @@ nio.views.Stream = Backbone.View.extend({
 nio.views.Tile = Backbone.View.extend({
 
 	tagName: 'div',
-	className: 'tile',
+	className: function () {
+		return 'tile tile-' + this.model.get('content').get('type')
+	},
 	id: function() {
 		return 'tile-' + this.model.cid
 	},
@@ -1266,18 +1329,19 @@ nio.views.Tile = Backbone.View.extend({
 		this.model.on('change:content', function() {
 			self.render()
 		})
+
 	},
 
 	events: {
-		'mouseenter' : 'lockTile',
-		'mouseleave' : 'unlockTile',
-		'touchend' : 'unlockTile',
+		'mouseenter': 'lockTile',
+		'mouseleave': 'unlockTile',
+		'touchend': 'unlockTile',
 		'click .originator-link': 'filterByUser',
 		'click .pinned': 'togglePin',
 		'click .close-tile': 'closeTile',
 		'click .full-text, .full-image': 'openContent',
 		'click a': 'killFunc',
-		'click' : 'expandTile'
+		'click': 'expandTile'
 	},
 
 	filterByUser: function(ev) {
@@ -1318,9 +1382,8 @@ nio.views.Tile = Backbone.View.extend({
 			this.model.set('contentId', content.get('id'))
 
 			// Update the div's timestamp attribute
-			this.$el.attr(
-				'data-timestamp',
-				moment(self.model.get('content').get('time')).format('X.SSS'))
+			var timestamp = moment(self.model.get('content').get('time')).format('X.SSS')
+			this.$el.attr('data-timestamp', timestamp)
 
 			oldDiv.fadeOut('slow', function() {
 				// Once the old div is faded out, remove it
@@ -1334,7 +1397,7 @@ nio.views.Tile = Backbone.View.extend({
 		return $('<div/>')
 			.addClass('tile-container')
 			.addClass(tileType)
-			.html(compiledTemplates[tileType](tileContent.toJSON()))
+			.html(compiledTemplates.tile(tileContent.toJSON()))
 	},
 
 	killFunc: function(ev) {

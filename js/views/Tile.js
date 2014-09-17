@@ -1,7 +1,9 @@
 nio.views.Tile = Backbone.View.extend({
 
 	tagName: 'div',
-	className: 'tile',
+	className: function () {
+		return 'tile tile-' + this.model.get('content').get('type')
+	},
 	id: function() {
 		return 'tile-' + this.model.cid
 	},
@@ -28,18 +30,19 @@ nio.views.Tile = Backbone.View.extend({
 		this.model.on('change:content', function() {
 			self.render()
 		})
+
 	},
 
 	events: {
-		'mouseenter' : 'lockTile',
-		'mouseleave' : 'unlockTile',
-		'touchend' : 'unlockTile',
+		'mouseenter': 'lockTile',
+		'mouseleave': 'unlockTile',
+		'touchend': 'unlockTile',
 		'click .originator-link': 'filterByUser',
 		'click .pinned': 'togglePin',
 		'click .close-tile': 'closeTile',
 		'click .full-text, .full-image': 'openContent',
 		'click a': 'killFunc',
-		'click' : 'expandTile'
+		'click': 'expandTile'
 	},
 
 	filterByUser: function(ev) {
@@ -80,9 +83,8 @@ nio.views.Tile = Backbone.View.extend({
 			this.model.set('contentId', content.get('id'))
 
 			// Update the div's timestamp attribute
-			this.$el.attr(
-				'data-timestamp',
-				moment(self.model.get('content').get('time')).format('X.SSS'))
+			var timestamp = moment(self.model.get('content').get('time')).format('X.SSS')
+			this.$el.attr('data-timestamp', timestamp)
 
 			oldDiv.fadeOut('slow', function() {
 				// Once the old div is faded out, remove it
@@ -96,7 +98,7 @@ nio.views.Tile = Backbone.View.extend({
 		return $('<div/>')
 			.addClass('tile-container')
 			.addClass(tileType)
-			.html(compiledTemplates[tileType](tileContent.toJSON()))
+			.html(compiledTemplates.tile(tileContent.toJSON()))
 	},
 
 	killFunc: function(ev) {

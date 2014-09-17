@@ -17,7 +17,7 @@
 	require('./views/SearchStream.js')
 
 	nio.tiles = function (opts) {
-		return new nio.views.SearchStream(opts)
+		return new nio.views.RandomStream(opts)
 	}
 
 }())
