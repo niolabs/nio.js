@@ -1,0 +1,130 @@
+:root {
+	--tile-bg-default: #000;
+	--tile-bg-facebook: #3b5998;
+	--tile-bg-google: #b30000;
+	--tile-bg-linkedin: #4c7eb1;
+	--tile-bg-rss: #202020;
+	--tile-bg-twitter: #00aced;
+	--tile-font-color: #fff;
+	--tile-font-family: 'Helvetica Neue', Helvetica, sans-serif;
+	--tile-font-weight: 300;
+	--tile-font-size: 14px;
+	--tile-height-avatar: 30px;
+	--tile-height-header: 45px;
+	--tile-height-footer: 45px;
+	--tile-height: 226px;
+	--tile-margin: 5px;
+	--tile-padding: 8px;
+	--tile-width: 248px;
+}
+
+.tile {
+	background: var(--tile-bg-default);
+	color: var(--tile-font-color);
+	cursor: pointer;
+	font-family: var(--tile-font-family);
+	font-size: 14px;
+	font-weight: var(--tile-font-weight);
+	float: left;
+	height: var(--tile-height);
+	margin: var(--tile-margin);
+	padding: var(--tile-padding);
+	position: relative;
+	overflow: hidden;
+	width: var(--tile-width);
+}
+
+.tile,
+.tile * {
+	box-sizing: border-box;
+}
+
+.tile-header {
+	height: var(--tile-height-header);
+	line-height: calc(var(--tile-height-header) - var(--tile-padding) * 2);
+	top: 0;
+}
+
+.tile-has-media .tile-header,
+.tile-has-media .tile-footer {
+	background: rgba(0, 0, 0, .5);
+	transition: margin 300ms;
+}
+
+.tile-has-media .tile-header {
+	margin-top: -100%;
+}
+
+.tile-has-media:hover .tile-header {
+	margin-top: 0;
+}
+
+.tile-has-media .tile-footer {
+	margin-bottom: -100%;
+}
+
+.tile-has-media:hover .tile-footer {
+	margin-bottom: 0;
+}
+
+.tile-header,
+.tile-footer {
+	left: 0;
+	padding: var(--tile-padding);
+	position: absolute;
+	width: 100%;
+	z-index: 5;
+}
+
+.tile-header *,
+.tile-footer * {
+	display: block;
+	float: left;
+}
+
+.tile-author-avatar {
+	height: var(--tile-height-avatar);
+	padding-right: var(--tile-padding);
+}
+
+.tile-content {
+	padding: var(--tile-height-header) 0 var(--tile-height-footer);
+}
+
+.tile-media {
+	bottom: 0;
+	left: 0;
+	margin: auto;
+	position: absolute;
+	right: 0;
+	top: 0;
+	width: 100%;
+	z-index: 1;
+}
+
+.tile-footer {
+	bottom: 0;
+	height: var(--tile-height-footer);
+	line-height: calc(var(--tile-height-footer) - var(--tile-padding) * 2);
+	width: 100%;
+}
+
+.tile-facebook {
+	background: var(--tile-bg-facebook);
+}
+
+.tile-google {
+	background: var(--tile-bg-google);
+}
+
+.tile-linkedin {
+	background: var(--tile-bg-linkedin);
+}
+
+.tile-rss {
+	background: var(--tile-bg-rss);
+}
+
+.tile-twitter {
+	background: var(--tile-bg-twitter);
+}

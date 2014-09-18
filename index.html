@@ -2,39 +2,31 @@
 <meta charset=utf-8>
 <title>nio.js examples</title>
 
-<!--<script src=components/d3/d3.min.js></script>
 <link rel=stylesheet href=nio.min.css></script>
-<script src=nio.min.js></script>-->
-<link rel=stylesheet href=nio.css>
-<script src=components/jquery/dist/jquery.min.js></script>
-<script src=components/moment/min/moment.min.js></script>
+<script src=http://54.85.159.254:443/socket.io/socket.io.js></script>
 <script src=components/lodash/dist/lodash.min.js></script>
-<script src=components/packery/dist/packery.pkgd.min.js></script>
-<script src=components/handlebars/handlebars.min.js></script>
-<script src=components/backbone/backbone.js></script>
-<script src=components/jquery.xdomainrequest/jquery.xdomainrequest.min.js></script>
-<script src='http://54.85.159.254:443/socket.io/socket.io.js?ver=3.9.2'></script>
+<script src=components/d3/d3.min.js></script>
 <script src=nio.js></script>
-<script>
-	window.onload = function () {
-		nio.tiles({
-			el: '#tiles',
-			socketHost: '54.85.159.254:443',
-			serviceHost: '54.85.159.254',
-			tileHeight: 226,
-			tileWidth: 248,
-			tileDurations: {
-				min: 13,
-				minn: 2,
-				randomOffset: 5,
-				minMultiplier: 3
-			}
-		})
-	}
-</script>
 
 <h1>nio.js</h1>
 <h2>Tiles</h2>
-<div id=tiles class="nio-stream js-packery"
-	data-packery-options='{"itemSelector":".tile"}'>
-</div>
+<div id=tiles></div>
+
+<script>
+	nio.tiles('#tiles').source(nio.json('http://54.85.159.254'))
+	//window.tiles = nio.tiles('#tiles').source(nio.socketio('http://54.85.159.254:443'))
+	/*
+	nio.tiles('#tiles')([{
+		name: "GoBuffsio",
+		text: "RT @peterlacis: Very cool listening to @MJohnson850KOA about how he got into voice &amp; broadcast work #verycool #gobuffs Thanks for this @GoBuffsio",
+		type: "twitter",
+		id: "512634643641016320",
+		link: "http://twitter.com/statuses/512634643641016320",
+		media_url: null,
+		time: "2014-09-18T16:10:00.065Z",
+		profile_image_url: "http://pbs.twimg.com/profile_images/502951937185021952/Us3rsjrS_normal.png",
+		alt_text: "Your World in Real-Time - University of Colorado #GoBuffsio http://Instagram.com/gobuffsio http://Facebook.com/gobuffsio",
+		priority: "0",
+		sensitive: false
+	}])*/
+</script>
