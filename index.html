@@ -3,18 +3,81 @@
 <title>nio.js examples</title>
 
 <link rel=stylesheet href=nio.min.css></script>
+<style>
+	* {
+		margin: 0;
+		padding: 0;
+	}
+	h1 {
+		background: #ccc;
+		text-align: center;
+	}
+	#tiles {
+		margin: 0 auto;
+		padding: 20px;
+		width: 906px;
+	}
+</style>
 <script src=http://54.85.159.254:443/socket.io/socket.io.js></script>
+<script src=components/CustomElements/custom-elements.js></script>
+<script src=components/time-elements/time-elements.js></script>
 <script src=components/lodash/dist/lodash.min.js></script>
 <script src=components/d3/d3.min.js></script>
 <script src=nio.js></script>
-
-<h1>nio.js</h1>
-<h2>Tiles</h2>
+<h1><span class="icon icon-nio icon-large" title=nio.js></span></h1>
+<div class=actions>
+	<input id=host type=url value=http://54.85.159.254>
+	<button id=update-host>Update host</button>
+	<button id=add-post>Add a post</button>
+	<button id=delete-post>Delete a post</button>
+</div>
 <div id=tiles></div>
 
 <script>
-	nio.tiles('#tiles').source(nio.json('http://54.85.159.254'))
-	//window.tiles = nio.tiles('#tiles').source(nio.socketio('http://54.85.159.254:443'))
+	var elHost = d3.select('#host')
+	var tiles = showTiles()
+
+	function showTiles() {
+		var host = elHost.attr('value')
+		var stream = nio.mux()
+			.stream(nio.json('http://54.85.159.254'))
+			//.stream(nio.socketio('http://54.85.159.254:443'))
+		stream.bind('posts', function (posts) {
+			console.log('got new posts from the stream!', posts)
+		})
+		return nio.tiles('#tiles')
+			.stream(stream)
+			.sort('time', true)
+	}
+
+	function generatePost() {
+		return {
+			name: "GoBuffsio",
+			text: "ICYMI: Best Buffs to follow on Twitter Part 2: @GucciTy87 @AverageCU @FolsomFrenzy @CUgrlproblems http://t.co/FdboaCdouS #gobuffs #CUBuffs",
+			type: "twitter",
+			id: "513012000452931585",
+			link: "http://twitter.com/statuses/513012000452931585",
+			media_url: null,
+			time: "2014-09-19T17:09:28.064Z",
+			profile_image_url: "http://pbs.twimg.com/profile_images/502951937185021952/Us3rsjrS_normal.png",
+			alt_text: "Your World in Real-Time - University of Colorado #GoBuffsio http://Instagram.com/gobuffsio http://Facebook.com/gobuffsio",
+			priority: "0",
+			sensitive: false
+		}
+	}
+
+	d3.select('#add-post').on('click', function () {
+		console.log('add a post')
+	})
+
+	d3.select('#delete-post').on('click', function () {
+		console.log('delete a post')
+	})
+
+	d3.select('#host').on('change', function () {
+		tiles = showTiles()
+	})
+	//nio.tiles('#tiles').stream(nio.socketio('http://54.85.159.254:443'))
 	/*
 	nio.tiles('#tiles')([{
 		name: "GoBuffsio",
