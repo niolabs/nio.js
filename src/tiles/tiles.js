@@ -1,45 +1,46 @@
-var Stream = require('../stream')
-var util = require('../util')
+var __extends = this.__extends || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    __.prototype = b.prototype;
+    d.prototype = new __();
+};
+/// <reference path="../../typings/d3/d3.d.ts" />
+/// <reference path="../../typings/lodash/lodash.d.ts" />
+var stream = require('../stream');
+
+var utils = require('../utils');
+
 var template = _.template(htmlTemplates['tiles/tiles.html'], null, {
-	imports: { 'linkify': linkify }
-})
+    imports: {
+        'linkify': utils.linkify,
+        'truncate': utils.truncate
+    }
+});
 
-function linkify(str) {
-	str = str.replace(/(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig,"<a target=_blank href='$1'>$1</a>")
-	str = str.replace(/(^|\s)@(\w+)/g, "$1<a target=_blank href=\"http://twitter.com/$2\">@$2</a>")
-	return str.replace(/(^|\s)#(\w+)/g, "$1<a target=_blank href=\"http://twitter.com/search?q=%23$2\">#$2</a>")
-}
+var TileView = (function (_super) {
+    __extends(TileView, _super);
+    function TileView(selector) {
+        this.el = d3.select(selector);
+        this.posts = [];
+        this.lazyRender = _.debounce(this.render.bind(this), 1000);
+        _super.call(this);
+    }
+    TileView.prototype.render = function () {
+        var elTiles = this.el.selectAll('div').data(this.posts);
+        elTiles.enter().append('div');
+        elTiles.attr('class', function (p) {
+            return 'tile tile-' + p.type + (p.media_url ? ' tile-has-media' : '');
+        }).html(function (p) {
+            return template(p);
+        });
+        elTiles.exit();
+    };
 
-function TileView(selector) {
-	if (!(this instanceof TileView))
-		return new TileView(selector)
-	this.el = d3.select(selector)
-	this.posts = []
-	this.lazyUpdate = _.debounce(this.update.bind(this), 1000)
-}
-
-util.inherits(TileView, Stream)
-
-TileView.prototype.update = function () {
-	var elTiles = this.el.selectAll('div').data(this.posts)
-
-	elTiles.enter().append('div')
-
-	elTiles
-		.attr('class', function (p) {
-			return 'tile tile-' + p.type + (p.media_url ? ' tile-has-media' : '')
-		})
-		.html(function (p) { return template(p) })
-
-	elTiles.exit()
-
-	return this
-}
-
-TileView.prototype.write = function (chunk) {
-	this.posts = chunk
-	this.lazyUpdate()
-	this.push(chunk)
-}
-
-module.exports = TileView
+    TileView.prototype.write = function (posts) {
+        this.posts = posts;
+        this.lazyRender();
+        this.push(this.posts);
+    };
+    return TileView;
+})(stream.Stream);
+exports.TileView = TileView;

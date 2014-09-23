@@ -8,10 +8,11 @@ var rename = require('gulp-rename')
 var browserify = require('gulp-browserify')
 var minifyHTML = require('gulp-minify-html')
 var jsifyTemplates = require('gulp-jsify-html-templates')
-var svgSprite = require('gulp-svg-sprites')
 var base64 = require('gulp-base64')
+var ts = require('gulp-typescript')
+var sourcemaps = require('gulp-sourcemaps')
 
-gulp.task('html', function () {
+gulp.task('html', function() {
 	return gulp.src('src/**/*.html')
 		//.pipe(minifyHTML())
 		.pipe(jsifyTemplates())
@@ -19,42 +20,58 @@ gulp.task('html', function () {
 		.pipe(gulp.dest('build'))
 })
 
-gulp.task('browserify', function () {
-	return gulp.src(['src/nio.js'])
-		.pipe(browserify())
-		.pipe(rename('bundle.js'))
-		.pipe(gulp.dest('build'))
+var tsProject = ts.createProject({
+	declarationFiles: true,
+	module: 'commonjs'
+	//noExternalResolve: true
 })
+gulp.task('ts', ['html'], function() {
+	var tsResult = gulp.src('src/nio.ts')
+		.pipe(sourcemaps.init())
+		//.pipe(ts(tsProject))
+		.pipe(ts({
+			declarationFiles: true,
+			module: 'commonjs'
+		}))
 
-gulp.task('js', ['html', 'browserify'], function () {
-	return gulp.src(['build/html.js', 'build/bundle.js'])
+	tsResult.dts.pipe(gulp.dest('dist'))
+
+	tsResult.js
+		.pipe(browserify())
+		.pipe(rename('browserify.js'))
+		.pipe(gulp.dest('build'))
+
+	return gulp.src(['build/html.js', 'build/browserify.js'])
 		.pipe(concat('nio.js'))
-		.pipe(gulp.dest('.'))
+		.pipe(gulp.dest('dist'))
 		.pipe(uglify())
 		.pipe(rename('nio.min.js'))
-		.pipe(gulp.dest('.'))
+		.pipe(sourcemaps.write('.'))
+		.pipe(gulp.dest('dist'))
 })
 
-gulp.task('css', function () {
+gulp.task('css', function() {
 	return gulp.src(['src/**/*.css'])
 		.pipe(concat('nio.css'))
 		.pipe(myth())
 		.pipe(base64({
 			baseDir: 'icons'
 		}))
-		.pipe(gulp.dest('.'))
+		.pipe(gulp.dest('dist'))
 		.pipe(csso())
 		.pipe(rename('nio.min.css'))
-		.pipe(gulp.dest('.'))
+		.pipe(gulp.dest('dist'))
 })
 
-gulp.task('watch', ['build'], function () {
-	gulp.watch('src/**/*.html', ['js'])
+gulp.task('watch', ['build'], function() {
+	gulp.watch('src/**/*.html', ['ts'])
 	gulp.watch('src/**/*.css', ['css'])
-	gulp.watch('src/**/*.js', ['js'])
+	gulp.watch('src/**/*.ts', ['ts'])
 	gulp.watch('icons/**/*.svg', ['css'])
 })
 
-gulp.task('build', ['css', 'js'])
+gulp.task('build', ['css', 'ts'])
 
 gulp.task('default', ['watch'])
+
+

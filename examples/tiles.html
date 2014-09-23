@@ -1,0 +1,24 @@
+<!doctype html>
+<meta charset=utf-8>
+<title>nio.js examples</title>
+
+<link rel=stylesheet href=../dist/nio.min.css>
+<link rel=stylesheet href=example.css>
+<style>
+	#tiles {
+		margin: 0 auto;
+		padding: 20px;
+		width: 906px;
+	}
+</style>
+<script src=http://54.85.159.254:443/socket.io/socket.io.js></script>
+<script src=../components/CustomElements/custom-elements.js></script>
+<script src=../components/time-elements/time-elements.js></script>
+<script src=../components/lodash/dist/lodash.min.js></script>
+<script src=../components/d3/d3.min.js></script>
+<script src=../dist/nio.js></script>
+<h1><span class="icon icon-nio icon-large" title=nio.js></span></h1>
+<div id=tiles></div>
+<script>
+	nio.showTiles('#tiles', nio.json('http://54.85.159.254'))
+</script>
