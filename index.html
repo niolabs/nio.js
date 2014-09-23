@@ -38,32 +38,16 @@
 	var tiles = showTiles()
 
 	function showTiles() {
-		var host = elHost.attr('value')
-		var stream = nio.mux()
-			.stream(nio.json('http://54.85.159.254'))
-			//.stream(nio.socketio('http://54.85.159.254:443'))
-		stream.bind('posts', function (posts) {
-			console.log('got new posts from the stream!', posts)
-		})
-		return nio.tiles('#tiles')
-			.stream(stream)
-			.sort('time', true)
-	}
+		var src = nio.json('http://54.85.159.254')
+		var posts = nio.collection(nio.models.Post)
+		var tiles = nio.tiles('#tiles')
+		posts.on('data', function (data) { console.log(data) })
 
-	function generatePost() {
-		return {
-			name: "GoBuffsio",
-			text: "ICYMI: Best Buffs to follow on Twitter Part 2: @GucciTy87 @AverageCU @FolsomFrenzy @CUgrlproblems http://t.co/FdboaCdouS #gobuffs #CUBuffs",
-			type: "twitter",
-			id: "513012000452931585",
-			link: "http://twitter.com/statuses/513012000452931585",
-			media_url: null,
-			time: "2014-09-19T17:09:28.064Z",
-			profile_image_url: "http://pbs.twimg.com/profile_images/502951937185021952/Us3rsjrS_normal.png",
-			alt_text: "Your World in Real-Time - University of Colorado #GoBuffsio http://Instagram.com/gobuffsio http://Facebook.com/gobuffsio",
-			priority: "0",
-			sensitive: false
-		}
+		src.get('posts')
+			.pipe(nio.collection(nio.models.Post))
+			.sort('time', true)
+			.pipe(nio.utils.logStream())
+			.pipe(tiles)
 	}
 
 	d3.select('#add-post').on('click', function () {
@@ -77,19 +61,4 @@
 	d3.select('#host').on('change', function () {
 		tiles = showTiles()
 	})
-	//nio.tiles('#tiles').stream(nio.socketio('http://54.85.159.254:443'))
-	/*
-	nio.tiles('#tiles')([{
-		name: "GoBuffsio",
-		text: "RT @peterlacis: Very cool listening to @MJohnson850KOA about how he got into voice &amp; broadcast work #verycool #gobuffs Thanks for this @GoBuffsio",
-		type: "twitter",
-		id: "512634643641016320",
-		link: "http://twitter.com/statuses/512634643641016320",
-		media_url: null,
-		time: "2014-09-18T16:10:00.065Z",
-		profile_image_url: "http://pbs.twimg.com/profile_images/502951937185021952/Us3rsjrS_normal.png",
-		alt_text: "Your World in Real-Time - University of Colorado #GoBuffsio http://Instagram.com/gobuffsio http://Facebook.com/gobuffsio",
-		priority: "0",
-		sensitive: false
-	}])*/
 </script>

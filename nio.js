@@ -1,4 +1,4 @@
-var htmlTemplates = htmlTemplates || {};htmlTemplates['tiles.html'] = '<header class=tile-header>\n' +
+var htmlTemplates = htmlTemplates || {};htmlTemplates['tiles/tiles.html'] = '<header class=tile-header>\n' +
     '	<a class=tile-author>\n' +
     '		<% if (profile_image_url) { %>\n' +
     '			<img class=tile-author-avatar src="<%=profile_image_url%>" alt="<%=name%>\'s avatar">\n' +
@@ -13,7 +13,7 @@ var htmlTemplates = htmlTemplates || {};htmlTemplates['tiles.html'] = '<header c
     '	<% if (media_url) { %>\n' +
     '		<img class=tile-media src="<%=media_url%>" alt="<%=text%>" title="<%=text%>">\n' +
     '	<% } else { %>\n' +
-    '		<%=text%>\n' +
+    '		<%=linkify(text)%>\n' +
     '	<% } %>\n' +
     '</div>\n' +
     '<footer class=tile-footer>\n' +
@@ -38,282 +38,301 @@ var htmlTemplates = htmlTemplates || {};htmlTemplates['tiles.html'] = '<header c
     '</footer>\n' +
     '';
 
-/**
- * MicroEvent - to make any js object an event emitter (server or browser)
- *
- * - pure javascript - server compatible, browser compatible
- * - dont rely on the browser doms
- * - super simple - you get it immediatly, no mistery, no magic involved
- *
- * - create a MicroEventDebug with goodies to debug
- *   - make it safer to use
-*/
+(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+module.exports.EventEmitter = EventEmitter
 
-var MicroEvent	= function(){};
-MicroEvent.prototype	= {
-	bind	: function(event, fct){
-		this._events = this._events || {};
-		this._events[event] = this._events[event]	|| [];
-		this._events[event].push(fct);
-	},
-	unbind	: function(event, fct){
-		this._events = this._events || {};
-		if( event in this._events === false  )	return;
-		this._events[event].splice(this._events[event].indexOf(fct), 1);
-	},
-	trigger	: function(event /* , args... */){
-		this._events = this._events || {};
-		if( event in this._events === false  )	return;
-		for(var i = 0; i < this._events[event].length; i++){
-			this._events[event][i].apply(this, Array.prototype.slice.call(arguments, 1));
-		}
-	}
-};
+function EventEmitter() {}
 
-/**
- * mixin will delegate all MicroEvent.js function in the destination object
- *
- * - require('MicroEvent').mixin(Foobar) will make Foobar able to use MicroEvent
- *
- * @param {Object} the object which will support MicroEvent
-*/
-MicroEvent.mixin	= function(destObject){
-	var props	= ['bind', 'unbind', 'trigger'];
-	for(var i = 0; i < props.length; i ++){
-		if( typeof destObject === 'function' ){
-			destObject.prototype[props[i]]	= MicroEvent.prototype[props[i]];
-		}else{
-			destObject[props[i]] = MicroEvent.prototype[props[i]];
-		}
+EventEmitter.prototype.on = function (event, fct) {
+	this._events = this._events || {}
+	this._events[event] = this._events[event]	|| []
+	this._events[event].push(fct)
+}
+
+EventEmitter.prototype.off = function (event, fct) {
+	this._events = this._events || {}
+	if (event in this._events === false) return
+	this._events[event].splice(this._events[event].indexOf(fct), 1)
+}
+
+EventEmitter.prototype.emit = function (event) {
+	this._events = this._events || {}
+	if (event in this._events === false) return
+	for (var i=0; i<this._events[event].length; i++) {
+		this._events[event][i].apply(this, Array.prototype.slice.call(arguments, 1));
 	}
 }
 
-// export in common js
-if( typeof module !== "undefined" && ('exports' in module)){
-	module.exports	= MicroEvent;
+},{}],2:[function(require,module,exports){
+var Stream = require('./stream')
+var util = require('./util')
+
+function JSONSource(host, pollRate) {
+	if (!(this instanceof JSONSource))
+		return new JSONSource(host, pollRate)
+	Stream.call(this)
+	this.host = host
+	this.pollRate = pollRate || 30 * 1000
+	this.interval = null
+	this.path = null
 }
 
-// Simple JavaScript Templating
-// John Resig - http://ejohn.org/ - MIT Licensed
-(function(){
-  var cache = {};
+util.inherits(JSONSource, Stream)
 
-  this.tmpl = function tmpl(str, data){
-    // Figure out if we're getting a template, or if we need to
-    // load the template - and be sure to cache the result.
-    var fn = !/\W/.test(str) ?
-      cache[str] = cache[str] ||
-        tmpl(document.getElementById(str).innerHTML) :
+JSONSource.prototype._poll = function () {
+	var path = this.path
+	d3.json(this.host + '/' + path, function (error, json) {
+		var data = json[path]
+		if (data && _.isArray(data))
+			for (var i=data.length; i--;)
+				this.push(data[i])
+		else
+			this.push(data)
+	}.bind(this))
+	return this
+}
 
-      // Generate a reusable function that will serve as a template
-      // generator (and which will be cached).
-      new Function("obj",
-        "var p=[],print=function(){p.push.apply(p,arguments);};" +
+JSONSource.prototype.get = function (path) {
+	this.stop()
+	this.path = path
+	this._poll()
+	this.interval = setInterval(this._poll.bind(this), this.pollRate)
+	return this
+}
 
-        // Introduce the data as local variables using with(){}
-        "with(obj){p.push('" +
+JSONSource.prototype.stop = function () {
+	if (this.interval) clearInterval(this.interval)
+	return this
+}
 
-        // Convert the template into pure JavaScript
-        str
-          .replace(/[\r\t\n]/g, " ")
-          .split("<%").join("\t")
-          .replace(/((^|%>)[^\t]*)'/g, "$1\r")
-          .replace(/\t=(.*?)%>/g, "',$1,'")
-          .split("\t").join("');")
-          .split("%>").join("p.push('")
-          .split("\r").join("\\'")
-      + "');}return p.join('');");
-
-    // Provide some basic currying to the user
-    return data ? fn( data ) : fn;
-  };
-})();
-
-!function () {
-
-	function json(host) {
-		var pollRate = 30 * 1000
-		var interval = null
-		function fetch(path) {
-			function poll() {
-				d3.json(host + '/' + path, function (error, json) {
-					fetch.trigger(path, json[path])
-				})
-			}
-			poll()
-			interval = setInterval(poll, pollRate)
-			return this
-		}
-		fetch.host = function (value) {
-			if (!arguments.length) return host
-			host = value
-			return this
-		}
-		fetch.stop = function () {
-			clearInterval(interval)
-			return this
-		}
-		fetch.pollRate = function (value) {
-			if (!arguments.length) return pollRate
-			pollRate = value
-			return this
-		}
-		return _.assign(fetch, MicroEvent.prototype)
+function socketio(host) {
+	var ws = null
+	var sock = null
+	function fetch(type) {
+		ws = io.connect(host, {'force new connection': true})
+		sock = ws.socket
+		sock.on('connect', function () {
+			ws.emit('ready', type == 'posts' ? 'default' : path)
+		})
+		sock.on('connect_failed', function () {
+			console.error('connection failed')
+		})
+		sock.on('error', function () {
+			console.error('connection error')
+		})
+		ws.on('recvData', function (data) {
+			fetch.push(type, JSON.parse(data))
+		})
+		return this
 	}
-
-	function socketio(host) {
-		var ws = null
-		var sock = null
-		function fetch(type) {
-			ws = io.connect(host, {'force new connection': true})
-			sock = ws.socket
-			sock.on('connect', function () {
-				ws.emit('ready', type == 'posts' ? 'default' : path)
-			})
-			sock.on('connect_failed', function () {
-				console.error('connection failed')
-			})
-			sock.on('error', function () {
-				console.error('connection error')
-			})
-			ws.on('recvData', function (data) {
-				fetch.trigger(type, JSON.parse(data))
-			})
-			return this
-		}
-		fetch.host = function (value) {
-			if (!arguments.length) return host
-			host = value
-			return this
-		}
-		fetch.stop = function (value) {
-			if (!ws) return
-			ws.disconnect()
-		}
-		return _.assign(fetch, MicroEvent.prototype)
+	fetch.host = function (value) {
+		if (!arguments.length) return host
+		host = value
+		return this
 	}
+	fetch.stop = function (value) {
+		if (!ws) return
+		ws.disconnect()
+	}
+	return _.assign(fetch, Stream.prototype)
+}
 
-	// mux is a multiplexer that aggregates signals sent from streams
-	function mux() {
-		var streams = []
-		function fetch(type) {
-			streams.forEach(function (stream) {
-				stream.bind(type, function (data) {
-					fetch.trigger(type, data)
-				})
-				stream(type)
+// mux is a multiplexer that aggregates signals sent from sources
+function mux() {
+	var sources = []
+	function fetch(type) {
+		sources.forEach(function (source) {
+			source.on('data', function (data) {
+				fetch.push(data)
 			})
-			return this
-		}
-		fetch.stream = function (stream) {
-			streams.push(stream)
-			return this
-		}
-		fetch.stop = function () {
-			streams.forEach(function (stream) {
-				stream.stop()
-			})
-			return this
-		}
-		return _.assign(fetch, MicroEvent.prototype)
+			source(type)
+		})
+		return this
 	}
-
-	// tiles visualizes posts as tiles.
-	function tiles(selector) {
-		var template = tmpl(htmlTemplates['tiles.html'])
-		var el = d3.select(selector).selectAll('div')
-		var stream = null
-		var posts = []
-		var filters = []
-
-		function update(data) {
-			if (_.isArray(data))
-				data.forEach(function (post) {
-					if (!_.contains(posts, post))
-						posts.push(post)
-				})
-			else if (!_.contains(posts, post))
-				posts.push(post)
-
-			if (filters.length)
-				posts = _.compose(filters[0])(posts)
-
-			el = el.data(posts)
-
-			el.enter().append('div')
-				.style('opacity', 0)
-
-			el
-				.attr('class', function (p) {
-					return 'tile tile-' + p.type + (p.media_url ? ' tile-has-media' : '')
-				})
-				.html(function (p) { return template(new Post(p)) })
-				.transition()
-				.duration(1000)
-				.style('opacity', 1)
-
-			el.exit().transition()
-				.duration(750)
-				.style('opacity', 0)
-				.remove()
-			return this
-		}
-
-		update.stream = function (value) {
-			if (!arguments.length) return stream
-			stream = value
-			stream('posts')
-			stream.bind('posts', function (data) {
-				if (_.isArray(data))
-					posts = data
-				else if (!_.contains(posts, data))
-					posts.push(data)
-				update(posts)
-			})
-			return update
-		}
-
-		update.posts = function (value) {
-			if (!arguments.length) return posts
-			posts = value
-			return this
-		}
-
-		update.filter = function (fn) {
-			filters.push(fn)
-			update(posts)
-		}
-
-		update.sort = function (prop, reverse) {
-			update.filter(function (posts) {
-				posts = _.sortBy(posts, prop)
-				return reverse ? posts.reverse() : posts
-			})
-		}
-
-		return update
+	fetch.source = function (source) {
+		sources.push(source)
+		return this
 	}
-
-	function Post(opts) {
-		_.assign(this, Post.defaults, opts)
+	fetch.stop = function () {
+		sources.forEach(function (source) {
+			source.stop()
+		})
+		return this
 	}
+	return _.assign(fetch, Stream.prototype)
+}
 
-	Post.defaults = {
-		profile_image_url: null,
-		media_url: null
+function TestStream() {
+	console.log(this)
+	setInterval(function () {
+		this.push('hello world')
+	}.bind(this), 1000)
+}
+util.inherits(TestStream, Stream)
+
+function logStream() {
+	return Stream.make(function (chunk) {
+		console.log(chunk)
+		this.push(chunk)
+	})
+}
+
+function Collection(modelFn) {
+	if (!(this instanceof Collection))
+		return new Collection(modelFn)
+	Stream.call(this)
+	this.modelFn = modelFn
+	this.data = []
+	this.transforms = []
+	this.transformFn = null
+}
+
+util.inherits(Collection, Stream)
+
+Collection.prototype.write = function (chunk) {
+	var model = new this.modelFn(chunk)
+	if (!_.any(this.data, function (m) { return model.getID() == m.getID() })) {
+		this.data.push(model)
+		if (this.transformFn)
+			this.data = this.transformFn(this.data)
+		this.push(this.data)
 	}
+}
 
-	function linkify(str) {
-		str = str.replace(/(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig,"<a href='$1'>$1</a>")
-		str = str.replace(/(^|\s)@(\w+)/g, "$1<a href=\"http://www.twitter.com/$2\">@$2</a>")
-		return str.replace(/(^|\s)#(\w+)/g, "$1<a href=\"http://search.twitter.com/search?q=%23$2\">#$2</a>")
+Collection.prototype.transform = function (fn) {
+	this.transforms.push(fn)
+	this.transformFn = this.transforms[0]
+	return this
+}
+
+Collection.prototype.sort = function (prop, reverse) {
+	this.transform(function (data) {
+		var sorted = _.sortBy(data, function (d) { return d[prop] })
+		return reverse ? sorted.reverse() : sorted
+	})
+	return this
+}
+
+module.exports = window.nio = {
+	json: JSONSource,
+	socketio: socketio,
+	mux: mux,
+	models: require('./models'),
+	tiles: require('./tiles/tiles.js'),
+	collection: Collection,
+	utils: {
+		logStream: logStream
 	}
+}
 
-	this.nio = {
-		json: json,
-		socketio: socketio,
-		mux: mux,
-		tiles: tiles
-	}
+},{"./models":3,"./stream":4,"./tiles/tiles.js":5,"./util":6}],3:[function(require,module,exports){
+function Post(opts) {
+	_.assign(this, Post.defaults, opts)
+}
 
-}()
+Post.prototype.getID = function () {
+	return this.id
+}
+
+Post.defaults = {
+	profile_image_url: null,
+	media_url: null
+}
+
+module.exports = {
+	Post: Post,
+}
+
+},{}],4:[function(require,module,exports){
+/* A naive, barebones implementation of node's Stream API. */
+module.exports = Stream
+
+var EventEmitter = require('./events').EventEmitter
+var util = require('./util')
+
+function Stream() {
+	EventEmitter.call(this)
+}
+
+util.inherits(Stream, EventEmitter)
+
+Stream.prototype.push = function (chunk) {
+	this.emit('data', chunk)
+}
+
+Stream.prototype.write = function (chunk) {
+	this.emit('error', new Error('not implemented'))
+}
+
+Stream.prototype.pipe = function (dest) {
+	this.on('data', dest.write.bind(dest))
+	return dest
+}
+
+Stream.make = function (writeFunc) {
+	var stream = new Stream()
+	stream.write = writeFunc.bind(stream)
+	return stream
+}
+
+},{"./events":1,"./util":6}],5:[function(require,module,exports){
+var Stream = require('../stream')
+var util = require('../util')
+var template = _.template(htmlTemplates['tiles/tiles.html'], null, {
+	imports: { 'linkify': linkify }
+})
+
+function linkify(str) {
+	str = str.replace(/(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig,"<a target=_blank href='$1'>$1</a>")
+	str = str.replace(/(^|\s)@(\w+)/g, "$1<a target=_blank href=\"http://twitter.com/$2\">@$2</a>")
+	return str.replace(/(^|\s)#(\w+)/g, "$1<a target=_blank href=\"http://twitter.com/search?q=%23$2\">#$2</a>")
+}
+
+function TileView(selector) {
+	if (!(this instanceof TileView))
+		return new TileView(selector)
+	this.el = d3.select(selector)
+	this.posts = []
+	this.lazyUpdate = _.debounce(this.update.bind(this), 1000)
+}
+
+util.inherits(TileView, Stream)
+
+TileView.prototype.update = function () {
+	var elTiles = this.el.selectAll('div').data(this.posts)
+
+	elTiles.enter().append('div')
+
+	elTiles
+		.attr('class', function (p) {
+			return 'tile tile-' + p.type + (p.media_url ? ' tile-has-media' : '')
+		})
+		.html(function (p) { return template(p) })
+
+	elTiles.exit()
+
+	return this
+}
+
+TileView.prototype.write = function (chunk) {
+	this.posts = chunk
+	this.lazyUpdate()
+	this.push(chunk)
+}
+
+module.exports = TileView
+
+},{"../stream":4,"../util":6}],6:[function(require,module,exports){
+module.exports.inherits = function (ctor, superCtor) {
+	ctor.super_ = superCtor
+	ctor.prototype = Object.create(superCtor.prototype, {
+			constructor: {
+			value: ctor,
+			enumerable: false,
+			writable: true,
+			configurable: true
+		}
+	})
+}
+
+},{}]},{},[2])

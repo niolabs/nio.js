@@ -19,8 +19,15 @@ gulp.task('html', function () {
 		.pipe(gulp.dest('build'))
 })
 
-gulp.task('js', ['html'], function () {
-	return gulp.src(['build/html.js', 'src/lib/*.js', 'src/nio.js'])
+gulp.task('browserify', function () {
+	return gulp.src(['src/nio.js'])
+		.pipe(browserify())
+		.pipe(rename('bundle.js'))
+		.pipe(gulp.dest('build'))
+})
+
+gulp.task('js', ['html', 'browserify'], function () {
+	return gulp.src(['build/html.js', 'build/bundle.js'])
 		.pipe(concat('nio.js'))
 		.pipe(gulp.dest('.'))
 		.pipe(uglify())

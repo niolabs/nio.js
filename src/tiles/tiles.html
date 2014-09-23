@@ -13,7 +13,7 @@
 	<% if (media_url) { %>
 		<img class=tile-media src="<%=media_url%>" alt="<%=text%>" title="<%=text%>">
 	<% } else { %>
-		<%=text%>
+		<%=linkify(text)%>
 	<% } %>
 </div>
 <footer class=tile-footer>

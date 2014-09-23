@@ -11,7 +11,7 @@ Usage
 - d3.js
 - lodash
 
-Additionally, if you want to use Socket.IO as a source you will need to include
+Additionally, if you want to use Socket.IO as a stream you will need to include
 the script on the page.
 
 ## Install
@@ -27,7 +27,7 @@ Full example
 ------------
 
 This will display a single tweet. It uses a plain old Javascript object as the
-source for posts.
+stream for posts.
 
 ```html
 <!doctype>
@@ -56,36 +56,36 @@ source for posts.
 </script>
 ```
 
-This uses a JSON API as a source for posts:
+This uses a JSON API as a stream for posts:
 
 ```javascript
-nio.tiles('body').source(nio.json('http://54.85.159.254'))
+nio.tiles('body').stream(nio.json('http://54.85.159.254'))
 ```
 
-This uses a Socket.IO server as a source for posts:
+This uses a Socket.IO server as a stream for posts:
 
 ```javascript
-nio.tiles('body').source(nio.socketio('http://54.85.159.254:443'))
+nio.tiles('body').stream(nio.socketio('http://54.85.159.254:443'))
 ```
 
-This uses posts from multiple sources:
+This uses posts from multiple streams:
 
 ```javascript
-nio.tiles('body').source([
+nio.tiles('body').stream([
 	nio.json('http://54.85.159.254'),
 	nio.socketio('http://54.85.159.254:443')
 ])
 ```
 
-This uses multiple sources, adds a filter, and limits the number of posts:
+This uses multiple streams, adds a filter, and limits the number of posts:
 
 ```javascript
 var mux = nio.mux()
-	.source(nio.json('http://54.85.159.254'))
-	.source(nio.socketio('http://54.85.159.254:443'))
+	.stream(nio.json('http://54.85.159.254'))
+	.stream(nio.socketio('http://54.85.159.254:443'))
 	.limit(30)
 	.filter(function (obj) { return obj.name === 'GoBuffsio' })
-nio.tiles('body').source(mux)
+nio.tiles('body').stream(mux)
 ```
 
 See `index.html` for a working example.
