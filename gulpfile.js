@@ -46,6 +46,7 @@ gulp.task('dist/nio.css', function() {
 	return gulp.src(['src/core.css'])
 		.pipe(myth())
 		.pipe(base64({baseDir: 'src/icons'}))
+		.pipe(rename('nio.css'))
 		.pipe(gulp.dest('dist'))
 })
 
