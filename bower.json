@@ -18,19 +18,8 @@
   ],
   "dependencies": {
     "d3": "~3.4.11",
-    "doT": "~1.0.1",
-    "packery": "~1.2.4",
-    "jquery": "~2.1.1",
-    "handlebars": "~2.0.0",
-    "moment": "~2.8.3",
     "lodash": "~2.4.1",
-    "backbone": "~1.1.2",
-    "jquery.xdomainrequest": "~1.0.2",
-    "socket.io": "~1.1.0",
     "time-elements": "~0.4.0",
     "CustomElements": "Polymer/CustomElements#~0.4.1"
-  },
-  "resolutions": {
-    "jquery": "~2.1.1"
   }
 }

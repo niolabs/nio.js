@@ -18,7 +18,22 @@
 <script src=../components/d3/d3.min.js></script>
 <script src=../dist/nio.js></script>
 <h1><span class="icon icon-nio icon-large" title=nio.js></span></h1>
+<a href=# id=toggle>pause</a>
 <div id=tiles></div>
 <script>
-	nio.showTiles('#tiles', nio.json('http://54.85.159.254'))
+	nio.src.json('http://54.85.159.254')('posts')
+		.pipe(nio.defaults({
+			media_url: null,
+			profile_image_url: null
+		}))
+		.pipe(nio.collect())
+		.sort(function (d) { return d.time }, true)
+		.dupes(function (d) { return d.id })
+		.pipe(nio.log())
+		.pipe(nio.tiles('#tiles'))
+	/*
+	nio.src.test()('hello world')
+		.pipe(nio.collect().dupes())
+		.pipe(nio.log())
+		*/
 </script>
