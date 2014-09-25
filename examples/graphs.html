@@ -9,19 +9,37 @@
 <script src=../components/d3/d3.min.js></script>
 <script src=../dist/nio.js></script>
 <h1><span class="icon icon-nio icon-large" title=nio.js></span></h1>
-<div id=graph></div>
-<label>Host: <input type=url id=host></label>
+<div class=container>
+	<h2>CPU Usage</h2>
+	<div id=graph></div>
+</div>
 <script>
 	//var lineGraph = nio.graphs.line('#graph')
 		//.x(function (d) { return new Date(d.id_value) })
 
+	var graph = nio.graphs.line('#graph')
+		.domains({y: [0, 100]})
+
 	nio.src.socketio('http://54.85.159.254:443')('monitoring')
 		.pipe(nio.filter(function (d) { return d.id === 'cpu' }))
-		.pipe(nio.log())
-		.pipe(nio.graphs.line('#graph'))
-		.y(function (d) { return d.percent })
-		.domains({y: [0, 100]})
-		.render()
+		.pipe(nio.graphs.dataset())
+			.y('percent').id('id').label('name')
+			.pipe(nio.log())
+		.pipe(graph)
+
+		/*
+	nio.src.socketio('http://54.197.236.34:443')('monitoring')
+		//.pipe(onlyCPU)
+		.pipe(nio.graphs.dataset())
+			.y(function (d) { return d.cpu })
+			.id(function (d) { return d.name })
+			.label(function (d) { return d.name })
+			.pipe(nio.log())
+		.pipe(graph)
+		*/
+
+
+	graph.render()
 		//.pipe(line.segments(function (d) { return d.id }))
 
 	//lineGraph.render()

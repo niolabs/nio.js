@@ -1,6 +1,6 @@
 nio.graphs = {}
 
-_.assign(nio.graphs._graph, nio._streamer, {
+nio.graphs._graph = _.assign({}, nio._streamer, {
 	width: function (value) {
 		if (!value) return this.width
 		this.width = value
@@ -19,34 +19,33 @@ _.assign(nio.graphs._graph, nio._streamer, {
 	render: nio._mustImplement
 })
 
-/*_.assign(nio.graphs.dataset, nio._streamer, {
-	x: function (fn) {
-		if (!value) return this.getX
-		this.getX = fn
-		return this
-	},
-	y: function (fn) {
-		if (!value) return this.getY
-		this.getY = fn
-		return this
-	},
-	id: function (fn) {
-		if (!value) return this.getID
-		this.getID = fn
-		return this
-	}
-})*/
+nio.graphs.dataset = function () {
+	return _.assign({}, nio._streamer, {
+		getter: function (name, value) {
+			if (!value) return this[name]
+			this[name] = _.isString(value) ? function (d) { return d[value] } : value
+			return this
+		},
+		x: function (value) { return this.getter('getX', value) },
+		y: function (value) { return this.getter('getY', value) },
+		id: function (value) { return this.getter('getID', value) },
+		label: function (value) { return this.getter('getLabel', value) },
+		write: function (chunk) {
+			this.push({
+				x: this.getX ? this.getX(chunk) : 0,
+				y: this.getY ? this.getY(chunk) : 0,
+				id: this.getID ? this.getID(chunk) : '',
+				label: this.getLabel ? this.getLabel(chunk) : ''
+			})
+		}
+	})
+}
 
 nio.graphs.line = function (selector) {
-	var getY = function (y) { return y },
-		getX = function (x) { return x },
-		getID = null,
-		domains = {}
-
 	var n = 243,
-		latestData = { percent: 0 },
-		data = d3.range(n).map(function() { return latestData }),
-		datasets = {}
+		blankData = {x: 0, y: 0, id: '', label: ''},
+		latestData = blankData,
+		data = d3.range(n).map(function() { return latestData })
 
 	function render() {
 		var duration = 750,
@@ -63,14 +62,14 @@ nio.graphs.line = function (selector) {
 
 		var y = d3.scale.linear()
 			.range([height, 0])
-			.domain(domains.y || d3.max(data, getY));
+			.domain(domains.y || d3.max(data, function (d) { return d.y }));
 
 		var line = d3.svg.line()
 			.interpolate("basis")
 			.x(function(d, i) { return x(now - (n - 1 - i) * duration); })
-			.y(function(d) { return y(getY(d) || 0); });
+			.y(function(d) { return y(d.y || 0); });
 
-		var svg = d3.select("body").append("p").append("svg")
+		var svg = d3.select(selector).append("svg")
 			.attr("width", width + margin.left + margin.right)
 			.attr("height", height + margin.top + margin.bottom)
 			.style("margin-left", -margin.left + "px")
@@ -96,20 +95,14 @@ nio.graphs.line = function (selector) {
 
 		tick();
 
-		//d3.select(window)
-		//	.on("scroll", function() { ++count; });
-
 		function tick() {
 
 			// update the domains
 			now = new Date();
 			x.domain([now - (n - 2) * duration, now - duration]);
 
-			// push the accumulated count onto the back, and reset the count
-			//data.push(Math.min(30, count));
-			console.log(latestData)
 			data.push(latestData)
-			//count = 0;
+			latestData = blankData
 
 			// redraw the line
 			svg.select(".line")
@@ -134,9 +127,7 @@ nio.graphs.line = function (selector) {
 		}
 	}
 
-	return _.assign({}, nio._streamer, {
-		x: function (fn) { getX = fn; return this },
-		y: function (fn) { getY = fn; return this },
+	return _.assign({}, nio.graphs._graph, {
 		domains: function (obj) { domains = obj; return this },
 		render: render,
 		write: function (chunk) {
