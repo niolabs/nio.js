@@ -21,16 +21,15 @@ nio._emitter = {
 	}
 }
 
-function mustImplement() {
+nio._mustImplement = function () {
 	this.emit('error', new Error('not implemented'))
 }
 
 // base functions for a streamer
 nio._streamer = _.assign({}, nio._emitter, {
-	write: mustImplement,
-	push: function (chunk) { this.emit('data', chunk) },
+	write: nio._mustImplement,
+	push: function (chunk) { if (chunk) this.emit('data', chunk) },
 	pipe: function (dest) {
-		console.log(dest)
 		this.on('data', dest.write.bind(dest))
 		return dest
 	}
@@ -42,8 +41,8 @@ function makeTransform(fn) {
 
 // base functions for a source
 nio._source = _.assign({}, nio._streamer, {
-	pause: mustImplement,
-	resume: mustImplement
+	pause: nio._mustImplement,
+	resume: nio._mustImplement
 })
 
 // sources emit new data
@@ -211,6 +210,12 @@ nio.log = function () {
 	return makeTransform(function (chunk) {
 		console.log(chunk)
 		this.push(chunk)
+	})
+}
+
+nio.filter = function (fn) {
+	return nio.transform(function (chunk) {
+		return fn(chunk) ? chunk : null
 	})
 }
 
