@@ -24,12 +24,14 @@ gulp.task('build/html.js', function() {
 		.pipe(gulp.dest('build'))
 })
 
-gulp.task('dist/nio.js', ['build/html.js'], function() {
-	gulp.src('src/core.js')
+gulp.task('build/bundle.js', function () {
+	return gulp.src('src/core.js')
 		.pipe(browserify())
 		.pipe(rename('bundle.js'))
 		.pipe(gulp.dest('build'))
+})
 
+gulp.task('dist/nio.js', ['build/bundle.js', 'build/html.js'], function() {
 	return gulp.src(['build/html.js', 'build/bundle.js'])
 		.pipe(concat('nio.js'))
 		.pipe(gulp.dest('dist'))

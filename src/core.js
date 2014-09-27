@@ -141,21 +141,18 @@ nio.src.mux = function() {
 }
 
 // a test source emits preset messages at regular intervals
-nio.src.test = function (rate) {
-	var msg = null,
-		interval = null
-	rate = rate || 1000
-
-	function source(path) {
-		msg = path
-		interval = setInterval(function () { source.push(msg) }, rate)
-		return source
-	}
-
-	return _.assign(source, nio._source, {
+nio.src.test = function (msg, rate) {
+	var interval = null
+	var source = _.assign({}, nio._source, {
 		pause: function () { clearInterval(interval) },
-		resume: function () { source(msg) }
+		resume: function () {
+			interval = setInterval(function () {
+				source.push(_.isFunction(msg) ? msg() : msg)
+			}, rate || 1000)
+		}
 	})
+	source.resume()
+	return source
 }
 
 // collect puts everything it receives into an array and makes it filterable

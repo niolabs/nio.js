@@ -182,21 +182,18 @@ nio.src.mux = function() {
 }
 
 // a test source emits preset messages at regular intervals
-nio.src.test = function (rate) {
-	var msg = null,
-		interval = null
-	rate = rate || 1000
-
-	function source(path) {
-		msg = path
-		interval = setInterval(function () { source.push(msg) }, rate)
-		return source
-	}
-
-	return _.assign(source, nio._source, {
+nio.src.test = function (msg, rate) {
+	var interval = null
+	var source = _.assign({}, nio._source, {
 		pause: function () { clearInterval(interval) },
-		resume: function () { source(msg) }
+		resume: function () {
+			interval = setInterval(function () {
+				source.push(_.isFunction(msg) ? msg() : msg)
+			}, rate || 1000)
+		}
 	})
+	source.resume()
+	return source
 }
 
 // collect puts everything it receives into an array and makes it filterable
@@ -324,36 +321,31 @@ nio.graphs.dataset = function () {
 }
 
 nio.graphs.line = function (selector) {
-	var n = 243,
-		blankData = {x: 0, y: 0, id: '', label: ''},
-		latestData = blankData,
-		data = d3.range(n).map(function() { return latestData }),
-		//latestData = {},
-		datasets = {}
+
+var n = 243,
+    duration = 750,
+    now = new Date(Date.now() - duration),
+	data = []
 
 	function render() {
-		var duration = 750,
-			now = new Date(Date.now() - duration),
-			count = 0
-
 		var margin = {top: 6, right: 0, bottom: 20, left: 40},
 			width = 960 - margin.right,
 			height = 120 - margin.top - margin.bottom;
 
 		var x = d3.time.scale()
-			.domain(domains.x || [now - (n - 2) * duration, now - duration])
+			.domain([now - (n - 2) * duration, now - duration])
 			.range([0, width]);
 
 		var y = d3.scale.linear()
-			.range([height, 0])
-			.domain(domains.y || d3.max(data, function (d) { return d.y }));
+			.domain([0, 100])
+			.range([height, 0]);
 
 		var line = d3.svg.line()
 			.interpolate("basis")
 			.x(function(d, i) { return x(now - (n - 1 - i) * duration); })
-			.y(function(d) { return y(d.y || 0); });
+			.y(function(d, i) { return y(d.y); });
 
-		var svg = d3.select(selector).append("svg")
+		var svg = d3.select("body").append("p").append("svg")
 			.attr("width", width + margin.left + margin.right)
 			.attr("height", height + margin.top + margin.bottom)
 			.style("margin-left", -margin.left + "px")
@@ -363,7 +355,7 @@ nio.graphs.line = function (selector) {
 		svg.append("defs").append("clipPath")
 			.attr("id", "clip")
 		.append("rect")
-			.attr("width", width)
+			.attr("width", width - 10)
 			.attr("height", height);
 
 		var axis = svg.append("g")
@@ -371,54 +363,76 @@ nio.graphs.line = function (selector) {
 			.attr("transform", "translate(0," + height + ")")
 			.call(x.axis = d3.svg.axis().scale(x).orient("bottom"));
 
-		var path = svg.append("g")
+		var clip = svg.append('g')
 			.attr("clip-path", "url(#clip)")
-		.append("path")
-			.data([data])
-			.attr("class", "line");
+
+		var g = clip.append('g')
 
 		tick();
 
+		var color = d3.scale.category10()
+
 		function tick() {
+		// update the domains
+		now = new Date();
+		x.domain([now - (n - 2) * duration, now - duration]);
 
-			// update the domains
-			now = new Date();
-			x.domain([now - (n - 2) * duration, now - duration]);
+		// push the accumulated count onto the back, and reset the count
+		data.forEach(function (d) {
+			d.values.push(d.latest)
+			d.values.shift()
+		})
 
-			//for (var id in dataset)
-			//	dataset[id].data.push(dataset[id].latest)
+		// redraw the line
+			var path = g.selectAll('.line')
+				.data(data)
 
-			data.push(latestData)
+			path.enter().append("path")
+				.attr("class", "line")
+				.style('opacity', 0)
+				.style('stroke', function (d) { return color(d.id) })
+				.transition()
+					.duration(500)
+					.style('opacity', 1)
 
-			// redraw the line
-			svg.select(".line")
-				.attr("d", line)
-				.attr("transform", null);
+			path.attr("d", function(d) { return line(d.values) })
 
-			// slide the x-axis left
-			axis.transition()
-				.duration(duration)
-				.ease("linear")
-				.call(x.axis);
+			g.attr("transform", null)
+				.transition()
+					.duration(duration)
+					.ease("linear")
+					.attr("transform", "translate(" + x(now - (n - 1) * duration) + ")")
+					.each("end", tick);
 
-			// slide the line left
-			path.transition()
-				.duration(duration)
-				.ease("linear")
-				.attr("transform", "translate(" + x(now - (n - 1) * duration) + ")")
-				.each("end", tick);
 
-			// pop the old data point off the front
-			data.shift();
+		// slide the x-axis left
+		axis.transition()
+			.duration(duration)
+			.ease("linear")
+			.call(x.axis);
+
+		// slide the line left
 		}
 	}
 
-	return _.assign({}, nio.graphs._graph, {
+	return _.assign(render, nio.graphs._graph, {
 		domains: function (obj) { domains = obj; return this },
 		render: render,
 		write: function (chunk) {
 			this.push(chunk)
-			latestData = chunk
+			// detect if it's a new series
+			if (!_.any(data, function (d) { return d.id === chunk.id })) {
+				console.log('new series:', chunk.id)
+				data.push({
+					id: chunk.id,
+					values: d3.range(n).map(function() { return {x: 0, y: 0}}),
+					latest: chunk
+				})
+				//update()
+			}
+			for (var i=data.length; i--;)
+				if (data[i].id === chunk.id)
+					data[i].latest = chunk
 		}
 	})
 }

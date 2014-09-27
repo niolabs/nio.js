@@ -17,27 +17,27 @@
 	//var lineGraph = nio.graphs.line('#graph')
 		//.x(function (d) { return new Date(d.id_value) })
 
-	var graph = nio.graphs.line('#graph')
+	var graph = window.graph = nio.graphs.line('#graph')
 		.domains({y: [0, 100]})
 
+	var testsrc = window.testsrc = nio.src.test(function () {
+		return {
+			percent: Math.floor(Math.random() * 100),
+			id: 'cpu',
+			name: 'CPU Percent'
+		}
+	})
+	//testsrc
 	nio.src.socketio('http://54.85.159.254:443')('monitoring')
 		.pipe(nio.filter(function (d) { return d.id === 'cpu' }))
 		.pipe(nio.graphs.dataset())
 			.y('percent').id('id').label('name')
-			.pipe(nio.log())
 		.pipe(graph)
 
-		/*
 	nio.src.socketio('http://54.197.236.34:443')('monitoring')
-		//.pipe(onlyCPU)
 		.pipe(nio.graphs.dataset())
-			.y(function (d) { return d.cpu })
-			.id(function (d) { return d.name })
-			.label(function (d) { return d.name })
-			.pipe(nio.log())
+			.y('cpu').id('name').label('name')
 		.pipe(graph)
-		*/
-
 
 	graph.render()
 		//.pipe(line.segments(function (d) { return d.id }))
