@@ -19,6 +19,8 @@
 
 	var graph = window.graph = nio.graphs.line('#graph')
 		.domains({y: [0, 100]})
+		.tickFormat(function (d) { return Math.floor(d) + '%' })
+		.labels({y: 'cpu usage (%)'})
 
 	var testsrc = window.testsrc = nio.src.test(function () {
 		return {

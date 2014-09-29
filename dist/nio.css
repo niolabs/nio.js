@@ -337,16 +337,65 @@ svg {
 }
 
 .line {
+  cursor: pointer;
   fill: none;
   stroke: #000;
-  stroke-width: 1.5px;
+  stroke-width: 2px;
+  -webkit-transition: stroke-width 300ms;
+  transition: stroke-width 300ms;
+}
+
+.line:hover {
+  stroke-width: 4px;
 }
 
 .axis path,
 .axis line {
   fill: none;
-  stroke: #000;
   shape-rendering: crispEdges;
+}
+
+.ticks path,
+.ticks line {
+  stroke: #000;
+}
+
+.grid path,
+.grid line {
+  stroke: #ccc;
+}
+
+.value {
+  background: #ccc;
+  border-radius: 2px;
+}
+
+@-webkit-keyframes slide_left {
+  from {
+    -webkit-transform: translate(0, 0);
+    transform: translate(0, 0);
+  }
+
+  to {
+    -webkit-transform: translate(-3.833px, 0);
+    transform: translate(-3.833px, 0);
+  }
+}
+
+@keyframes slide_left {
+  from {
+    -webkit-transform: translate(0, 0);
+    transform: translate(0, 0);
+  }
+
+  to {
+    -webkit-transform: translate(-3.833px, 0);
+    transform: translate(-3.833px, 0);
+  }
+}
+
+.label {
+  fill: #666;
 }
 
 .float-left {
