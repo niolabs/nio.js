@@ -49,6 +49,22 @@ Readable.prototype = Object.create(EventEmitter.prototype, {
 			this.on('data', dest.write.bind(dest))
 			return dest
 		}
+	},
+	split: {
+		value: function () {
+			var dests = _.isArray(arguments[0]) ? arguments[0] : [].slice.call(arguments)
+			for (var i=dests.length; i--;)
+				this.pipe(dests[i])
+			return this
+		}
+	},
+	pull: {
+		value: function () {
+			var sources = _.isArray(arguments[0]) ? arguments[0] : [].slice.call(arguments)
+			for (var i=sources.length; i--;)
+				sources[i].pipe(this)
+			return this
+		}
 	}
 })
 exports.Readable = Readable

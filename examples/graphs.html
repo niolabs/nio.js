@@ -11,10 +11,18 @@
 <h1><span class="icon icon-nio icon-large" title=nio.js></span></h1>
 <div class=container>
 	<h2>CPU Usage</h2>
+	<div id=disk></div>
 	<div id=graph></div>
 </div>
 <script>
-	nio.join(
+	var sources = [
+		nio.socketio('http://54.197.236.34:443')
+			.start('monitoring')
+			.pipe(nio.map({
+				y: function (d) { return d.cpu },
+				id: function (d) { return d.name },
+				label: function (d) { return d.name }
+			})),
 		nio.socketio('http://54.85.159.254:443')
 			.start('monitoring')
 			.pipe(nio.filter(function (d) { return d.id === 'cpu' }))
@@ -23,26 +31,28 @@
 				id: function (d) { return d.id },
 				label: function (d) { return d.name }
 			})),
-		nio.socketio('http://54.197.236.34:443')
-			.start('monitoring')
-			.pipe(nio.map({
-				y: function (d) { return d.cpu },
-				id: function (d) { return d.name },
-				label: function (d) { return d.name }
-			})),
 		nio.generate(function () {
 			return {
-				y: Math.floor(Math.random() * 100),
+				y: Math.random() * 50,
 				id: 'random',
 				label: 'Random CPU Percent'
 			}
 		}).start()
-	).pipe(
-		nio.graphs.line({
-			selector: '#graph',
-			domains: {y: [0, 100]},
-			tickFormat: function (d) { return Math.floor(d) + '%' },
-			labels: {y: 'cpu usage (%)'}
-		}).render()
-	)
+	]
+
+	nio.graphs.line({
+		selector: '#graph',
+		domains: {y: [0, 100]},
+		tickFormat: function (d) { return Math.floor(d) + '%' },
+		labels: {y: 'cpu usage (%)'}
+	})
+		.pull(sources)
+		.render()
+
+	sources[0]
+		.pipe(nio.filter(function (d) { return d.id == 'NIO1-Production' }))
+		.split(
+			nio.throttle(1000).pipe(nio.display('#disk', 'cpu'))
+		)
+
 </script>

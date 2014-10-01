@@ -13,7 +13,8 @@ var nio = window.nio = {
 	graphs: require('./graphs/graphs')
 }
 
-nio.array = function (opts) {
+// collects chunks into an array for sorting/manipulating sets of data
+nio.collect = function (opts) {
 	var transforms = opts.transforms || []
 	var max = opts.max || 9
 	var min = opts.min || 0
@@ -117,4 +118,24 @@ nio.map = function (map) {
 		}
 		this.push(chunk)
 	})
+}
+
+// delays sending chunks down the pipe
+nio.throttle = function (delay) {
+	var throttled = _.throttle(function (chunk) {
+		this.push(chunk)
+	}, delay)
+	return stream.transform(throttled)
+}
+
+// outputs the chunk to an element
+nio.display = function (selector, property) {
+	var el = d3.select(selector)
+	var getDisplay = property
+	if (_.isString(getDisplay))
+		getDisplay = function (d) { return d[property] }
+	var setHTML = function (chunk) {
+		el.html(getDisplay ? getDisplay(chunk) : chunk)
+	}
+	return stream.passthrough(setHTML)
 }

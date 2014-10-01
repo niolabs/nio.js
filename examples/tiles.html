@@ -35,6 +35,6 @@
 			media_url: null,
 			profile_image_url: null
 		}))
-		.pipe(nio.array({sort: 'time', dupes: 'id', min: 9, max: 18}))
+		.pipe(nio.collect({sort: 'time', dupes: 'id', min: 9, max: 18}))
 		.pipe(nio.tiles('#tiles'))
 </script>

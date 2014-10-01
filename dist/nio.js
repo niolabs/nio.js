@@ -55,7 +55,8 @@ var nio = window.nio = {
 	graphs: require('./graphs/graphs')
 }
 
-nio.array = function (opts) {
+// collects chunks into an array for sorting/manipulating sets of data
+nio.collect = function (opts) {
 	var transforms = opts.transforms || []
 	var max = opts.max || 9
 	var min = opts.min || 0
@@ -159,6 +160,26 @@ nio.map = function (map) {
 		}
 		this.push(chunk)
 	})
+}
+
+// delays sending chunks down the pipe
+nio.throttle = function (delay) {
+	var throttled = _.throttle(function (chunk) {
+		this.push(chunk)
+	}, delay)
+	return stream.transform(throttled)
+}
+
+// outputs the chunk to an element
+nio.display = function (selector, property) {
+	var el = d3.select(selector)
+	var getDisplay = property
+	if (_.isString(getDisplay))
+		getDisplay = function (d) { return d[property] }
+	var setHTML = function (chunk) {
+		el.html(getDisplay ? getDisplay(chunk) : chunk)
+	}
+	return stream.passthrough(setHTML)
 }
 
 },{"./graphs/graphs":2,"./src":3,"./stream":4,"./tiles/tiles":5,"./utils":6}],2:[function(require,module,exports){
@@ -575,6 +596,22 @@ Readable.prototype = Object.create(EventEmitter.prototype, {
 		value: function (dest) {
 			this.on('data', dest.write.bind(dest))
 			return dest
+		}
+	},
+	split: {
+		value: function () {
+			var dests = _.isArray(arguments[0]) ? arguments[0] : [].slice.call(arguments)
+			for (var i=dests.length; i--;)
+				this.pipe(dests[i])
+			return this
+		}
+	},
+	pull: {
+		value: function () {
+			var sources = _.isArray(arguments[0]) ? arguments[0] : [].slice.call(arguments)
+			for (var i=sources.length; i--;)
+				sources[i].pipe(this)
+			return this
 		}
 	}
 })
