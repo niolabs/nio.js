@@ -1,0 +1,15 @@
+<!doctype html>
+<meta charset=utf-8>
+<title>nio.js examples</title>
+<script src=../components/lodash/dist/lodash.min.js></script>
+<script src=../components/d3/d3.min.js></script>
+<script src=../dist/nio.js></script>
+
+<script>
+	nio.poll(function () { return {
+		id: Math.floor(Math.random() * 10),
+		time: new Date()
+	}}).start()
+		.pipe(nio.array({sort: 'id', dupes: 'id', max: 5}))
+		.pipe(nio.log())
+</script>

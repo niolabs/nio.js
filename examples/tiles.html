@@ -21,19 +21,20 @@
 <a href=# id=toggle>pause</a>
 <div id=tiles></div>
 <script>
-	nio.src.json('http://54.85.159.254')('posts')
+	var json = nio.json('http://54.85.159.254')
+		.start('posts')
+		.pipe(nio.pick('posts'))
+		.pipe(nio.map({source: 'json', x: function (d) { return d.time }}))
+
+	var socketio = nio.socketio('http://54.85.159.254:443')
+		.start('default')
+		.pipe(nio.map({source: 'socketio'}))
+
+	nio.join(json, socketio)
 		.pipe(nio.defaults({
 			media_url: null,
 			profile_image_url: null
 		}))
-		.pipe(nio.collect())
-		.sort(function (d) { return d.time }, true)
-		.dupes(function (d) { return d.id })
-		.pipe(nio.log())
+		.pipe(nio.array({sort: 'time', dupes: 'id', min: 9, max: 18}))
 		.pipe(nio.tiles('#tiles'))
-	/*
-	nio.src.test()('hello world')
-		.pipe(nio.collect().dupes())
-		.pipe(nio.log())
-		*/
 </script>

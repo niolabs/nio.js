@@ -6,7 +6,7 @@
 <link rel=stylesheet href=example.css>
 <script src=http://54.85.159.254:443/socket.io/socket.io.js></script>
 <script src=../components/lodash/dist/lodash.min.js></script>
-<script src=../components/d3/d3.min.js></script>
+<script src=../components/d3/d3.js></script>
 <script src=../dist/nio.js></script>
 <h1><span class="icon icon-nio icon-large" title=nio.js></span></h1>
 <div class=container>
@@ -14,35 +14,35 @@
 	<div id=graph></div>
 </div>
 <script>
-	//var lineGraph = nio.graphs.line('#graph')
-		//.x(function (d) { return new Date(d.id_value) })
-
-	var graph = window.graph = nio.graphs.line('#graph')
-		.domains({y: [0, 100]})
-		.tickFormat(function (d) { return Math.floor(d) + '%' })
-		.labels({y: 'cpu usage (%)'})
-
-	var testsrc = window.testsrc = nio.src.test(function () {
-		return {
-			percent: Math.floor(Math.random() * 100),
-			id: 'cpu',
-			name: 'CPU Percent'
-		}
-	})
-	//testsrc
-	nio.src.socketio('http://54.85.159.254:443')('monitoring')
-		.pipe(nio.filter(function (d) { return d.id === 'cpu' }))
-		.pipe(nio.graphs.dataset())
-			.y('percent').id('id').label('name')
-		.pipe(graph)
-
-	nio.src.socketio('http://54.197.236.34:443')('monitoring')
-		.pipe(nio.graphs.dataset())
-			.y('cpu').id('name').label('name')
-		.pipe(graph)
-
-	graph.render()
-		//.pipe(line.segments(function (d) { return d.id }))
-
-	//lineGraph.render()
+	nio.join(
+		nio.socketio('http://54.85.159.254:443')
+			.start('monitoring')
+			.pipe(nio.filter(function (d) { return d.id === 'cpu' }))
+			.pipe(nio.map({
+				y: function (d) { return d.percent },
+				id: function (d) { return d.id },
+				label: function (d) { return d.name }
+			})),
+		nio.socketio('http://54.197.236.34:443')
+			.start('monitoring')
+			.pipe(nio.map({
+				y: function (d) { return d.cpu },
+				id: function (d) { return d.name },
+				label: function (d) { return d.name }
+			})),
+		nio.generate(function () {
+			return {
+				y: Math.floor(Math.random() * 100),
+				id: 'random',
+				label: 'Random CPU Percent'
+			}
+		}).start()
+	).pipe(
+		nio.graphs.line({
+			selector: '#graph',
+			domains: {y: [0, 100]},
+			tickFormat: function (d) { return Math.floor(d) + '%' },
+			labels: {y: 'cpu usage (%)'}
+		}).render()
+	)
 </script>

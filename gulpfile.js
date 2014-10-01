@@ -27,6 +27,7 @@ gulp.task('build/html.js', function() {
 gulp.task('build/bundle.js', function () {
 	return gulp.src('src/core.js')
 		.pipe(browserify())
+		.on('error', function (e) { console.log('Error', e.message) })
 		.pipe(rename('bundle.js'))
 		.pipe(gulp.dest('build'))
 })
