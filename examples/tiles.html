@@ -21,21 +21,29 @@
 <a href=# id=toggle>pause</a>
 <div class="tiles has-spacing has-gradient has-overlay has-fixed"></div>
 <script>
+	// save a JSON server
 	var json = nio.json('http://54.85.159.254')
+		// start polling the /posts URL
 		.start('posts')
+		// pick out the "posts" attribute of the returned JSON
 		.pipe(nio.pick('posts'))
-		.pipe(nio.map({source: 'json', x: function (d) { return d.time }}))
 
+	// connect to a socketio server
 	var socketio = nio.socketio('http://54.85.159.254:443')
+		// join the "default" room
 		.start('default')
-		.pipe(nio.map({source: 'socketio'}))
 
+	// combine the streams
 	nio.join(json, socketio)
+		// set default values on the chunks
 		.pipe(nio.defaults({
 			media_url: null,
 			profile_image_url: null
 		}))
+		// instead of passing each object 1 by 1, put them in an array so we can sort them
 		.pipe(nio.collect({sort: 'time', dupes: 'id', min: 9, max: 9}))
+		// only send chucnks once every second
 		.pipe(nio.throttle(1000))
+		// send them to the tiles
 		.pipe(nio.tiles('.tiles'))
 </script>

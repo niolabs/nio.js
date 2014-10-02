@@ -84,6 +84,8 @@ z-index-3 = 300
 		&:hover
 			transform scale(1.1, 1.1)
 			z-index z-index-3
+	a
+		transition all transition-speed
 .tile-header
 .tile-content
 .tile-footer
@@ -108,12 +110,13 @@ z-index-3 = 300
 	.icon
 		height 100%
 		position absolute
-		right tile-padding
-		top tile-padding
+		right tile-padding * 2
+		top 0
 .tile-author
 	color #fff !important
 	padding 0 0 tile-padding 0
 	padding-left tile-avatar-width + tile-padding
+	padding-right tile-avatar-width + tile-padding
 	time
 		font-weight 200
 		font-size type-small
@@ -148,6 +151,10 @@ z-index-3 = 300
 	line-height tile-footer-height - tile-padding * 2
 	padding tile-padding tile-padding * 2
 	width 100%
+	a
+		color rgba(255, 255, 255, .5)
+		&:hover
+			color rgba(255, 255, 255, 1)
 
 // Expanded tiles
 .is-expanded
@@ -168,9 +175,10 @@ tile-type(color)
 		background color
 		if use-gradient
 			background-image linear-gradient(color, darken(color, tile-bg-shade))
-	a
-		color lighten(color, 50%)
-
+	.tile-content a
+		color color
+		&:hover
+			color darken(color, tile-bg-shade)
 .tile--facebook
 	tile-type(color-facebook)
 .tile--twitter

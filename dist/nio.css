@@ -95,6 +95,13 @@
   transition: all 300ms;
   width: 300px;
 }
+.tile a {
+  -webkit-transition: all 300ms;
+  -moz-transition: all 300ms;
+  -o-transition: all 300ms;
+  -ms-transition: all 300ms;
+  transition: all 300ms;
+}
 .tile-header,
 .tile-content,
 .tile-footer {
@@ -120,13 +127,14 @@
 .tile-header .icon {
   height: 100%;
   position: absolute;
-  right: 10px;
-  top: 10px;
+  right: 20px;
+  top: 0;
 }
 .tile-author {
   color: #fff !important;
   padding: 0 0 10px 0;
   padding-left: 58px;
+  padding-right: 58px;
 }
 .tile-author time {
   font-weight: 200;
@@ -164,6 +172,12 @@
   padding: 10px 20px;
   width: 100%;
 }
+.tile-footer a {
+  color: rgba(255,255,255,0.5);
+}
+.tile-footer a:hover {
+  color: #fff;
+}
 .is-expanded {
   z-index: 200;
 }
@@ -184,8 +198,11 @@
 .tile--facebook .tile-header {
   background: #3b5998;
 }
-.tile--facebook a {
-  color: #93a9d5;
+.tile--facebook .tile-content a {
+  color: #3b5998;
+}
+.tile--facebook .tile-content a:hover {
+  color: #293e6a;
 }
 .tile--twitter {
   background: #00aced;
@@ -198,8 +215,11 @@
 .tile--twitter .tile-header {
   background: #00aced;
 }
-.tile--twitter a {
-  color: #76daff;
+.tile--twitter .tile-content a {
+  color: #00aced;
+}
+.tile--twitter .tile-content a:hover {
+  color: #0078a6;
 }
 .tile--gplus {
   background: #b30000;
@@ -212,8 +232,11 @@
 .tile--gplus .tile-header {
   background: #b30000;
 }
-.tile--gplus a {
-  color: #ff5a5a;
+.tile--gplus .tile-content a {
+  color: #b30000;
+}
+.tile--gplus .tile-content a:hover {
+  color: #7d0000;
 }
 .tile--linkedin {
   background: #4c7eb1;
@@ -226,8 +249,11 @@
 .tile--linkedin .tile-header {
   background: #4c7eb1;
 }
-.tile--linkedin a {
-  color: #a5bed8;
+.tile--linkedin .tile-content a {
+  color: #4c7eb1;
+}
+.tile--linkedin .tile-content a:hover {
+  color: #35587c;
 }
 .tile--rss {
   background: #202020;
@@ -240,8 +266,11 @@
 .tile--rss .tile-header {
   background: #202020;
 }
-.tile--rss a {
-  color: #909090;
+.tile--rss .tile-content a {
+  color: #202020;
+}
+.tile--rss .tile-content a:hover {
+  color: #161616;
 }
 .has-media {
   background: #000;
