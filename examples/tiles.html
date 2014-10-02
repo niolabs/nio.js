@@ -2,13 +2,13 @@
 <meta charset=utf-8>
 <title>nio.js examples</title>
 
+<link rel=stylesheet href=http://fonts.googleapis.com/css?family=Roboto+Condensed:200,300,400|Roboto:400,500,300|Roboto+Slab>
 <link rel=stylesheet href=../dist/nio.min.css>
 <link rel=stylesheet href=example.css>
 <style>
-	#tiles {
+	.tiles {
 		margin: 0 auto;
 		padding: 20px;
-		width: 906px;
 	}
 </style>
 <script src=http://54.85.159.254:443/socket.io/socket.io.js></script>
@@ -19,7 +19,7 @@
 <script src=../dist/nio.js></script>
 <h1><span class="icon icon-nio icon-large" title=nio.js></span></h1>
 <a href=# id=toggle>pause</a>
-<div id=tiles></div>
+<div class="tiles has-spacing has-gradient has-overlay has-fixed"></div>
 <script>
 	var json = nio.json('http://54.85.159.254')
 		.start('posts')
@@ -35,6 +35,7 @@
 			media_url: null,
 			profile_image_url: null
 		}))
-		.pipe(nio.collect({sort: 'time', dupes: 'id', min: 9, max: 18}))
-		.pipe(nio.tiles('#tiles'))
+		.pipe(nio.collect({sort: 'time', dupes: 'id', min: 9, max: 9}))
+		.pipe(nio.throttle(1000))
+		.pipe(nio.tiles('.tiles'))
 </script>

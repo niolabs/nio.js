@@ -1,59 +1,257 @@
-var htmlTemplates = htmlTemplates || {};htmlTemplates['tiles/tiles.html'] = '<header class=tile-header>\n' +
-    '	<a class=tile-author>\n' +
-    '		<% if (profile_image_url) { %>\n' +
-    '			<img class=tile-author-avatar src="<%=profile_image_url%>" alt="<%=name%>\'s avatar">\n' +
-    '		<% } %>\n' +
-    '		<strong class=tile-author-name><%=name%></strong>\n' +
-    '	</a>\n' +
-    '	<span class=tile-actions>\n' +
+var htmlTemplates = htmlTemplates || {};htmlTemplates['tiles/tiles.html'] = '<div class="tile tile--<%=type%><% if (media_url) { %> has-media<% } %>">\n' +
+    '	<header class=tile-header>\n' +
+    '		<a class="tile-author u-block">\n' +
+    '			<% if (profile_image_url) { %>\n' +
+    '				<img class=tile-author-avatar src="<%=profile_image_url%>" alt="<%=name%>\'s avatar">\n' +
+    '			<% } %>\n' +
+    '			<strong class="tile-author-name u-textTruncate"><%=name%></strong>\n' +
+    '			<time is=relative-time datetime="<%=time%>"><%=time%></time>\n' +
+    '		</a>\n' +
     '		<span class="icon icon-<%=type%>"></span>\n' +
-    '	</span>\n' +
-    '</header>\n' +
-    '<div class=tile-content>\n' +
+    '	</header>\n' +
     '	<% if (media_url) { %>\n' +
-    '		<img class=tile-media src="<%=media_url%>" alt="<%=text%>" title="<%=text%>">\n' +
+    '		<figure class=tile-content>\n' +
+    '			<img class=tile-media src="<%=media_url%>" alt="<%=text%>" title="<%=text%>">\n' +
+    '			<figcaption><%=linkify(truncate(text, 150))%></figcaption>\n' +
+    '		</figure>\n' +
     '	<% } else { %>\n' +
-    '		<%=linkify(truncate(text, 150))%>\n' +
+    '		<div class=tile-content><%=linkify(truncate(text, 150))%></div>\n' +
     '	<% } %>\n' +
+    '	<footer class=tile-footer>\n' +
+    '		<a class="block u-pullLeft" href="<%=link%>" target=_blank>\n' +
+    '			View post\n' +
+    '		</a>\n' +
+    '		<a class="block u-pullRight" href=#>\n' +
+    '			Share\n' +
+    '		</a>\n' +
+    '	</footer>\n' +
     '</div>\n' +
-    '<footer class=tile-footer>\n' +
-    '	<p class="tile-share float-left">\n' +
-    '		<a href=#>\n' +
-    '			<span class="icon icon-mini icon-twitter"></span>\n' +
-    '		</a>\n' +
-    '		<a href=#>\n' +
-    '			<span class="icon icon-mini icon-facebook"></span>\n' +
-    '		</a>\n' +
-    '		<a href=#>\n' +
-    '			<span class="icon icon-mini icon-pinterest"></span>\n' +
-    '		</a>\n' +
-    '		<a href=#>\n' +
-    '			<span class="icon icon-mini icon-envelope"></span>\n' +
-    '		</a>\n' +
-    '	<p class=float-right>\n' +
-    '		<a target=_blank href="<%=link%>">\n' +
-    '			<time is=relative-time datetime="<%=time%>">\n' +
-    '				<%=time%>\n' +
-    '			</time>\n' +
-    '		</a>\n' +
-    '</footer>\n' +
     '';
 
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-var stream = require('./stream')
-var src = require('./src')
-var utils = require('./utils')
-
-var nio = window.nio = {
-	stream: stream,
-	utils: utils,
-	src: src,
-	socketio: src.socketio,
-	json: src.json,
-	generate: src.generate,
-	tiles: require('./tiles/tiles').tiles,
-	graphs: require('./graphs/graphs')
+// base streams
+exports.passthrough = function (fn) {
+	return new PassThrough(fn)
 }
+exports.readable = function (fn) {
+	return new Readable(fn)
+}
+exports.transform = function (fn) {
+	return new Transform(fn)
+}
+
+// source streams
+exports.socketio = function (host) {
+	return new SocketIOStream(host)
+}
+exports.json = function (host, pollRate) {
+	return new JSONStream(host, pollRate)
+}
+exports.generate = function (msg, rate) {
+	return new GeneratorStream(msg, rate)
+}
+
+// base functions for an event emitter
+function EventEmitter() {}
+EventEmitter.prototype = Object.create(Object.prototype, {
+	on: {
+		value: function (event, fn) {
+			this._events = this._events || {}
+			this._events[event] = this._events[event] || []
+			this._events[event].push(fn)
+		}
+	},
+	off: {
+		value: function (event, fn) {
+			this._events = this._events || {}
+			if (event in this._events === false) return
+			this._events[event].splice(this._events[event].indexOf(fn), 1)
+		}
+	},
+	emit: {
+		value: function (event) {
+			this._events = this._events || {}
+			if (event in this._events === false) return
+			var args = Array.prototype.slice.call(arguments, 1)
+			for (var i=0, l=this._events[event].length; i < l; i++)
+				this._events[event][i].apply(this, args)
+		}
+	}
+})
+
+function mustImplement(name) {
+	return function () {
+		if (!this[name])
+			this.emit('error', new Error(name + ' has not been implemented'))
+		else
+			this[name].apply(this, arguments)
+	}
+}
+exports.mustImplement = mustImplement
+
+function Readable() {
+	EventEmitter.call(this)
+}
+Readable.prototype = Object.create(EventEmitter.prototype, {
+	push: {
+		value: function (chunk) { if (chunk) this.emit('data', chunk) }
+	},
+	pipe: {
+		value: function (dest) {
+			this.on('data', dest.write.bind(dest))
+			return dest
+		}
+	},
+	split: {
+		value: function () {
+			var dests = _.isArray(arguments[0]) ? arguments[0] : [].slice.call(arguments)
+			for (var i=dests.length; i--;)
+				this.pipe(dests[i])
+			return this
+		}
+	},
+	pull: {
+		value: function () {
+			var sources = _.isArray(arguments[0]) ? arguments[0] : [].slice.call(arguments)
+			for (var i=sources.length; i--;)
+				sources[i].pipe(this)
+			return this
+		}
+	}
+})
+exports.Readable = Readable
+
+function Transform(_write) {
+	Readable.call(this)
+	this._write = _write
+}
+Transform.prototype = Object.create(Readable.prototype, {
+	write: {
+		value: mustImplement('_write')
+	}
+})
+exports.Transform = Transform
+
+function PassThrough(_write) {
+	Readable.call(this)
+	this._write = _write
+}
+PassThrough.prototype = Object.create(Readable.prototype, {
+	write: {
+		value: function (chunk) {
+			this.push(chunk)
+			if (this._write) this._write(chunk)
+		}
+	}
+})
+exports.PassThrough = PassThrough
+
+// base functions for a source
+function Source() {
+	Readable.call(this)
+}
+Source.prototype = Object.create(Readable.prototype, {
+	start: {value: mustImplement},
+	pause: {value: mustImplement},
+	resume: {value: mustImplement}
+})
+exports.Source = Source
+
+function JSONStream(host, pollRate) {
+	Source.call(this)
+	this.host = host
+	this.interval = null
+	this.lastPath = null
+	this.pollRate = pollRate || 20 * 1000
+}
+JSONStream.prototype = Object.create(Source.prototype, {
+	start: {
+		value: function (path) {
+			this.fetch(path)
+			this.interval = setInterval(function() {
+				return this.fetch(path)
+			}.bind(this), this.pollRate)
+			return this
+		}
+	},
+	fetch: {
+		value: function (path) {
+			this.lastPath = path
+			d3.json(this.host + '/' + path, function(error, json) {
+				this.push(json)
+			}.bind(this))
+			return this
+		}
+	},
+	pause: {value: function() { clearTimeout(this.interval); return this }},
+	resume: {value: function() { this.start(this.lastPath); return this }}
+})
+exports.JSONStream = JSONStream
+
+function SocketIOStream(host) {
+	Source.call(this)
+	this.ws = null
+	this.host = host
+}
+SocketIOStream.prototype = Object.create(Source.prototype, {
+	start: {
+		value: function (path) {
+			this.path = path
+			this.ws = io.connect(this.host)
+
+			var sock = this.ws.socket
+			sock.on('connect', function() {
+				return this.ws.emit('ready', path)
+			}.bind(this))
+			sock.on('connect_failed', function() {
+				console.error('connection failed')
+			})
+			sock.on('error', function() {
+				console.error('connection error')
+			})
+			this.resume()
+			return this
+		}
+	},
+	pause: {
+		value: function() {
+			this.ws.on('recvData', function(data) { return null })
+			return this
+		}
+	},
+	resume: {
+		value: function() {
+			this.ws.on('recvData', function(data) {
+				return this.push(JSON.parse(data))
+			}.bind(this))
+			return this
+		}
+	}
+})
+exports.SocketIOStream = SocketIOStream
+
+function GeneratorStream(msg, rate) {
+	this.msg = msg || 'Hello world'
+	this.rate = rate || 1000
+	this.interval = null
+}
+GeneratorStream.prototype = Object.create(Source.prototype, {
+	start: {
+		value: function () {
+			this.interval = setInterval(function () {
+				this.push(_.isFunction(this.msg) ? this.msg() : this.msg)
+			}.bind(this), this.rate)
+			return this
+		}
+	},
+	pause: {value: function () { clearInterval(this.interval); return this }},
+	resume: {value: function() { return this.start() }}
+})
+exports.GeneratorStream = GeneratorStream
+
+},{}],2:[function(require,module,exports){
+var nio = window.nio = require('./core')
+nio.utils = require('./utils')
 
 // collects chunks into an array for sorting/manipulating sets of data
 nio.collect = function (opts) {
@@ -77,7 +275,7 @@ nio.collect = function (opts) {
 			sortBy = function (d) { return d }
 
 	var data = []
-	return stream.transform(function (chunk) {
+	return nio.transform(function (chunk) {
 		if (getID) {
 			var id = getID(chunk)
 			var isDupe = function (d) { return id === getID(d) }
@@ -96,7 +294,6 @@ nio.collect = function (opts) {
 
 		if (max && data.length > max)
 			data = data.slice(0, max)
-
 		if (min && data.length < min)
 			return
 
@@ -106,7 +303,7 @@ nio.collect = function (opts) {
 
 // pushes down a select property
 nio.pick = function (name) {
-	return stream.transform(function (chunk) {
+	return nio.transform(function (chunk) {
 		if (!(name in chunk)) return
 		var data = chunk[name]
 		if (_.isArray(data))
@@ -117,41 +314,41 @@ nio.pick = function (name) {
 	})
 }
 
-// Sets defaults on the chunk
+// sets defaults on the chunk
 nio.defaults = function (opts) {
-	return stream.transform(function (chunk) {
+	return nio.transform(function (chunk) {
 		this.push(_.defaults(chunk, opts))
 	})
 }
 
-// Logs output to the console.
+// logs output to the console
 nio.log = function (prefix) {
-	return stream.passthrough(function (chunk) {
+	return nio.passthrough(function (chunk) {
 		prefix ?
 			console.log(prefix, chunk) :
 			console.log(chunk)
 	})
 }
 
-// Combines multiple streams into one.
+// combines multiple streams into one
 nio.join = function () {
-	var river = new stream.PassThrough()
+	var river = new nio.PassThrough()
 	var sources = [].slice.call(arguments)
 	for (var i=sources.length; i--;)
 		sources[i].pipe(river)
 	return river
 }
 
-// Will only push a chunk if the function it's passed to returns true.
+// will only push a chunk if the function it's passed to returns true
 nio.filter = function (fn) {
-	return stream.transform(function (chunk) {
+	return nio.transform(function (chunk) {
 		if (fn(chunk)) this.push(chunk)
 	})
 }
 
-// Renames/calculates property values on the chunk
+// renames/calculates property values on the chunk
 nio.map = function (map) {
-	return stream.transform(function (chunk) {
+	return nio.transform(function (chunk) {
 		for (var name in map) {
 			var value = map[name]
 			if (_.isFunction(value))
@@ -167,7 +364,7 @@ nio.throttle = function (delay) {
 	var throttled = _.throttle(function (chunk) {
 		this.push(chunk)
 	}, delay)
-	return stream.transform(throttled)
+	return nio.transform(throttled)
 }
 
 // outputs the chunk to an element
@@ -176,14 +373,17 @@ nio.display = function (selector, property) {
 	var getDisplay = property
 	if (_.isString(getDisplay))
 		getDisplay = function (d) { return d[property] }
-	var setHTML = function (chunk) {
+	return nio.passthrough(function (chunk) {
 		el.html(getDisplay ? getDisplay(chunk) : chunk)
-	}
-	return stream.passthrough(setHTML)
+	})
 }
 
-},{"./graphs/graphs":2,"./src":3,"./stream":4,"./tiles/tiles":5,"./utils":6}],2:[function(require,module,exports){
-var stream = require('../stream')
+// visualizations
+nio.tiles = require('./tiles/tiles').tiles
+nio.graphs = require('./graphs/graphs')
+
+},{"./core":1,"./graphs/graphs":3,"./tiles/tiles":4,"./utils":5}],3:[function(require,module,exports){
+var core = require('../core')
 
 function property(name) {
 	var privname = '_' + name
@@ -194,7 +394,7 @@ function property(name) {
 }
 
 function Graph(opts) {
-	stream.PassThrough.call(this)
+	core.PassThrough.call(this)
 	if (_.isString(opts))
 		this.selector = opts
 	else
@@ -203,15 +403,15 @@ function Graph(opts) {
 		_.defaults(this, this.defaults)
 }
 var _graphDef = {
-	render: {value: stream.mustImplement},
-	update: {value: stream.mustImplement}
+	render: {value: core.mustImplement},
+	update: {value: core.mustImplement}
 }
 var _graphProps = [
 	'width', 'height', 'domains', 'tickFormat',
 	'title', 'labels', 'points', 'margin'
 ]
 _graphProps.forEach(function (name) { _graphDef[name] = property(name) })
-Graph.prototype = Object.create(stream.PassThrough.prototype, _graphDef)
+Graph.prototype = Object.create(core.PassThrough.prototype, _graphDef)
 
 function LineGraph(opts) {
 	Graph.call(this, opts)
@@ -226,11 +426,13 @@ LineGraph.prototype = Object.create(Graph.prototype, {
 			width: 600,
 			tickFormat: function (d) { return d },
 			points: 243,
-			duration: 750
+			duration: 750,
+			rendered: false
 		}
 	},
 	render: {
 		value: function () {
+			this.rendered = true
 			var domains = this.domains
 			var now = new Date()
 
@@ -414,6 +616,8 @@ LineGraph.prototype = Object.create(Graph.prototype, {
 	write: {
 		value: function(chunk) {
 			// detect if it's a new series
+			if (!this.rendered)
+				this.render()
 			if (!_.any(this.data, function(d) { return d.id === chunk.id })) {
 				console.log('new series:', chunk.id)
 				var values = d3.range(this.points).map(function() { return {x: 0, y: 0} })
@@ -430,226 +634,8 @@ exports.line = function(opts) {
 	return new LineGraph(opts)
 }
 
-},{"../stream":4}],3:[function(require,module,exports){
-var stream = require('./stream')
-
-// base functions for a source
-function Source() {
-	stream.Readable.call(this)
-}
-Source.prototype = Object.create(stream.Readable.prototype, {
-	start: {value: stream.mustImplement},
-	pause: {value: stream.mustImplement},
-	resume: {value: stream.mustImplement}
-})
-exports.Source = Source
-
-function JSONSource(host, pollRate) {
-	Source.call(this)
-	this.host = host
-	this.interval = null
-	this.lastPath = null
-	this.pollRate = pollRate || 20 * 1000
-}
-JSONSource.prototype = Object.create(Source.prototype, {
-	start: {
-		value: function (path) {
-			this.fetch(path)
-			this.interval = setInterval(function() {
-				return this.fetch(path)
-			}.bind(this), this.pollRate)
-			return this
-		}
-	},
-	fetch: {
-		value: function (path) {
-			this.lastPath = path
-			d3.json(this.host + '/' + path, function(error, json) {
-				this.push(json)
-			}.bind(this))
-			return this
-		}
-	},
-	pause: {value: function() { clearTimeout(this.interval); return this }},
-	resume: {value: function() { this.start(this.lastPath); return this }}
-})
-exports.JSONSource = JSONSource
-exports.json = function (host, pollRate) {
-	return new JSONSource(host, pollRate)
-}
-
-function SocketIOSource(host) {
-	Source.call(this)
-	this.ws = null
-	this.host = host
-}
-SocketIOSource.prototype = Object.create(Source.prototype, {
-	start: {
-		value: function (path) {
-			this.path = path
-			this.ws = io.connect(this.host)
-
-			var sock = this.ws.socket
-			sock.on('connect', function() {
-				return this.ws.emit('ready', path)
-			}.bind(this))
-			sock.on('connect_failed', function() {
-				console.error('connection failed')
-			})
-			sock.on('error', function() {
-				console.error('connection error')
-			})
-			this.resume()
-			return this
-		}
-	},
-	pause: {
-		value: function() {
-			this.ws.on('recvData', function(data) { return null })
-			return this
-		}
-	},
-	resume: {
-		value: function() {
-			this.ws.on('recvData', function(data) {
-				return this.push(JSON.parse(data))
-			}.bind(this))
-			return this
-		}
-	}
-})
-exports.SocketIOSource = SocketIOSource
-exports.socketio = function (host) {
-	return new SocketIOSource(host)
-}
-
-function GeneratorSource(msg, rate) {
-	this.msg = msg || 'Hello world'
-	this.rate = rate || 1000
-	this.interval = null
-}
-GeneratorSource.prototype = Object.create(Source.prototype, {
-	start: {
-		value: function () {
-			this.interval = setInterval(function () {
-				this.push(_.isFunction(this.msg) ? this.msg() : this.msg)
-			}.bind(this), this.rate)
-			return this
-		}
-	},
-	pause: {value: function () { clearInterval(this.interval); return this }},
-	resume: {value: function() { return this.start() }}
-})
-exports.GeneratorSource = GeneratorSource
-exports.generate = function (msg, rate) {
-	return new GeneratorSource(msg, rate)
-}
-
-},{"./stream":4}],4:[function(require,module,exports){
-// base functions for an event emitter
-function EventEmitter() {}
-EventEmitter.prototype = Object.create(Object.prototype, {
-	on: {
-		value: function (event, fn) {
-			this._events = this._events || {}
-			this._events[event] = this._events[event] || []
-			this._events[event].push(fn)
-		}
-	},
-	off: {
-		value: function (event, fn) {
-			this._events = this._events || {}
-			if (event in this._events === false) return
-			this._events[event].splice(this._events[event].indexOf(fn), 1)
-		}
-	},
-	emit: {
-		value: function (event) {
-			this._events = this._events || {}
-			if (event in this._events === false) return
-			var args = Array.prototype.slice.call(arguments, 1)
-			for (var i=0, l=this._events[event].length; i < l; i++)
-				this._events[event][i].apply(this, args)
-		}
-	}
-})
-exports.EventEmitter = EventEmitter
-
-function mustImplement(name) {
-	return function () {
-		if (!this[name])
-			this.emit('error', new Error(name + ' has not been implemented'))
-		else
-			this[name].apply(this, arguments)
-	}
-}
-exports.mustImplement = mustImplement
-
-function Readable() {
-	EventEmitter.call(this)
-}
-Readable.prototype = Object.create(EventEmitter.prototype, {
-	push: {
-		value: function (chunk) { if (chunk) this.emit('data', chunk) }
-	},
-	pipe: {
-		value: function (dest) {
-			this.on('data', dest.write.bind(dest))
-			return dest
-		}
-	},
-	split: {
-		value: function () {
-			var dests = _.isArray(arguments[0]) ? arguments[0] : [].slice.call(arguments)
-			for (var i=dests.length; i--;)
-				this.pipe(dests[i])
-			return this
-		}
-	},
-	pull: {
-		value: function () {
-			var sources = _.isArray(arguments[0]) ? arguments[0] : [].slice.call(arguments)
-			for (var i=sources.length; i--;)
-				sources[i].pipe(this)
-			return this
-		}
-	}
-})
-exports.Readable = Readable
-
-function Transform(_write) {
-	Readable.call(this)
-	this._write = _write
-}
-Transform.prototype = Object.create(Readable.prototype, {
-	write: {
-		value: mustImplement('_write')
-	}
-})
-exports.Transform = Transform
-exports.transform = function (fn) {
-	return new Transform(fn)
-}
-
-function PassThrough(_write) {
-	Readable.call(this)
-	this._write = _write
-}
-PassThrough.prototype = Object.create(Readable.prototype, {
-	write: {
-		value: function (chunk) {
-			this.push(chunk)
-			if (this._write) this._write(chunk)
-		}
-	}
-})
-exports.PassThrough = PassThrough
-exports.passthrough = function (fn) {
-	return new PassThrough(fn)
-}
-
-},{}],5:[function(require,module,exports){
-var stream = require('../stream')
+},{"../core":1}],4:[function(require,module,exports){
+var core = require('../core')
 var template = _.template(htmlTemplates['tiles/tiles.html'], null, {
 	imports: require('../utils')
 })
@@ -667,36 +653,39 @@ exports.tiles = function(opts) {
 	// caching these functions
 	var getHTML = function (d) { return template(d) }
 	var getID = function (d) { return d ? d.id : console.log(d) }
-	var getClass = function (d) {
-		return 'tile tile-' + d.type + (d.media_url ? ' tile-has-media' : '')
-	}
 
 	function render(posts) {
-		var elTile = elMain.selectAll('.tile').data(posts, getID)
-		var elTileJoin = elTile.order()
-		var elTileEnter = elTile.enter().append('div')
-			.attr('class', getClass)
+		var tile = elMain.selectAll('.tile-wrapper').data(posts, getID)
+		var tileJoin = tile.order()
+
+		tileJoin.on('click', function (d, i) {
+			var el = d3.select(this)
+			el.classed('is-expanded', !el.classed('is-expanded'))
+		})
+
+		var tileEnter = tile.enter().append('div')
+			.attr('class', 'tile-wrapper')
 			.html(getHTML)
-		var elTileExit = elTile.exit()
+		var tileExit = tile.exit()
 		if (animSpeed) {
-			elTileEnter
+			tileEnter
 				.style('opacity', 0)
 				.transition()
 					.duration(animSpeed)
 					.style('opacity', 1)
-			elTileExit.transition()
+			tileExit.transition()
 				.duration(animSpeed)
 				.style('opacity', 0)
 				.remove()
 		} else {
-			elTileExit.remove()
+			tileExit.remove()
 		}
 	}
 
-	return stream.passthrough(_.throttle(render, 1000))
+	return nio.passthrough(_.throttle(render, 1000))
 }
 
-},{"../stream":4,"../utils":6}],6:[function(require,module,exports){
+},{"../core":1,"../utils":5}],5:[function(require,module,exports){
 // turns urls and twitter handles/hashtags into links
 exports.linkify = function (text) {
     text = text.replace(/(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig, "<a target=_blank href='$1'>$1</a>")
@@ -713,4 +702,4 @@ exports.isArray = _.isArray
 exports.isFunc = _.isFunction
 exports.isStr = _.isString
 
-},{}]},{},[1])
+},{}]},{},[2])

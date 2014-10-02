@@ -1,39 +1,28 @@
-<header class=tile-header>
-	<a class=tile-author>
-		<% if (profile_image_url) { %>
-			<img class=tile-author-avatar src="<%=profile_image_url%>" alt="<%=name%>'s avatar">
-		<% } %>
-		<strong class=tile-author-name><%=name%></strong>
-	</a>
-	<span class=tile-actions>
+<div class="tile tile--<%=type%><% if (media_url) { %> has-media<% } %>">
+	<header class=tile-header>
+		<a class="tile-author u-block">
+			<% if (profile_image_url) { %>
+				<img class=tile-author-avatar src="<%=profile_image_url%>" alt="<%=name%>'s avatar">
+			<% } %>
+			<strong class="tile-author-name u-textTruncate"><%=name%></strong>
+			<time is=relative-time datetime="<%=time%>"><%=time%></time>
+		</a>
 		<span class="icon icon-<%=type%>"></span>
-	</span>
-</header>
-<div class=tile-content>
+	</header>
 	<% if (media_url) { %>
-		<img class=tile-media src="<%=media_url%>" alt="<%=text%>" title="<%=text%>">
+		<figure class=tile-content>
+			<img class=tile-media src="<%=media_url%>" alt="<%=text%>" title="<%=text%>">
+			<figcaption><%=linkify(truncate(text, 150))%></figcaption>
+		</figure>
 	<% } else { %>
-		<%=linkify(truncate(text, 150))%>
+		<div class=tile-content><%=linkify(truncate(text, 150))%></div>
 	<% } %>
+	<footer class=tile-footer>
+		<a class="block u-pullLeft" href="<%=link%>" target=_blank>
+			View post
+		</a>
+		<a class="block u-pullRight" href=#>
+			Share
+		</a>
+	</footer>
 </div>
-<footer class=tile-footer>
-	<p class="tile-share float-left">
-		<a href=#>
-			<span class="icon icon-mini icon-twitter"></span>
-		</a>
-		<a href=#>
-			<span class="icon icon-mini icon-facebook"></span>
-		</a>
-		<a href=#>
-			<span class="icon icon-mini icon-pinterest"></span>
-		</a>
-		<a href=#>
-			<span class="icon icon-mini icon-envelope"></span>
-		</a>
-	<p class=float-right>
-		<a target=_blank href="<%=link%>">
-			<time is=relative-time datetime="<%=time%>">
-				<%=time%>
-			</time>
-		</a>
-</footer>

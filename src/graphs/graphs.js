@@ -1,4 +1,4 @@
-var stream = require('../stream')
+var core = require('../core')
 
 function property(name) {
 	var privname = '_' + name
@@ -9,7 +9,7 @@ function property(name) {
 }
 
 function Graph(opts) {
-	stream.PassThrough.call(this)
+	core.PassThrough.call(this)
 	if (_.isString(opts))
 		this.selector = opts
 	else
@@ -18,15 +18,15 @@ function Graph(opts) {
 		_.defaults(this, this.defaults)
 }
 var _graphDef = {
-	render: {value: stream.mustImplement},
-	update: {value: stream.mustImplement}
+	render: {value: core.mustImplement},
+	update: {value: core.mustImplement}
 }
 var _graphProps = [
 	'width', 'height', 'domains', 'tickFormat',
 	'title', 'labels', 'points', 'margin'
 ]
 _graphProps.forEach(function (name) { _graphDef[name] = property(name) })
-Graph.prototype = Object.create(stream.PassThrough.prototype, _graphDef)
+Graph.prototype = Object.create(core.PassThrough.prototype, _graphDef)
 
 function LineGraph(opts) {
 	Graph.call(this, opts)
@@ -41,11 +41,13 @@ LineGraph.prototype = Object.create(Graph.prototype, {
 			width: 600,
 			tickFormat: function (d) { return d },
 			points: 243,
-			duration: 750
+			duration: 750,
+			rendered: false
 		}
 	},
 	render: {
 		value: function () {
+			this.rendered = true
 			var domains = this.domains
 			var now = new Date()
 
@@ -229,6 +231,8 @@ LineGraph.prototype = Object.create(Graph.prototype, {
 	write: {
 		value: function(chunk) {
 			// detect if it's a new series
+			if (!this.rendered)
+				this.render()
 			if (!_.any(this.data, function(d) { return d.id === chunk.id })) {
 				console.log('new series:', chunk.id)
 				var values = d3.range(this.points).map(function() { return {x: 0, y: 0} })

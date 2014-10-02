@@ -1,4 +1,4 @@
-var stream = require('../stream')
+var core = require('../core')
 var template = _.template(htmlTemplates['tiles/tiles.html'], null, {
 	imports: require('../utils')
 })
@@ -16,31 +16,34 @@ exports.tiles = function(opts) {
 	// caching these functions
 	var getHTML = function (d) { return template(d) }
 	var getID = function (d) { return d ? d.id : console.log(d) }
-	var getClass = function (d) {
-		return 'tile tile-' + d.type + (d.media_url ? ' tile-has-media' : '')
-	}
 
 	function render(posts) {
-		var elTile = elMain.selectAll('.tile').data(posts, getID)
-		var elTileJoin = elTile.order()
-		var elTileEnter = elTile.enter().append('div')
-			.attr('class', getClass)
+		var tile = elMain.selectAll('.tile-wrapper').data(posts, getID)
+		var tileJoin = tile.order()
+
+		tileJoin.on('click', function (d, i) {
+			var el = d3.select(this)
+			el.classed('is-expanded', !el.classed('is-expanded'))
+		})
+
+		var tileEnter = tile.enter().append('div')
+			.attr('class', 'tile-wrapper')
 			.html(getHTML)
-		var elTileExit = elTile.exit()
+		var tileExit = tile.exit()
 		if (animSpeed) {
-			elTileEnter
+			tileEnter
 				.style('opacity', 0)
 				.transition()
 					.duration(animSpeed)
 					.style('opacity', 1)
-			elTileExit.transition()
+			tileExit.transition()
 				.duration(animSpeed)
 				.style('opacity', 0)
 				.remove()
 		} else {
-			elTileExit.remove()
+			tileExit.remove()
 		}
 	}
 
-	return stream.passthrough(_.throttle(render, 1000))
+	return nio.passthrough(_.throttle(render, 1000))
 }

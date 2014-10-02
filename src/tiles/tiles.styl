@@ -1,0 +1,215 @@
+use-gradient = false
+use-transforms = false
+border-radius = 0px
+border-width = 1px
+transition-speed = 300ms
+tile-bg-shade = 30%
+
+color-default = rgb(255, 255, 255)
+color-facebook = #3b5998
+color-gplus = #b30000
+color-linkedin = #4c7eb1
+color-rss = #202020
+color-twitter = #00aced
+color = #333
+color-inverse = rgb(255, 255, 255)
+
+font-family = Roboto, 'Helvetica Neue', Helvetica, sans-serif
+font-family-header = 'Roboto Condensed', font-family
+font-weight = 300
+
+type-micro = 10px
+type-smallest = 12px
+type-small = 14px
+type-base = 16px
+type-large = 18px
+type-larger = 20px
+type-largest = 22px
+type-jumbo = 24px
+
+tile-spacing = 1px
+tile-padding = 10px
+tile-content-padding = tile-padding * 1 tile-padding * 2
+tile-content-margin = 0 //0 tile-spacing
+tile-header-padding = tile-padding
+tile-header-height = 70px
+tile-footer-height = 40px
+tile-height = 250px
+tile-width = 300px
+tile-avatar-height = 50px - border-width * 2
+tile-avatar-width = 50px - border-width * 2
+
+z-index-1 = 100
+z-index-2 = 200
+z-index-3 = 300
+
+.tiles
+	width (tile-width + tile-spacing) * 3
+
+.tile-wrapper
+	float left
+	height tile-height
+	margin tile-spacing * .5
+	position relative
+	width tile-width
+	z-index z-index-1
+	&, *
+		box-sizing border-box
+	*
+		margin 0
+		padding 0
+	// optimized for displaying 9 tiles at a time
+	&:nth-child(3n) .tile
+		left auto
+		right 0
+	&:nth-child(n+7) .tile
+		bottom 0
+		top auto
+.tile
+	background #fff
+	border-radius border-radius
+	color color
+	cursor pointer
+	font-family font-family
+	font-size type-base
+	font-weight 200 //font-weight
+	height tile-height
+	left 0
+	padding tile-header-height 0 tile-footer-height
+	position absolute
+	top 0
+	transition all transition-speed
+	width tile-width
+	if use-transforms
+		&:hover
+			transform scale(1.1, 1.1)
+			z-index z-index-3
+.tile-header
+.tile-content
+.tile-footer
+	border-style solid
+	border-width border-width
+	padding tile-padding
+.tile-header
+.tile-footer
+	position absolute
+	width 100%
+
+// Tile Header
+.tile-header
+	background color
+	border-radius border-radius border-radius 0 0
+	border-width border-width border-width 0
+	font-family font-family-header
+	left 0
+	color color-inverse
+	height tile-header-height
+	top 0
+	.icon
+		height 100%
+		position absolute
+		right tile-padding
+		top tile-padding
+.tile-author
+	color #fff !important
+	padding 0 0 tile-padding 0
+	padding-left tile-avatar-width + tile-padding
+	time
+		font-weight 200
+		font-size type-small
+		display block
+.tile-author-avatar
+.tile-author-name
+	display block
+.tile-author-avatar
+	border border-width solid rgba(0, 0, 0, .3)
+	border-radius border-radius
+	left tile-padding
+	height tile-avatar-height
+	position absolute
+	top tile-padding
+.tile-author-name
+	font-size type-larger
+
+// Tile Content
+.tile-content
+	background #fff
+	font-size type-base
+	padding tile-content-padding
+	margin tile-content-margin
+	height 100%
+
+// Tile Footer
+.tile-footer
+	border-top 0
+	bottom 0
+	font-size type-small
+	height tile-footer-height
+	line-height tile-footer-height - tile-padding * 2
+	padding tile-padding tile-padding * 2
+	width 100%
+
+// Expanded tiles
+.is-expanded
+	z-index z-index-2
+	.tile
+		height tile-height * 2 + tile-spacing
+	.has-media
+		width tile-width * 2 + tile-spacing
+
+// Post source colors
+tile-type(color)
+	background color
+	.tile-header
+	.tile-content
+	.tile-footer
+		border-color darken(color, tile-bg-shade)
+	.tile-header
+		background color
+		if use-gradient
+			background-image linear-gradient(color, darken(color, tile-bg-shade))
+	a
+		color lighten(color, 50%)
+
+.tile--facebook
+	tile-type(color-facebook)
+.tile--twitter
+	tile-type(color-twitter)
+.tile--gplus
+	tile-type(color-gplus)
+.tile--linkedin
+	tile-type(color-linkedin)
+.tile--rss
+	tile-type(color-rss)
+
+// Media tiles
+.has-media
+	background #000
+	border border-width solid #333
+	overflow hidden
+	a
+		color #fff
+	.tile-header
+	.tile-footer
+		background rgba(0, 0, 0, .5)
+		border 0
+		transition margin 300ms
+		z-index z-index-3
+	.tile-header
+		margin-top -100%
+	.tile-footer
+		margin-bottom -100%
+	&:hover
+		.tile-header
+			margin-top 0
+		.tile-footer
+			margin-bottom 0
+.tile-media
+	bottom 0
+	left 0
+	margin auto
+	position absolute
+	right 0
+	top 0
+	width 100%
+	z-index z-index-1

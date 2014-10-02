@@ -45,14 +45,10 @@
 		domains: {y: [0, 100]},
 		tickFormat: function (d) { return Math.floor(d) + '%' },
 		labels: {y: 'cpu usage (%)'}
-	})
-		.pull(sources)
-		.render()
+	}).pull(sources)
 
 	sources[0]
 		.pipe(nio.filter(function (d) { return d.id == 'NIO1-Production' }))
-		.split(
-			nio.throttle(1000).pipe(nio.display('#disk', 'cpu'))
-		)
-
+		.pipe(nio.throttle(1000))
+		.pipe(nio.display('#disk', 'cpu'))
 </script>

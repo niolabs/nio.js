@@ -1,0 +1,36 @@
+@import 'nib'
+@import 'icons/icons'
+@import 'tiles/tiles'
+@import 'graphs/graphs'
+
+.u-pullLeft
+	float left
+.u-pullRight
+	float right
+.u-textTruncate
+	overflow hidden
+	text-overflow ellipsis
+	white-space nowrap
+.u-block
+	display block
+
+@keyframes marquee
+	0%
+		left 0
+	100%
+		left -100%
+
+.u-marquee
+	height 30px
+	overflow hidden
+	position relative
+.u-marquee div
+	animation marquee 4s linear infinite
+	display block
+	height 100%
+	overflow hidden
+	position absolute
+	width 200%
+.u-marquee span
+	float left
+	width 50%
