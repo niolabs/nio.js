@@ -1,4 +1,4 @@
-var htmlTemplates = htmlTemplates || {};htmlTemplates['tiles/tiles.html'] = '<div class="tile tile--<%=type%><% if (media_url) { %> has-media<% } %>">\n' +
+var htmlTemplates = htmlTemplates || {};htmlTemplates['tiles/tiles.html'] = '<div class="tile tile--<%=type%><% if (media_url) { %> has-media<% } %><% if (profile_image_url) { %> has-profile-image<% } %>">\n' +
     '	<header class=tile-header>\n' +
     '		<a class="tile-author u-block">\n' +
     '			<% if (profile_image_url) { %>\n' +
@@ -9,14 +9,19 @@ var htmlTemplates = htmlTemplates || {};htmlTemplates['tiles/tiles.html'] = '<di
     '		</a>\n' +
     '		<span class="icon icon-<%=type%>"></span>\n' +
     '	</header>\n' +
-    '	<% if (media_url) { %>\n' +
-    '		<figure class=tile-content>\n' +
+    '	<div class=tile-content>\n' +
+    '		<% if (media_url) { %>\n' +
     '			<img class=tile-media src="<%=media_url%>" alt="<%=text%>" title="<%=text%>">\n' +
-    '			<figcaption><%=linkify(truncate(text, 150))%></figcaption>\n' +
-    '		</figure>\n' +
-    '	<% } else { %>\n' +
-    '		<div class=tile-content><%=linkify(truncate(text, 150))%></div>\n' +
-    '	<% } %>\n' +
+    '			<div class="tile-text u-marquee">\n' +
+    '				<div>\n' +
+    '					<span><%=linkify(truncate(text, 140))%></span>\n' +
+    '					<span><%=linkify(truncate(text, 140))%></span>\n' +
+    '				</div>\n' +
+    '			</div>\n' +
+    '		<% } else { %>\n' +
+    '			<div class=tile-text><%=linkify(truncate(text, 140))%></div>\n' +
+    '		<% } %>\n' +
+    '	</div>\n' +
     '	<footer class=tile-footer>\n' +
     '		<a class="block u-pullLeft" href="<%=link%>" target=_blank>\n' +
     '			View post\n' +
@@ -642,8 +647,8 @@ var template = _.template(htmlTemplates['tiles/tiles.html'], null, {
 
 exports.tiles = function(opts) {
 	var selector = _.isString(opts) ? opts : opts.selector
-	var animSpeed = opts.hasOwnProperty('animSpeed') ? opts.animSpeed : 750
 	var numCols = opts.numCols || 3
+	var animSpeed = opts.hasOwnProperty('animSpeed') ? opts.animSpeed : 750
 
 	var elMain = d3.select(selector)
 	//var elCols = []
@@ -654,12 +659,12 @@ exports.tiles = function(opts) {
 	var getHTML = function (d) { return template(d) }
 	var getID = function (d) { return d ? d.id : console.log(d) }
 
-	function render(posts) {
+	return nio.passthrough(function (posts) {
 		var tile = elMain.selectAll('.tile-wrapper').data(posts, getID)
 		var tileJoin = tile.order()
 
 		tileJoin.on('click', function (d, i) {
-			var el = d3.select(this)
+			var el = d3.select(this).select('.tile')
 			el.classed('is-expanded', !el.classed('is-expanded'))
 		})
 
@@ -667,6 +672,8 @@ exports.tiles = function(opts) {
 			.attr('class', 'tile-wrapper')
 			.html(getHTML)
 		var tileExit = tile.exit()
+
+		// animations will be disabled if animSpeed = 0
 		if (animSpeed) {
 			tileEnter
 				.style('opacity', 0)
@@ -680,9 +687,7 @@ exports.tiles = function(opts) {
 		} else {
 			tileExit.remove()
 		}
-	}
-
-	return nio.passthrough(_.throttle(render, 1000))
+	})
 }
 
 },{"../core":1,"../utils":5}],5:[function(require,module,exports){

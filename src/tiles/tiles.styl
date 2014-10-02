@@ -33,7 +33,7 @@ tile-content-padding = tile-padding * 1 tile-padding * 2
 tile-content-margin = 0 //0 tile-spacing
 tile-header-padding = tile-padding
 tile-header-height = 70px
-tile-footer-height = 40px
+tile-footer-height = 30px
 tile-height = 250px
 tile-width = 300px
 tile-avatar-height = 50px - border-width * 2
@@ -52,7 +52,6 @@ z-index-3 = 300
 	margin tile-spacing * .5
 	position relative
 	width tile-width
-	z-index z-index-1
 	&, *
 		box-sizing border-box
 	*
@@ -80,11 +79,13 @@ z-index-3 = 300
 	top 0
 	transition all transition-speed
 	width tile-width
+	z-index z-index-1
 	if use-transforms
 		&:hover
 			transform scale(1.1, 1.1)
 			z-index z-index-3
 	a
+		text-decoration none
 		transition all transition-speed
 .tile-header
 .tile-content
@@ -114,13 +115,14 @@ z-index-3 = 300
 		top 0
 .tile-author
 	color #fff !important
-	padding 0 0 tile-padding 0
-	padding-left tile-avatar-width + tile-padding
-	padding-right tile-avatar-width + tile-padding
+	// add right padding for the icons
+	padding 0 tile-avatar-width 0 tile-padding
 	time
 		font-weight 200
 		font-size type-small
 		display block
+.has-profile-image .tile-author
+	padding-left tile-avatar-width + tile-padding
 .tile-author-avatar
 .tile-author-name
 	display block
@@ -146,22 +148,21 @@ z-index-3 = 300
 .tile-footer
 	border-top 0
 	bottom 0
-	font-size type-small
+	font-size type-smallest
 	height tile-footer-height
 	line-height tile-footer-height - tile-padding * 2
 	padding tile-padding tile-padding * 2
 	width 100%
 	a
-		color rgba(255, 255, 255, .5)
+		color rgba(255, 255, 255, .7)
 		&:hover
 			color rgba(255, 255, 255, 1)
 
 // Expanded tiles
 .is-expanded
+	height tile-height * 2 + tile-spacing
 	z-index z-index-2
-	.tile
-		height tile-height * 2 + tile-spacing
-	.has-media
+	&.has-media
 		width tile-width * 2 + tile-spacing
 
 // Post source colors
@@ -198,20 +199,38 @@ tile-type(color)
 	a
 		color #fff
 	.tile-header
+	.tile-text
 	.tile-footer
 		background rgba(0, 0, 0, .5)
+		color rgba(255, 255, 255, .8)
 		border 0
 		transition margin 300ms
 		z-index z-index-3
 	.tile-header
 		margin-top -100%
+	.tile-text
+		bottom 0
+		left 0
+		height tile-footer-height
+		line-height tile-footer-height
+		margin-bottom tile-footer-height * -1
+		overflow hidden
+		position absolute
+		width 1000px
 	.tile-footer
-		margin-bottom -100%
+		margin-bottom tile-footer-height * -1
 	&:hover
+		.tile-text
+			animation-play-state running
+			margin-bottom 0
 		.tile-header
 			margin-top 0
-		.tile-footer
-			margin-bottom 0
+		&.is-expanded
+			.tile-text
+				margin-bottom tile-footer-height
+			.tile-footer
+				margin-bottom 0
+
 .tile-media
 	bottom 0
 	left 0
