@@ -20,6 +20,12 @@
     "d3": "~3.4.11",
     "lodash": "~2.4.1",
     "time-elements": "~0.4.0",
-    "CustomElements": "Polymer/CustomElements#~0.4.1"
+    "CustomElements": "Polymer/CustomElements#~0.4.1",
+    "polymer": "Polymer/Polymer#~0.4.1"
+  },
+  "devDependencies": {
+    "polymer": "Polymer/Polymer#~0.4.1",
+    "core-elements": "Polymer/core-elements#~0.4.1",
+    "paper-elements": "Polymer/paper-elements#~0.4.1"
   }
 }

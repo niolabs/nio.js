@@ -1,8 +1,8 @@
-var htmlTemplates = htmlTemplates || {};htmlTemplates['tiles/tiles.html'] = '<div class="tile tile--<%=type%><% if (media_url) { %> has-media<% } %><% if (profile_image_url) { %> has-profile-image<% } %>">\n' +
+var htmlTemplates = htmlTemplates || {};htmlTemplates['tiles/tiles.html'] = '<div id="<%=id%>" class="tile tile--<%=type%><% if (media_url) { %> has-media<% } %><% if (profile_image_url) { %> has-profile-image<% } %>">\n' +
     '	<header class=tile-header>\n' +
-    '		<a class="tile-author u-block">\n' +
+    '		<a class="tile-author u-block" href=#<%=id%>>\n' +
     '			<% if (profile_image_url) { %>\n' +
-    '				<img class=tile-author-avatar src="<%=profile_image_url%>" alt="<%=name%>\'s avatar">\n' +
+    '				<img class=tile-author-avatar src="<%=profile_image_url%><% if (type === \'facebook\') { %>?type=normal<% } %>" alt="<%=name%>\'s avatar">\n' +
     '			<% } %>\n' +
     '			<strong class="tile-author-name u-textTruncate"><%=name%></strong>\n' +
     '			<time is=relative-time datetime="<%=time%>"><%=time%></time>\n' +
@@ -14,12 +14,19 @@ var htmlTemplates = htmlTemplates || {};htmlTemplates['tiles/tiles.html'] = '<di
     '			<img class=tile-media src="<%=media_url%>" alt="<%=text%>" title="<%=text%>">\n' +
     '			<div class="tile-text u-marquee">\n' +
     '				<div>\n' +
-    '					<span><%=linkify(truncate(text, 140))%></span>\n' +
-    '					<span><%=linkify(truncate(text, 140))%></span>\n' +
+    '					<span><%=linkify(truncate(text, 150))%></span>\n' +
+    '					<span><%=linkify(truncate(text, 150))%></span>\n' +
     '				</div>\n' +
     '			</div>\n' +
     '		<% } else { %>\n' +
-    '			<div class=tile-text><%=linkify(truncate(text, 140))%></div>\n' +
+    '			<div class=tile-text>\n' +
+    '				<% if (type === \'rss\') { %>\n' +
+    '					<strong class=font-header><%=text%></strong><br>\n' +
+    '					<%=linkify(truncate(alt_text, 100))%>\n' +
+    '				<% } else { %>\n' +
+    '					<%=linkify(truncate(text, 150))%>\n' +
+    '				<% } %>\n' +
+    '			</div>\n' +
     '		<% } %>\n' +
     '	</div>\n' +
     '	<footer class=tile-footer>\n' +
@@ -665,7 +672,10 @@ exports.tiles = function(opts) {
 
 		tileJoin.on('click', function (d, i) {
 			var el = d3.select(this).select('.tile')
-			el.classed('is-expanded', !el.classed('is-expanded'))
+			var isExpanded = el.classed('is-expanded')
+			if (!isExpanded)
+				elMain.selectAll('.tile').classed('is-expanded', false)
+			el.classed('is-expanded', !isExpanded)
 		})
 
 		var tileEnter = tile.enter().append('div')

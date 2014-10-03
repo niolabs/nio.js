@@ -11,26 +11,65 @@
 		padding: 20px;
 	}
 </style>
+
+<!-- Polymer -->
+<script src="bower_components/platform/platform.js"></script>
+<link rel=import href=../components/paper-checkbox/paper-checkbox.html>
+<link rel=import href=../components/paper-input/paper-input.html>
+<link rel=import href=../components/paper-radio-group/paper-radio-group.html>
+<link rel=import href=../components/paper-dropdown-menu/paper-dropdown-menu.html>
+
+<!-- Tiles -->
 <script src=http://54.85.159.254:443/socket.io/socket.io.js></script>
-<script src=../components/CustomElements/custom-elements.js></script>
 <script src=../components/time-elements/time-elements.js></script>
 <script src=../components/lodash/dist/lodash.min.js></script>
 <script src=../components/d3/d3.min.js></script>
 <script src=../dist/nio.js></script>
+
+
 <h1><span class="icon icon-nio icon-large" title=nio.js></span></h1>
+
+<form action=. method=get>
+	<span>
+		<label>
+			Sort by:
+			<select id=sort>
+				<option selected>time</option>
+				<option>priority</option>
+			</select>
+		</label>
+	</span>
+	<span>
+		Only show posts from
+		<label><input type=checkbox name=types value=youtube> YouTube</label>
+		<label><input type=checkbox name=types value=instagram> Instagram</label>
+		<label><input type=checkbox name=types value=twitter> Twitter</label>
+		<label><input type=checkbox name=types value=twitter-photo> Twitter photos</label>
+		<label><input type=checkbox name=types value=facebook> Facebook</label>
+		<label><input type=checkbox name=types value=linkedin> LinkedIn</label>
+		<label><input type=checkbox name=types value=gplus> Google+</label>
+		<label><input type=checkbox name=types value=rss> RSS</label>
+	</span>
+	<button type=submit>Filter</button>
+	<button type=reset>Reset</button>
+</form>
 <div class="tiles has-spacing has-gradient has-overlay has-fixed"></div>
 <script>
 	// save a JSON server
+	var jsonEnabled = true
 	var json = nio.json('http://54.85.159.254')
 		// start polling the /posts URL
 		.start('posts')
 		// pick out the "posts" attribute of the returned JSON
 		.pipe(nio.pick('posts'))
+		.pipe(nio.filter(function () { return jsonEnabled }))
 
 	// connect to a socketio server
+	var socketioEnabled = true
 	var socketio = nio.socketio('http://54.85.159.254:443')
 		// join the "default" room
 		.start('default')
+		.pipe(nio.filter(function () { return socketioEnabled }))
 
 	// combine the streams
 	nio.join(json, socketio)
@@ -45,4 +84,5 @@
 		.pipe(nio.throttle(2000))
 		// send them to the tiles
 		.pipe(nio.tiles('.tiles'))
+		// count types of posts for notifications
 </script>

@@ -1,8 +1,8 @@
-<div class="tile tile--<%=type%><% if (media_url) { %> has-media<% } %><% if (profile_image_url) { %> has-profile-image<% } %>">
+<div id="<%=id%>" class="tile tile--<%=type%><% if (media_url) { %> has-media<% } %><% if (profile_image_url) { %> has-profile-image<% } %>">
 	<header class=tile-header>
-		<a class="tile-author u-block">
+		<a class="tile-author u-block" href=#<%=id%>>
 			<% if (profile_image_url) { %>
-				<img class=tile-author-avatar src="<%=profile_image_url%>" alt="<%=name%>'s avatar">
+				<img class=tile-author-avatar src="<%=profile_image_url%><% if (type === 'facebook') { %>?type=normal<% } %>" alt="<%=name%>'s avatar">
 			<% } %>
 			<strong class="tile-author-name u-textTruncate"><%=name%></strong>
 			<time is=relative-time datetime="<%=time%>"><%=time%></time>
@@ -14,12 +14,19 @@
 			<img class=tile-media src="<%=media_url%>" alt="<%=text%>" title="<%=text%>">
 			<div class="tile-text u-marquee">
 				<div>
-					<span><%=linkify(truncate(text, 140))%></span>
-					<span><%=linkify(truncate(text, 140))%></span>
+					<span><%=linkify(truncate(text, 150))%></span>
+					<span><%=linkify(truncate(text, 150))%></span>
 				</div>
 			</div>
 		<% } else { %>
-			<div class=tile-text><%=linkify(truncate(text, 140))%></div>
+			<div class=tile-text>
+				<% if (type === 'rss') { %>
+					<strong class=font-header><%=text%></strong><br>
+					<%=linkify(truncate(alt_text, 100))%>
+				<% } else { %>
+					<%=linkify(truncate(text, 150))%>
+				<% } %>
+			</div>
 		<% } %>
 	</div>
 	<footer class=tile-footer>

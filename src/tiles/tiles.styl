@@ -1,9 +1,14 @@
 use-gradient = false
 use-transforms = false
-border-radius = 0px
+use-transitions = true
+use-arrow = true
+
+tile-bg-shade = 20%
+arrow-size = 8px
+
+border-radius = 0
 border-width = 1px
 transition-speed = 300ms
-tile-bg-shade = 30%
 
 color-default = rgb(255, 255, 255)
 color-facebook = #3b5998
@@ -27,21 +32,36 @@ type-larger = 20px
 type-largest = 22px
 type-jumbo = 24px
 
-tile-spacing = 1px
-tile-padding = 10px
-tile-content-padding = tile-padding * 1 tile-padding * 2
-tile-content-margin = 0 //0 tile-spacing
-tile-header-padding = tile-padding
-tile-header-height = 70px
-tile-footer-height = 30px
-tile-height = 250px
-tile-width = 300px
-tile-avatar-height = 50px - border-width * 2
-tile-avatar-width = 50px - border-width * 2
-
 z-index-1 = 100
 z-index-2 = 200
 z-index-3 = 300
+
+tile-height = 250px
+tile-width = 300px
+tile-spacing = 1px
+tile-padding = 10px
+
+tile-header-padding = tile-padding
+tile-header-border = 1px
+tile-header-height = 70px
+
+tile-avatar-height = 50px - border-width * 2
+tile-avatar-border = 1px
+tile-avatar-width = 50px - border-width * 2
+
+tile-content-bg = rgba(255, 255, 255, 1)
+tile-content-padding = tile-padding * 2
+tile-content-border = 1px
+tile-content-margin = 0
+
+tile-footer-height = 30px
+tile-footer-border = border-width
+
+//@import 'variables-mock'
+
+.font-header
+	font-family font-family-header
+
 
 .tiles
 	width (tile-width + tile-spacing) * 3
@@ -77,7 +97,8 @@ z-index-3 = 300
 	padding tile-header-height 0 tile-footer-height
 	position absolute
 	top 0
-	transition all transition-speed
+	if use-transitions
+		transition all transition-speed
 	width tile-width
 	z-index z-index-1
 	if use-transforms
@@ -86,23 +107,28 @@ z-index-3 = 300
 			z-index z-index-3
 	a
 		text-decoration none
-		transition all transition-speed
+		if use-transitions
+			transition all transition-speed
+		&:hover
+			text-decoration underline
 .tile-header
 .tile-content
 .tile-footer
 	border-style solid
-	border-width border-width
 	padding tile-padding
+	if use-transitions
+		transition all transition-speed
 .tile-header
 .tile-footer
 	position absolute
 	width 100%
 
 // Tile Header
+// ------------------------------------------------------------
 .tile-header
 	background color
 	border-radius border-radius border-radius 0 0
-	border-width border-width border-width 0
+	border-width tile-header-border tile-header-border 0
 	font-family font-family-header
 	left 0
 	color color-inverse
@@ -127,25 +153,34 @@ z-index-3 = 300
 .tile-author-name
 	display block
 .tile-author-avatar
+	background rgba(0, 0, 0, .2)
 	border border-width solid rgba(0, 0, 0, .3)
 	border-radius border-radius
 	left tile-padding
 	height tile-avatar-height
 	position absolute
 	top tile-padding
+	width tile-avatar-width
 .tile-author-name
 	font-size type-larger
 
 // Tile Content
+// ------------------------------------------------------------
 .tile-content
-	background #fff
+	background tile-content-bg
+	border-width tile-content-border
 	font-size type-base
 	padding tile-content-padding
 	margin tile-content-margin
 	height 100%
+	if tile-content-spacing and border-radius
+		border-radius border-radius
 
 // Tile Footer
+// ------------------------------------------------------------
 .tile-footer
+	border-radius 0 0 border-radius border-radius
+	border-width tile-footer-border
 	border-top 0
 	bottom 0
 	font-size type-smallest
@@ -159,27 +194,38 @@ z-index-3 = 300
 			color rgba(255, 255, 255, 1)
 
 // Expanded tiles
+// ------------------------------------------------------------
+.tile:target
 .is-expanded
 	height tile-height * 2 + tile-spacing
 	z-index z-index-2
-	&.has-media
-		width tile-width * 2 + tile-spacing
+
 
 // Post source colors
+// ------------------------------------------------------------
 tile-type(color)
-	background color
+	background-color color
 	.tile-header
-	.tile-content
 	.tile-footer
+		background-color color
 		border-color darken(color, tile-bg-shade)
-	.tile-header
-		background color
-		if use-gradient
-			background-image linear-gradient(color, darken(color, tile-bg-shade))
-	.tile-content a
-		color color
-		&:hover
-			color darken(color, tile-bg-shade)
+	&:hover
+		.tile-header
+		.tile-footer
+			background-color darken(color, tile-bg-shade)
+	.tile-content
+		border-color darken(color, tile-bg-shade + 20%)
+		&:before
+			border-bottom-color darken(color, tile-bg-shade + 20%)
+		a
+			color color
+			&:hover
+				color darken(color, tile-bg-shade)
+	if use-gradient
+		.tile-header
+			background-image linear-gradient(color, 95% darken(color, tile-bg-shade), 100% darken(color, tile-bg-shade + 8%))
+		.tile-footer
+			background-image linear-gradient(darken(color, tile-bg-shade + 50%), 5% darken(color, tile-bg-shade), 100% darken(color, tile-bg-shade + 10%))
 .tile--facebook
 	tile-type(color-facebook)
 .tile--twitter
@@ -192,22 +238,31 @@ tile-type(color)
 	tile-type(color-rss)
 
 // Media tiles
+// ------------------------------------------------------------
 .has-media
 	background #000
-	border border-width solid #333
+	if border-width
+		border border-width solid #333
+	else
+		border 1px solid #333
 	overflow hidden
 	a
 		color #fff
 	.tile-header
 	.tile-text
 	.tile-footer
-		background rgba(0, 0, 0, .5)
 		color rgba(255, 255, 255, .8)
 		border 0
-		transition margin 300ms
+		if use-transitions
+			transition margin 300ms
 		z-index z-index-3
 	.tile-header
+	.tile-text
+		background rgba(0, 0, 0, .5)
+	.tile-header
 		margin-top -100%
+	.tile-content
+		position static
 	.tile-text
 		bottom 0
 		left 0
@@ -219,6 +274,12 @@ tile-type(color)
 		width 1000px
 	.tile-footer
 		margin-bottom tile-footer-height * -1
+		padding 0
+		a
+			background rgba(0, 0, 0, 1)
+			padding tile-padding tile-padding * 2
+	&.is-expanded
+		width tile-width * 2 + tile-spacing
 	&:hover
 		.tile-text
 			animation-play-state running
@@ -226,8 +287,6 @@ tile-type(color)
 		.tile-header
 			margin-top 0
 		&.is-expanded
-			.tile-text
-				margin-bottom tile-footer-height
 			.tile-footer
 				margin-bottom 0
 
@@ -240,3 +299,27 @@ tile-type(color)
 	top 0
 	width 100%
 	z-index z-index-1
+
+
+if use-arrow
+	.tile-content
+		position relative
+		&:after
+		&:before
+			bottom 100%
+			left tile-avatar-width + tile-padding * 3
+			border solid transparent
+			content " "
+			height 0
+			width 0
+			position absolute
+			pointer-events none
+		&:after
+			border-color transparent
+			border-bottom-color tile-content-bg
+			border-width arrow-size
+			margin-left arrow-size * -1
+		&:before
+			border-color transparent
+			border-width arrow-size + border-width
+			margin-left (arrow-size + border-width) * -1

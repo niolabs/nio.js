@@ -23,7 +23,10 @@ exports.tiles = function(opts) {
 
 		tileJoin.on('click', function (d, i) {
 			var el = d3.select(this).select('.tile')
-			el.classed('is-expanded', !el.classed('is-expanded'))
+			var isExpanded = el.classed('is-expanded')
+			if (!isExpanded)
+				elMain.selectAll('.tile').classed('is-expanded', false)
+			el.classed('is-expanded', !isExpanded)
 		})
 
 		var tileEnter = tile.enter().append('div')
