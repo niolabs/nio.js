@@ -4,7 +4,7 @@ var template = _.template(htmlTemplates['tiles/tiles.html'], null, {
 })
 
 exports.tiles = function(opts) {
-	var selector = _.isString(opts) ? opts : opts.selector
+	var selector = _.isPlainObject(opts) ? opts.selector : opts
 	var numCols = opts.numCols || 3
 	var animSpeed = opts.hasOwnProperty('animSpeed') ? opts.animSpeed : 750
 
@@ -17,21 +17,22 @@ exports.tiles = function(opts) {
 	var getHTML = function (d) { return template(d) }
 	var getID = function (d) { return d ? d.id : console.log(d) }
 
-	return nio.passthrough(function (posts) {
-		var tile = elMain.selectAll('.tile-wrapper').data(posts, getID)
-		var tileJoin = tile.order()
+	var tile = elMain.selectAll('.tile-wrapper')
 
-		tileJoin.on('click', function (d, i) {
-			var el = d3.select(this).select('.tile')
-			var isExpanded = el.classed('is-expanded')
-			if (!isExpanded)
-				elMain.selectAll('.tile').classed('is-expanded', false)
-			el.classed('is-expanded', !isExpanded)
-		})
+	function render(posts) {
+		tile = tile.data(posts, getID)
+		var tileJoin = tile.order()
 
 		var tileEnter = tile.enter().append('div')
 			.attr('class', 'tile-wrapper')
 			.html(getHTML)
+			.on('click', function (d, i) {
+				var el = d3.select(this).select('.tile')
+				var isExpanded = el.classed('is-expanded')
+				if (!isExpanded)
+					elMain.selectAll('.tile').classed('is-expanded', false)
+				el.classed('is-expanded', !isExpanded)
+			})
 		var tileExit = tile.exit()
 
 		// animations will be disabled if animSpeed = 0
@@ -48,5 +49,7 @@ exports.tiles = function(opts) {
 		} else {
 			tileExit.remove()
 		}
-	})
+	}
+
+	return nio.passthrough(render)
 }

@@ -1,67 +1,5 @@
-use-gradient = false
-use-transforms = false
-use-transitions = true
-use-arrow = true
-
-tile-bg-shade = 20%
-arrow-size = 8px
-
-border-radius = 0
-border-width = 1px
-transition-speed = 300ms
-
-color-default = rgb(255, 255, 255)
-color-facebook = #3b5998
-color-gplus = #b30000
-color-linkedin = #4c7eb1
-color-rss = #202020
-color-twitter = #00aced
-color = #333
-color-inverse = rgb(255, 255, 255)
-
-font-family = Roboto, 'Helvetica Neue', Helvetica, sans-serif
-font-family-header = 'Roboto Condensed', font-family
-font-weight = 300
-
-type-micro = 10px
-type-smallest = 12px
-type-small = 14px
-type-base = 16px
-type-large = 18px
-type-larger = 20px
-type-largest = 22px
-type-jumbo = 24px
-
-z-index-1 = 100
-z-index-2 = 200
-z-index-3 = 300
-
-tile-height = 250px
-tile-width = 300px
-tile-spacing = 1px
-tile-padding = 10px
-
-tile-header-padding = tile-padding
-tile-header-border = 1px
-tile-header-height = 70px
-
-tile-avatar-height = 50px - border-width * 2
-tile-avatar-border = 1px
-tile-avatar-width = 50px - border-width * 2
-
-tile-content-bg = rgba(255, 255, 255, 1)
-tile-content-padding = tile-padding * 2
-tile-content-border = 1px
-tile-content-margin = 0
-
-tile-footer-height = 30px
-tile-footer-border = border-width
-
-//@import 'variables-mock'
-
 .font-header
 	font-family font-family-header
-
 
 .tiles
 	width (tile-width + tile-spacing) * 3
@@ -113,9 +51,11 @@ tile-footer-border = border-width
 			text-decoration underline
 .tile-header
 .tile-content
+	padding tile-padding
+.tile-header
+.tile-content
 .tile-footer
 	border-style solid
-	padding tile-padding
 	if use-transitions
 		transition all transition-speed
 .tile-header
@@ -135,18 +75,20 @@ tile-footer-border = border-width
 	height tile-header-height
 	top 0
 	.icon
+		opacity .5
 		height 100%
 		position absolute
-		right tile-padding * 2
-		top 0
+		right tile-padding
+		top tile-padding * -1.2
 .tile-author
 	color #fff !important
 	// add right padding for the icons
-	padding 0 tile-avatar-width 0 tile-padding
+	padding tile-padding * .15 tile-avatar-width 0 tile-padding
 	time
 		font-weight 200
 		font-size type-small
 		display block
+		opacity .6
 .has-profile-image .tile-author
 	padding-left tile-avatar-width + tile-padding
 .tile-author-avatar
@@ -154,7 +96,7 @@ tile-footer-border = border-width
 	display block
 .tile-author-avatar
 	background rgba(0, 0, 0, .2)
-	border border-width solid rgba(0, 0, 0, .3)
+	border tile-avatar-border solid rgba(0, 0, 0, .5)
 	border-radius border-radius
 	left tile-padding
 	height tile-avatar-height
@@ -163,6 +105,8 @@ tile-footer-border = border-width
 	width tile-avatar-width
 .tile-author-name
 	font-size type-larger
+	if tile-author-name-margin
+		margin tile-author-name-margin
 
 // Tile Content
 // ------------------------------------------------------------
@@ -185,8 +129,7 @@ tile-footer-border = border-width
 	bottom 0
 	font-size type-smallest
 	height tile-footer-height
-	line-height tile-footer-height - tile-padding * 2
-	padding tile-padding tile-padding * 2
+	line-height tile-footer-height
 	width 100%
 	a
 		color rgba(255, 255, 255, .7)
@@ -195,18 +138,18 @@ tile-footer-border = border-width
 
 // Expanded tiles
 // ------------------------------------------------------------
-.tile:target
 .is-expanded
 	height tile-height * 2 + tile-spacing
 	z-index z-index-2
 
+use-light-footer = true
 
 // Post source colors
 // ------------------------------------------------------------
 tile-type(color)
-	background-color color
+	//background-color color
+	border border-width solid color
 	.tile-header
-	.tile-footer
 		background-color color
 		border-color darken(color, tile-bg-shade)
 	&:hover
@@ -214,13 +157,25 @@ tile-type(color)
 		.tile-footer
 			background-color darken(color, tile-bg-shade)
 	.tile-content
-		border-color darken(color, tile-bg-shade + 20%)
+		border-color darken(color, tile-bg-shade)
 		&:before
-			border-bottom-color darken(color, tile-bg-shade + 20%)
+			border-bottom-color darken(color, tile-bg-shade + 0%)
+	.tile-content
+	.tile-footer
 		a
-			color color
+			color darken(color, tile-bg-shade)
 			&:hover
-				color darken(color, tile-bg-shade)
+				color lighten(color, tile-bg-shade)
+	if use-light-footer
+		.tile-content
+		.tile-footer
+			border 0
+		.tile-footer
+			background-color transparent !important
+			border 0
+			border-top 1px solid rgba(color, .3)
+			margin 0 tile-padding * 2
+			width tile-width - tile-padding * 4 - border-width
 	if use-gradient
 		.tile-header
 			background-image linear-gradient(color, 95% darken(color, tile-bg-shade), 100% darken(color, tile-bg-shade + 8%))
@@ -266,7 +221,7 @@ tile-type(color)
 	.tile-text
 		bottom 0
 		left 0
-		height tile-footer-height
+		height 0
 		line-height tile-footer-height
 		margin-bottom tile-footer-height * -1
 		overflow hidden
@@ -274,15 +229,20 @@ tile-type(color)
 		width 1000px
 	.tile-footer
 		margin-bottom tile-footer-height * -1
-		padding 0
+		padding 0 !important
 		a
 			background rgba(0, 0, 0, 1)
 			padding tile-padding tile-padding * 2
+
+	&.is-expanded
+	&:hover
+		.tile-text
+			animation marquee 5s linear infinite
+			height tile-footer-height
 	&.is-expanded
 		width tile-width * 2 + tile-spacing
 	&:hover
 		.tile-text
-			animation-play-state running
 			margin-bottom 0
 		.tile-header
 			margin-top 0
@@ -307,7 +267,7 @@ if use-arrow
 		&:after
 		&:before
 			bottom 100%
-			left tile-avatar-width + tile-padding * 3
+			left tile-avatar-width * .5 + arrow-size * 2 - 2
 			border solid transparent
 			content " "
 			height 0
