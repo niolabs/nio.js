@@ -6,7 +6,7 @@ var template = _.template(htmlTemplates['tiles/tiles.html'], null, {
 exports.tiles = function(opts) {
 	var selector = _.isPlainObject(opts) ? opts.selector : opts
 	var numCols = opts.numCols || 3
-	var animSpeed = opts.hasOwnProperty('animSpeed') ? opts.animSpeed : 750
+	var animSpeed = opts.hasOwnProperty('animSpeed') ? opts.animSpeed : 0
 
 	var elMain = d3.select(selector)
 	//var elCols = []
@@ -33,6 +33,8 @@ exports.tiles = function(opts) {
 					elMain.selectAll('.tile').classed('is-expanded', false)
 				el.classed('is-expanded', !isExpanded)
 			})
+			.select('.tile')
+			.classed('flip-in', true)
 		var tileExit = tile.exit()
 
 		// animations will be disabled if animSpeed = 0

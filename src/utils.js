@@ -13,3 +13,16 @@ exports.truncate = function (text, len) {
 exports.isArray = _.isArray
 exports.isFunc = _.isFunction
 exports.isStr = _.isString
+
+var mediaTypeNames = {
+	'twitter': 'Twitter',
+	'twitter-photo': 'Twitter',
+	'facebook': 'Facebook',
+	'gplus': 'Google+',
+	'linkedin': 'LinkedIn',
+	'rss': 'RSS'
+}
+
+exports.mediaTypeName = function (type) {
+	return type in mediaTypeNames ? mediaTypeNames[type] : type
+}

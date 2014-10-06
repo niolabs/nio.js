@@ -5,16 +5,19 @@
 	width (tile-width + tile-spacing) * 3
 
 .tile-wrapper
+	border tile-spacing * .5 solid transparent
 	float left
-	height tile-height
-	margin tile-spacing * .5
+	height tile-height + tile-spacing
 	position relative
-	width tile-width
+	transition transition-duration all
+	width tile-width + tile-spacing
 	&, *
 		box-sizing border-box
 	*
 		margin 0
 		padding 0
+	&:hover
+		border-color linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, .1))
 	// optimized for displaying 9 tiles at a time
 	&:nth-child(3n) .tile
 		left auto
@@ -36,17 +39,19 @@
 	position absolute
 	top 0
 	if use-transitions
-		transition all transition-speed
+		transition all transition-duration
 	width tile-width
 	z-index z-index-1
 	if use-transforms
 		&:hover
 			transform scale(1.1, 1.1)
 			z-index z-index-3
+	p
+		margin-bottom tile-padding
 	a
 		text-decoration none
 		if use-transitions
-			transition all transition-speed
+			transition all transition-duration
 		&:hover
 			text-decoration underline
 .tile-header
@@ -57,7 +62,7 @@
 .tile-footer
 	border-style solid
 	if use-transitions
-		transition all transition-speed
+		transition all transition-duration
 .tile-header
 .tile-footer
 	position absolute
@@ -114,15 +119,19 @@
 	background tile-content-bg
 	border-width tile-content-border
 	font-size type-base
-	padding tile-content-padding
-	margin tile-content-margin
 	height 100%
+	margin tile-content-margin
+	padding tile-content-padding
 	if tile-content-spacing and border-radius
 		border-radius border-radius
+.tile-text
+	height 100%
+	overflow hidden
 
 // Tile Footer
 // ------------------------------------------------------------
 .tile-footer
+	background tile-content-bg
 	border-radius 0 0 border-radius border-radius
 	border-width tile-footer-border
 	border-top 0
@@ -130,7 +139,19 @@
 	font-size type-smallest
 	height tile-footer-height
 	line-height tile-footer-height
-	width 100%
+	position relative
+	margin 0 tile-padding * 2
+	width tile-width - tile-padding * 4 - border-width * 2
+
+	&:before
+		background linear-gradient(transparent, white)
+		content ' '
+		top (tile-content-fader-height + tile-footer-border) * -1
+		display block
+		height tile-content-fader-height
+		left 0
+		position absolute
+		width 100%
 	a
 		color rgba(255, 255, 255, .7)
 		&:hover
@@ -141,20 +162,23 @@
 .is-expanded
 	height tile-height * 2 + tile-spacing
 	z-index z-index-2
+	.on-expand
+		opacity 1
+.on-expand
+	opacity 0
+	transition all transition-duration
 
 use-light-footer = true
 
 // Post source colors
 // ------------------------------------------------------------
 tile-type(color)
-	//background-color color
 	border border-width solid color
 	.tile-header
 		background-color color
 		border-color darken(color, tile-bg-shade)
 	&:hover
 		.tile-header
-		.tile-footer
 			background-color darken(color, tile-bg-shade)
 	.tile-content
 		border-color darken(color, tile-bg-shade)
@@ -171,16 +195,10 @@ tile-type(color)
 		.tile-footer
 			border 0
 		.tile-footer
-			background-color transparent !important
-			border 0
 			border-top 1px solid rgba(color, .3)
-			margin 0 tile-padding * 2
-			width tile-width - tile-padding * 4 - border-width
 	if use-gradient
 		.tile-header
 			background-image linear-gradient(color, 95% darken(color, tile-bg-shade), 100% darken(color, tile-bg-shade + 8%))
-		.tile-footer
-			background-image linear-gradient(darken(color, tile-bg-shade + 50%), 5% darken(color, tile-bg-shade), 100% darken(color, tile-bg-shade + 10%))
 .tile--facebook
 	tile-type(color-facebook)
 .tile--twitter
@@ -228,27 +246,28 @@ tile-type(color)
 		position absolute
 		width 1000px
 	.tile-footer
-		margin-bottom tile-footer-height * -1
+		background transparent
+		bottom tile-footer-height * -1
+		margin 0
 		padding 0 !important
+		width 100%
+		&:before
+			display none
 		a
 			background rgba(0, 0, 0, 1)
-			padding tile-padding tile-padding * 2
-
-	&.is-expanded
-	&:hover
-		.tile-text
-			animation marquee 5s linear infinite
-			height tile-footer-height
+			padding 0 tile-padding * 2
 	&.is-expanded
 		width tile-width * 2 + tile-spacing
 	&:hover
 		.tile-text
+			animation marquee 5s linear infinite
+			height tile-footer-height
 			margin-bottom 0
 		.tile-header
 			margin-top 0
 		&.is-expanded
 			.tile-footer
-				margin-bottom 0
+				bottom 0
 
 .tile-media
 	bottom 0
@@ -283,3 +302,16 @@ if use-arrow
 			border-color transparent
 			border-width arrow-size + border-width
 			margin-left (arrow-size + border-width) * -1
+
+@keyframes flip-in
+	0%
+		transform perspective(1000px) rotateX(180deg)
+		transition-timing-function ease-in
+	100%
+		transform perspective(1000px) rotateX(0)
+
+.flip-in
+	animation-duration 1s
+	animation-name flip-in
+	animation-fill-mode both
+	backface-visibility hidden

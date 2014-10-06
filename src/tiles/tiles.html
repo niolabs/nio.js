@@ -14,28 +14,31 @@
 			<img class=tile-media src="<%=media_url%>" alt="<%=text%>" title="<%=text%>">
 			<div class="tile-text u-marquee">
 				<div>
-					<span><%=linkify(truncate(text, 150))%></span>
-					<span><%=linkify(truncate(text, 150))%></span>
+					<span><%=linkify(text)%></span>
+					<span><%=linkify(text)%></span>
 				</div>
 			</div>
 		<% } else { %>
 			<div class=tile-text>
 				<% if (type === 'rss') { %>
-					<strong class=font-header><%=text%></strong><br>
-					<%=linkify(truncate(alt_text, 100))%>
+					<p><strong class=font-header><%=text%></strong>
+					<%=linkify(alt_text)%>
 				<% } else { %>
-					<%=linkify(truncate(text, 150))%>
+					<p><%=linkify(text)%>
 				<% } %>
+				<p class="on-expand u-muted">
+					<time is=local-time datetime="<%=time%>"><%=time%></time>
 			</div>
 		<% } %>
 	</div>
 	<footer class=tile-footer>
 		<a class="block u-pullLeft" href="<%=link%>" target=_blank>
-			View on <%=type%>
+			View on <%=mediaTypeName(type)%>
 			<span class="icon icon-external icon-mini"></span>
 		</a>
 		<a class="block u-pullRight" href=#>
 			Share
+			<span class="icon icon-share icon-mini"></span>
 		</a>
 	</footer>
 </div>

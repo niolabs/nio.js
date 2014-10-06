@@ -14,28 +14,31 @@ var htmlTemplates = htmlTemplates || {};htmlTemplates['tiles/tiles.html'] = '<di
     '			<img class=tile-media src="<%=media_url%>" alt="<%=text%>" title="<%=text%>">\n' +
     '			<div class="tile-text u-marquee">\n' +
     '				<div>\n' +
-    '					<span><%=linkify(truncate(text, 150))%></span>\n' +
-    '					<span><%=linkify(truncate(text, 150))%></span>\n' +
+    '					<span><%=linkify(text)%></span>\n' +
+    '					<span><%=linkify(text)%></span>\n' +
     '				</div>\n' +
     '			</div>\n' +
     '		<% } else { %>\n' +
     '			<div class=tile-text>\n' +
     '				<% if (type === \'rss\') { %>\n' +
-    '					<strong class=font-header><%=text%></strong><br>\n' +
-    '					<%=linkify(truncate(alt_text, 100))%>\n' +
+    '					<p><strong class=font-header><%=text%></strong>\n' +
+    '					<%=linkify(alt_text)%>\n' +
     '				<% } else { %>\n' +
-    '					<%=linkify(truncate(text, 150))%>\n' +
+    '					<p><%=linkify(text)%>\n' +
     '				<% } %>\n' +
+    '				<p class="on-expand u-muted">\n' +
+    '					<time is=local-time datetime="<%=time%>"><%=time%></time>\n' +
     '			</div>\n' +
     '		<% } %>\n' +
     '	</div>\n' +
     '	<footer class=tile-footer>\n' +
     '		<a class="block u-pullLeft" href="<%=link%>" target=_blank>\n' +
-    '			View on <%=type%>\n' +
+    '			View on <%=mediaTypeName(type)%>\n' +
     '			<span class="icon icon-external icon-mini"></span>\n' +
     '		</a>\n' +
     '		<a class="block u-pullRight" href=#>\n' +
     '			Share\n' +
+    '			<span class="icon icon-share icon-mini"></span>\n' +
     '		</a>\n' +
     '	</footer>\n' +
     '</div>\n' +
@@ -269,7 +272,8 @@ nio.utils = require('./utils')
 // collects chunks into an array for sorting/manipulating sets of data
 nio.collect = function (opts) {
 	var transforms = opts.transforms || []
-	var max = opts.max || 9
+	var size = opts.size || 9
+	var max = opts.max || size
 	var min = opts.min || 0
 
 	var getID = opts.dupes || false
@@ -288,7 +292,8 @@ nio.collect = function (opts) {
 			sortBy = function (d) { return d }
 
 	var data = []
-	return nio.transform(function (chunk) {
+
+	var stream = nio.transform(function (chunk) {
 		if (getID) {
 			var id = getID(chunk)
 			var isDupe = function (d) { return id === getID(d) }
@@ -312,6 +317,20 @@ nio.collect = function (opts) {
 
 		this.push(data)
 	})
+
+	stream.sort = function (value) {
+		if (!value) return sortBy
+		sortBy = value
+		return this
+	}
+
+	stream.size = function (value) {
+		if (!value) return size
+		size = min = max = value
+		return this
+	}
+
+	return stream
 }
 
 // pushes down a select property
@@ -656,7 +675,7 @@ var template = _.template(htmlTemplates['tiles/tiles.html'], null, {
 exports.tiles = function(opts) {
 	var selector = _.isPlainObject(opts) ? opts.selector : opts
 	var numCols = opts.numCols || 3
-	var animSpeed = opts.hasOwnProperty('animSpeed') ? opts.animSpeed : 750
+	var animSpeed = opts.hasOwnProperty('animSpeed') ? opts.animSpeed : 0
 
 	var elMain = d3.select(selector)
 	//var elCols = []
@@ -683,6 +702,8 @@ exports.tiles = function(opts) {
 					elMain.selectAll('.tile').classed('is-expanded', false)
 				el.classed('is-expanded', !isExpanded)
 			})
+			.select('.tile')
+			.classed('flip-in', true)
 		var tileExit = tile.exit()
 
 		// animations will be disabled if animSpeed = 0
@@ -720,5 +741,18 @@ exports.truncate = function (text, len) {
 exports.isArray = _.isArray
 exports.isFunc = _.isFunction
 exports.isStr = _.isString
+
+var mediaTypeNames = {
+	'twitter': 'Twitter',
+	'twitter-photo': 'Twitter',
+	'facebook': 'Facebook',
+	'gplus': 'Google+',
+	'linkedin': 'LinkedIn',
+	'rss': 'RSS'
+}
+
+exports.mediaTypeName = function (type) {
+	return type in mediaTypeNames ? mediaTypeNames[type] : type
+}
 
 },{}]},{},[2])

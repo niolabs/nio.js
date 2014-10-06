@@ -4,7 +4,8 @@ nio.utils = require('./utils')
 // collects chunks into an array for sorting/manipulating sets of data
 nio.collect = function (opts) {
 	var transforms = opts.transforms || []
-	var max = opts.max || 9
+	var size = opts.size || 9
+	var max = opts.max || size
 	var min = opts.min || 0
 
 	var getID = opts.dupes || false
@@ -23,7 +24,8 @@ nio.collect = function (opts) {
 			sortBy = function (d) { return d }
 
 	var data = []
-	return nio.transform(function (chunk) {
+
+	var stream = nio.transform(function (chunk) {
 		if (getID) {
 			var id = getID(chunk)
 			var isDupe = function (d) { return id === getID(d) }
@@ -47,6 +49,20 @@ nio.collect = function (opts) {
 
 		this.push(data)
 	})
+
+	stream.sort = function (value) {
+		if (!value) return sortBy
+		sortBy = value
+		return this
+	}
+
+	stream.size = function (value) {
+		if (!value) return size
+		size = min = max = value
+		return this
+	}
+
+	return stream
 }
 
 // pushes down a select property

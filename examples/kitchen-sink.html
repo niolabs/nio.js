@@ -4,97 +4,19 @@
 
 <link rel=stylesheet href=http://fonts.googleapis.com/css?family=Roboto+Condensed:200,300,400|Roboto:400,500,300|Roboto+Slab>
 <link rel=stylesheet href=example.css>
-<!-- Polymer -->
 <script src=../components/platform/platform.js></script>
-<link rel=import href=../components/core-header-panel/core-header-panel.html>
-<link rel=import href=../components/core-icon-button/core-icon-button.html>
-<link rel=import href=../components/core-item/core-item.html>
-<link rel=import href=../components/core-menu/core-menu.html>
-<link rel=import href=../components/core-menu/core-submenu.html>
-<link rel=import href=../components/core-scaffold/core-scaffold.html>
-<link rel=import href=../components/core-toolbar/core-toolbar.html>
-<link rel=import href=../components/paper-checkbox/paper-checkbox.html>
-<link rel=import href=../components/paper-dropdown-menu/paper-dropdown-menu.html>
-<link rel=import href=../components/paper-input/paper-input.html>
-<link rel=import href=../components/paper-radio-group/paper-radio-group.html>
 
-<!-- Tiles -->
-<script src=http://54.85.159.254:443/socket.io/socket.io.js></script>
-<script src=../components/time-elements/time-elements.js></script>
-<script src=../components/lodash/dist/lodash.min.js></script>
-<script src=../components/d3/d3.min.js></script>
-<script src=../dist/nio.js></script>
+<link rel=import href=../components/core-localstorage/core-localstorage.html>
+<link rel=import href=../elements/nio-kitchen-sink.html>
 
+<core-localstorage name=nio-kitchen-sink--type value={{type}}></core-localstorage>
+<core-localstorage name=nio-kitchen-sink--size value={{size}}></core-localstorage>
+<core-localstorage name=nio-kitchen-sink--sort value={{sort}}></core-localstorage>
+<core-localstorage name=nio-kitchen-sink--source value={{source}}></core-localstorage>
 
-<nio-tiles></nio-tiles>
-
-<polymer-element name=nio-tiles>
-	<template>
-		<link rel=stylesheet href=../dist/nio.min.css>
-		<link rel=stylesheet href=kitchen-sink.css>
-		<core-scaffold id="core_scaffold">
-			<core-header-panel mode="seamed" id="core_header_panel" navigation flex>
-				<core-toolbar id="core_toolbar">
-					<h1><span class="icon icon-nio icon-large" title=nio.js></span></h1>
-				</core-toolbar>
-				<section>
-					<h2>Filters</h2>
-					<div center horizontal layout>
-						<div flex>Youtube</div>
-						<paper-checkbox checked></paper-checkbox>
-					</div>
-					<div center horizontal layout>
-						<div flex>Twitter</div>
-						<paper-checkbox checked></paper-checkbox>
-					</div>
-					<div center horizontal layout>
-						<div flex>Facebook</div>
-						<paper-checkbox checked></paper-checkbox>
-					</div>
-					<div center horizontal layout>
-						<div flex>Google+</div>
-						<paper-checkbox checked></paper-checkbox>
-					</div>
-				</section>
-			</core-header-panel>
-			<div id="div" tool>Search</div>
-			<div id=tiles class="tiles has-spacing has-gradient has-overlay has-fixed"></div>
-		</core-scaffold>
-	</template>
-	<script>
-		Polymer({
-			ready: function () {
-				// save a JSON server
-				var jsonEnabled = true
-				var json = nio.json('http://54.85.159.254')
-					// start polling the /posts URL
-					.start('posts')
-					// pick out the "posts" attribute of the returned JSON
-					.pipe(nio.pick('posts'))
-					.pipe(nio.filter(function () { return jsonEnabled }))
-
-				// connect to a socketio server
-				var socketioEnabled = true
-				var socketio = nio.socketio('http://54.85.159.254:443')
-					// join the "default" room
-					.start('default')
-					.pipe(nio.filter(function () { return socketioEnabled }))
-
-				// combine the streams
-				nio.join(json, socketio)
-					// set default values on the chunks
-					.pipe(nio.defaults({
-						media_url: null,
-						profile_image_url: null
-					}))
-					// instead of passing each object 1 by 1, put them in an array so we can sort them
-					.pipe(nio.collect({sort: 'time', dupes: 'id', min: 9, max: 9}))
-					// only update tiles once every second
-					.pipe(nio.throttle(2000))
-					// send them to the tiles
-					.pipe(nio.tiles(this.$.tiles))
-					// count types of posts for notifications
-			}
-		})
-	</script>
-</polymer-element>
+<nio-kitchen-sink
+	type={{type}}
+	size={{size}}
+	sort={{sort}}
+	source={{source}}>
+</nio-kitchen-sink>

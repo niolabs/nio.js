@@ -1,0 +1,67 @@
+<script src=http://54.85.159.254:443/socket.io/socket.io.js></script>
+<script src=../components/time-elements/time-elements.js></script>
+<script src=../components/lodash/dist/lodash.min.js></script>
+<script src=../components/d3/d3.min.js></script>
+<script src=../dist/nio.js></script>
+
+<polymer-element name=nio-tiles attributes="min max size sort json socketio">
+	<template>
+		<link rel=stylesheet href=../dist/nio.min.css>
+		<div id=tiles class="tiles has-spacing has-gradient has-overlay has-fixed"></div>
+	</template>
+	<script>
+		Polymer({
+			sort: 'time',
+			size: 9,
+			observe: {
+				sort: 'setSort',
+				size: 'setSize'
+			},
+			ready: function () {
+				// save a JSON server
+				var jsonEnabled = true
+				var json = nio.json('http://54.85.159.254')
+					// start polling the /posts URL
+					.start('posts')
+					// pick out the "posts" attribute of the returned JSON
+					.pipe(nio.pick('posts'))
+					.pipe(nio.filter(function () { return jsonEnabled }))
+
+				// connect to a socketio server
+				var socketioEnabled = true
+				var socketio = nio.socketio('http://54.85.159.254:443')
+					// join the "default" room
+					.start('default')
+					.pipe(nio.filter(function () { return socketioEnabled }))
+
+				this.collection = nio.collect({
+					dupes: 'id',
+					sort: this.sort,
+					min: this.min,
+					max: this.max,
+					size: this.size
+				})
+
+				// combine the streams
+				nio.join(json, socketio)
+					// set default values on the chunks
+					.pipe(nio.defaults({
+						media_url: null,
+						profile_image_url: null
+					}))
+					// instead of passing each object 1 by 1, put them in an array so we can sort them
+					.pipe(this.collection)
+					// only update tiles once every second
+					.pipe(nio.throttle(2000))
+					// send them to the tiles
+					.pipe(nio.tiles(this.$.tiles))
+					// count types of posts for notifications
+			},
+			setSize: function () { this.collection.size(this.size) },
+			setSort: function () { this.collection.sort(this.sort) },
+			search: function () {
+
+			}
+		})
+	</script>
+</polymer-element>

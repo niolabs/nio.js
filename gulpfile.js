@@ -50,12 +50,17 @@ gulp.task('dist/nio.css', function() {
 		.pipe(rename('nio.css'))
 		.pipe(gulp.dest('dist'))
 })
-
 gulp.task('examples/*.css', function () {
 	return gulp.src('examples/*.styl')
 		.pipe(stylus({use: nib()}))
 		.on('error', function (e) { console.log('Error', e) })
 		.pipe(gulp.dest('examples'))
+})
+gulp.task('elements/*.css', function () {
+	return gulp.src('elements/*.styl')
+		.pipe(stylus({use: nib()}))
+		.on('error', function (e) { console.log('Error', e) })
+		.pipe(gulp.dest('elements'))
 })
 
 // minifies css
@@ -67,7 +72,7 @@ gulp.task('dist/nio.min.css', ['dist/nio.css'], function() {
 		.pipe(gulp.dest('dist'))
 })
 
-gulp.task('css', ['dist/nio.min.css', 'examples/*.css'])
+gulp.task('css', ['dist/nio.min.css', 'examples/*.css', 'elements/*.css'])
 gulp.task('js', ['dist/nio.min.js'])
 gulp.task('build', ['css', 'js'])
 
@@ -77,6 +82,7 @@ gulp.task('watch', ['build'], function() {
 	gulp.watch('src/**/*.js', ['js'])
 	gulp.watch('icons/**/*.svg', ['css'])
 	gulp.watch('examples/*.styl', ['css'])
+	gulp.watch('elements/*.styl', ['css'])
 })
 
 gulp.task('default', ['watch'])
