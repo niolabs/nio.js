@@ -62,6 +62,11 @@ nio.collect = function (opts) {
 		return this
 	}
 
+	stream.clear = function () {
+		data = []
+		return this
+	}
+
 	return stream
 }
 

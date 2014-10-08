@@ -11,7 +11,7 @@
 <link rel=import href=../components/paper-radio-group/paper-radio-group.html>
 <link rel=import href=../elements/nio-tiles.html>
 
-<polymer-element name=nio-kitchen-sink attributes="type size sort source">
+<polymer-element name=nio-kitchen-sink attributes="type size sort source keywords page">
 	<template>
 		<link rel=stylesheet href=../dist/nio.min.css>
 		<link rel=stylesheet href=nio-kitchen-sink.css>
@@ -56,9 +56,16 @@
 				</section>
 			</core-header-panel>
 			<div id="div" tool flex layout>
-				<paper-input label="Search" type=search></paper-input>
+				<paper-input label="Search" type=search inputValue={{keywords}}></paper-input>
+				<a on-tap={{nextPage}}>Next page</a>
 			</div>
-			<nio-tiles id=tiles sort={{sort}} size={{size}}></nio-tiles>
+
+			<nio-tiles id=tiles
+				page={{page}}
+				sort={{sort}}
+				size={{size}}>
+			</nio-tiles>
+
 		</core-scaffold>
 	</template>
 	<script>
@@ -66,7 +73,28 @@
 			type: 'any',
 			source: 'any',
 			sort: 'time',
-			size: 18
+			size: 18,
+			page: 1,
+			observe: {
+				type: 'setType',
+				source: 'setSource',
+				keywords: 'setKeywords',
+				page: 'setPage'
+			},
+			setType: function () {
+				console.log('types', this, this.type)
+				//this.$.tiles.filter({types: this.type})
+			},
+			setKeywords: function () {
+				console.log('keywords', this, this.keywords)
+			},
+			setSource: function () {
+				console.log('source', this, this.source)
+				console.log(this.$.tiles.filter)
+				this.$.tiles.filter({types: this.source})
+			},
+			nextPage: function () { this.page++ },
+			prevPage: function () { this.page-- }
 		})
 	</script>
 </polymer-element>

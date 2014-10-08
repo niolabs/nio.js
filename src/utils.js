@@ -26,3 +26,14 @@ var mediaTypeNames = {
 exports.mediaTypeName = function (type) {
 	return type in mediaTypeNames ? mediaTypeNames[type] : type
 }
+
+exports.cycle = function (value) {
+	if (_.isNumber(value))
+		value = d3.range(value)
+	var current = -1 // so the first call will get the first value
+	return function () {
+		current = current === value.length - 1 ? 0 : current+1
+		var target = value[current]
+		return _.isFunction(target) ? target() : target
+	}
+}

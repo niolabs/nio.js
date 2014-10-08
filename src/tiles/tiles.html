@@ -4,7 +4,7 @@
 			<% if (profile_image_url) { %>
 				<img class=tile-author-avatar src="<%=profile_image_url%><% if (type === 'facebook') { %>?type=normal<% } %>" alt="<%=name%>'s avatar">
 			<% } %>
-			<strong class="tile-author-name u-textTruncate"><%=name%></strong>
+			<strong class="tile-author-name u-textTruncate"><%=name%> (<%=source%>)</strong>
 			<time is=relative-time datetime="<%=time%>"><%=time%></time>
 		</a>
 		<span class="icon icon-<%=type%>"></span>

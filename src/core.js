@@ -66,8 +66,13 @@ Readable.prototype = Object.create(EventEmitter.prototype, {
 		value: function (chunk) { if (chunk) this.emit('data', chunk) }
 	},
 	pipe: {
-		value: function (dest) {
+		value: function () {
+			var dests = _.isArray(arguments[0]) ? arguments[0] : [].slice.call(arguments)
+			var dest = dests[0]
 			this.on('data', dest.write.bind(dest))
+			// use recursion to string the streams together
+			if (dests.length > 1)
+				dest.pipe(dests.slice(1))
 			return dest
 		}
 	},
@@ -135,7 +140,14 @@ function JSONStream(host, pollRate) {
 }
 JSONStream.prototype = Object.create(Source.prototype, {
 	start: {
-		value: function (path) {
+		value: function (path, params) {
+			if (params) {
+				var qs = []
+				for (var param in params)
+					if (params[param])
+						qs.push(param + '=' + encodeURIComponent(params[param]))
+				path += '?' + qs.join('&')
+			}
 			this.fetch(path)
 			this.interval = setInterval(function() {
 				return this.fetch(path)
@@ -146,6 +158,7 @@ JSONStream.prototype = Object.create(Source.prototype, {
 	fetch: {
 		value: function (path) {
 			this.lastPath = path
+			console.log(path)
 			d3.json(this.host + '/' + path, function(error, json) {
 				this.push(json)
 			}.bind(this))
@@ -178,21 +191,21 @@ SocketIOStream.prototype = Object.create(Source.prototype, {
 			sock.on('error', function() {
 				console.error('connection error')
 			})
-			this.resume()
+			this.ws.on('recvData', function(data) {
+				return this.push(JSON.parse(data))
+			}.bind(this))
 			return this
 		}
 	},
 	pause: {
 		value: function() {
-			this.ws.on('recvData', function(data) { return null })
+			this.ws.disconnect()
 			return this
 		}
 	},
 	resume: {
 		value: function() {
-			this.ws.on('recvData', function(data) {
-				return this.push(JSON.parse(data))
-			}.bind(this))
+			this.start(this.path)
 			return this
 		}
 	}

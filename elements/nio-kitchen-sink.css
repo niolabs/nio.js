@@ -6,10 +6,6 @@
 h1 {
   text-align: center;
 }
-.container {
-  margin: 0 auto;
-  width: 960px;
-}
 :host {
   background: #fff;
   position: absolute;
@@ -55,7 +51,6 @@ paper-input {
 #tiles {
   float: left;
   padding: 4px;
-  width: 932px !important;
 }
 .label {
   padding: 10px 0;

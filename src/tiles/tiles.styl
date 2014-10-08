@@ -1,8 +1,21 @@
 .font-header
 	font-family font-family-header
 
-.tiles
-	width (tile-width + tile-spacing) * 3
+.col
+	float left
+	width tile-width + tile-spacing
+	&:last-of-type .tile
+		left auto
+		right 0
+	.tile-wrapper:last-of-type .tile
+		bottom 0
+		top auto
+
+@keyframes slide-down
+	from
+		height 0
+	to
+		height tile-height + tile-spacing
 
 .tile-wrapper
 	border tile-spacing * .5 solid transparent
@@ -18,13 +31,9 @@
 		padding 0
 	&:hover
 		border-color linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, .1))
-	// optimized for displaying 9 tiles at a time
-	&:nth-child(3n) .tile
-		left auto
-		right 0
-	&:nth-child(n+7) .tile
-		bottom 0
-		top auto
+	&.slide-down
+		animation slide-down transition-duration
+
 .tile
 	background #fff
 	border-radius border-radius
@@ -54,6 +63,8 @@
 			transition all transition-duration
 		&:hover
 			text-decoration underline
+	::selection
+		background pink //color-selection
 .tile-header
 .tile-content
 	padding tile-padding
