@@ -413,8 +413,9 @@ nio.display = function (selector, property) {
 // visualizations
 nio.tiles = require('./tiles/tiles').tiles
 nio.graphs = require('./graphs/graphs')
+nio.instance = require('./instance/instance').instance
 
-},{"./core":1,"./graphs/graphs":3,"./tiles/tiles":4,"./utils":5}],3:[function(require,module,exports){
+},{"./core":1,"./graphs/graphs":3,"./instance/instance":5,"./tiles/tiles":7,"./utils":8}],3:[function(require,module,exports){
 var core = require('../core')
 
 function property(name) {
@@ -668,6 +669,112 @@ exports.line = function(opts) {
 
 },{"../core":1}],4:[function(require,module,exports){
 var core = require('../core')
+
+function nioAPI() {
+    core.Readable.call(this)
+}
+nioAPI.prototype = Object.create(core.Readable.prototype, {
+    makeRequest : {
+	value: function(endpoint, postData) {
+	    var xhr = d3.json('http://' + this.ip + '/' + endpoint)
+		    .header("Authorization", this.authHeader)
+
+	    if (typeof postData === 'undefined') {
+		// They want a get request
+		xhr.get(function(err, data) {
+		    this.push(data)
+		}.bind(this))
+	    } else {
+		// They want a post request
+		xhr.post(postData, function(err, data) {
+		    this.push(data)
+		}.bind(this))
+	    }
+	}
+    },
+
+    setInstance: {
+	value: function(ip, authHeader) {
+	    this.ip = ip
+	    this.authHeader = authHeader
+	}
+    },
+
+    getChild: {
+	value: function(type) {
+	    var newType = new type()
+	    newType.setInstance(this.ip, this.authHeader)
+	    return newType
+	}
+    }
+})
+exports.API = nioAPI
+
+},{"../core":1}],5:[function(require,module,exports){
+var nio = require('./api'),
+    service = require('./service')
+
+exports.instance = function(ip, opts) {
+    var header = "Basic " + btoa(opts.user + ":" + opts.pass),
+	instance = new Instance()
+	
+    instance.setInstance(ip, header)
+    return instance
+}
+
+function Instance() {
+    nio.API.call(this)
+}
+Instance.prototype = Object.create(nio.API.prototype, {
+    service: {
+	value: function(serviceName) {
+	    var child = this.getChild(service.Service)
+	    child.makeRequest('services/' + serviceName)
+	    return child
+	}
+    },
+
+    services: {
+	value: function() {
+	    var child = this.getChild(service.Collection)
+	    child.makeRequest('services')
+	    return child
+	}
+    },
+
+    serviceStatus: {
+	value: function(serviceName, status) {
+	    var child = this.getChild(service.Status)
+	    child.makeRequest('services/' + serviceName + '/' + status)
+	    return child
+	}
+    }
+})
+
+},{"./api":4,"./service":6}],6:[function(require,module,exports){
+var nio = require('./api')
+
+exports.Service = Service
+exports.Collection = ServiceCollection
+exports.Status = ServiceStatus
+
+function Service() {
+    nio.API.call(this)
+}
+Service.prototype = Object.create(nio.API.prototype, {})
+
+function ServiceCollection() {
+    nio.API.call(this)
+}
+ServiceCollection.prototype = Object.create(nio.API.prototype, {})
+
+function ServiceStatus() {
+    nio.API.call(this)
+}
+ServiceStatus.prototype = Object.create(nio.API.prototype, {})
+
+},{"./api":4}],7:[function(require,module,exports){
+var core = require('../core')
 var template = _.template(htmlTemplates['tiles/tiles.html'], null, {
 	imports: require('../utils')
 })
@@ -725,7 +832,7 @@ exports.tiles = function(opts) {
 	return nio.passthrough(render)
 }
 
-},{"../core":1,"../utils":5}],5:[function(require,module,exports){
+},{"../core":1,"../utils":8}],8:[function(require,module,exports){
 // turns urls and twitter handles/hashtags into links
 exports.linkify = function (text) {
     text = text.replace(/(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig, "<a target=_blank href='$1'>$1</a>")

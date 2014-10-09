@@ -145,3 +145,4 @@ nio.display = function (selector, property) {
 // visualizations
 nio.tiles = require('./tiles/tiles').tiles
 nio.graphs = require('./graphs/graphs')
+nio.instance = require('./instance/instance').instance
