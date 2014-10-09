@@ -5,21 +5,18 @@ function nioAPI() {
 }
 nioAPI.prototype = Object.create(core.Readable.prototype, {
     makeRequest : {
-	value: function(endpoint, postData) {
+	value: function(endpoint, method, postData) {
 	    var xhr = d3.json('http://' + this.ip + '/' + endpoint)
 		    .header("Authorization", this.authHeader)
 
-	    if (typeof postData === 'undefined') {
-		// They want a get request
-		xhr.get(function(err, data) {
-		    this.push(data)
-		}.bind(this))
-	    } else {
-		// They want a post request
-		xhr.post(postData, function(err, data) {
-		    this.push(data)
-		}.bind(this))
+	    if (typeof method === 'undefined') {
+		method = 'GET'
 	    }
+
+	    // They want a post request
+	    xhr.send(method, postData, function(err, data) {
+		this.push(data)
+	    }.bind(this))
 	}
     },
 

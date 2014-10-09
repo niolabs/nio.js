@@ -415,7 +415,7 @@ nio.tiles = require('./tiles/tiles').tiles
 nio.graphs = require('./graphs/graphs')
 nio.instance = require('./instance/instance').instance
 
-},{"./core":1,"./graphs/graphs":3,"./instance/instance":5,"./tiles/tiles":7,"./utils":8}],3:[function(require,module,exports){
+},{"./core":1,"./graphs/graphs":3,"./instance/instance":6,"./tiles/tiles":8,"./utils":9}],3:[function(require,module,exports){
 var core = require('../core')
 
 function property(name) {
@@ -675,21 +675,18 @@ function nioAPI() {
 }
 nioAPI.prototype = Object.create(core.Readable.prototype, {
     makeRequest : {
-	value: function(endpoint, postData) {
+	value: function(endpoint, method, postData) {
 	    var xhr = d3.json('http://' + this.ip + '/' + endpoint)
 		    .header("Authorization", this.authHeader)
 
-	    if (typeof postData === 'undefined') {
-		// They want a get request
-		xhr.get(function(err, data) {
-		    this.push(data)
-		}.bind(this))
-	    } else {
-		// They want a post request
-		xhr.post(postData, function(err, data) {
-		    this.push(data)
-		}.bind(this))
+	    if (typeof method === 'undefined') {
+		method = 'GET'
 	    }
+
+	    // They want a post request
+	    xhr.send(method, postData, function(err, data) {
+		this.push(data)
+	    }.bind(this))
 	}
     },
 
@@ -711,8 +708,19 @@ nioAPI.prototype = Object.create(core.Readable.prototype, {
 exports.API = nioAPI
 
 },{"../core":1}],5:[function(require,module,exports){
+var nio = require('./api')
+
+exports.Updater = Updater
+
+function Updater() {
+    nio.API.call(this)
+}
+Updater.prototype = Object.create(nio.API.prototype, {})
+
+},{"./api":4}],6:[function(require,module,exports){
 var nio = require('./api'),
-    service = require('./service')
+    service = require('./service'),
+    block = require('./block')
 
 exports.instance = function(ip, opts) {
     var header = "Basic " + btoa(opts.user + ":" + opts.pass),
@@ -748,10 +756,18 @@ Instance.prototype = Object.create(nio.API.prototype, {
 	    child.makeRequest('services/' + serviceName + '/' + status)
 	    return child
 	}
+    },
+
+    blockUpdate: {
+	value: function(blockName, blockParams) {
+	    var child = this.getChild(block.Updater)
+	    child.makeRequest('blocks/' + blockName, 'PUT', JSON.stringify(blockParams))
+	    return child
+	}
     }
 })
 
-},{"./api":4,"./service":6}],6:[function(require,module,exports){
+},{"./api":4,"./block":5,"./service":7}],7:[function(require,module,exports){
 var nio = require('./api')
 
 exports.Service = Service
@@ -773,7 +789,7 @@ function ServiceStatus() {
 }
 ServiceStatus.prototype = Object.create(nio.API.prototype, {})
 
-},{"./api":4}],7:[function(require,module,exports){
+},{"./api":4}],8:[function(require,module,exports){
 var core = require('../core')
 var template = _.template(htmlTemplates['tiles/tiles.html'], null, {
 	imports: require('../utils')
@@ -832,7 +848,7 @@ exports.tiles = function(opts) {
 	return nio.passthrough(render)
 }
 
-},{"../core":1,"../utils":8}],8:[function(require,module,exports){
+},{"../core":1,"../utils":9}],9:[function(require,module,exports){
 // turns urls and twitter handles/hashtags into links
 exports.linkify = function (text) {
     text = text.replace(/(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig, "<a target=_blank href='$1'>$1</a>")
