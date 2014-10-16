@@ -32,9 +32,17 @@ Instance.prototype = Object.create(nio.API.prototype, {
 
     serviceStatus: {
 	value: function(serviceName, status) {
-	    var child = this.getChild(service.Status)
-	    child.makeRequest('services/' + serviceName + '/' + status)
-	    return child
+		if (status) {
+			// they are setting a status
+			var child = this.getChild(service.Status)
+			child.makeRequest('services/' + serviceName + '/' + status)
+			return child
+		} else {
+			// they are getting a status
+			var child = this.getChild(service.Service)
+			child.makeRequest('services/' + serviceName + '/status')
+			return child
+		}
 	}
     },
 
@@ -44,5 +52,13 @@ Instance.prototype = Object.create(nio.API.prototype, {
 	    child.makeRequest('blocks/' + blockName, 'PUT', JSON.stringify(blockParams))
 	    return child
 	}
-    }
+    }, 
+
+    block: {
+	value: function(blockName) {
+	    var child = this.getChild(block.Block)
+	    child.makeRequest('blocks/' + blockName)
+	    return child
+	}
+    },
 })
