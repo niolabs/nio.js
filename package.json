@@ -1,12 +1,11 @@
 {
-  "name": "nio.js",
+  "name": "nio",
   "version": "1.0.0",
-  "description": "nio.js ======",
-  "main": "gulpfile.js",
-  "dependencies": {
-    "gulp-stylus": "^1.3.3"
-  },
+  "description": "nio",
+  "main": "dist/nio.js",
+  "dependencies": { },
   "devDependencies": {
+    "gulp-stylus": "^1.3.3",
     "bower": "^1.3.10",
     "browserify": "^5.11.2",
     "d3": "^3.4.13",
