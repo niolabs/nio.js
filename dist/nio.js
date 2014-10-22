@@ -16121,7 +16121,11 @@ function Readable() {
 }
 Readable.prototype = Object.create(EventEmitter.prototype, {
 	push: {
-		value: function (chunk) { if (chunk) this.emit('data', chunk) }
+		value: function (chunk) { 
+			if (typeof chunk !== 'undefined') {
+				this.emit('data', chunk) 
+			}
+		}
 	},
 	pipe: {
 		value: function () {
