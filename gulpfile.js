@@ -82,4 +82,3 @@ gulp.task('watch', ['default'], function() {
 	gulp.watch('**/*.{html,js}', ['js'])
 	gulp.watch('**/*.{svg,styl}', ['css'])
 })
-
