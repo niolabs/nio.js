@@ -47,7 +47,7 @@ EventEmitter.prototype = Object.create(Object.prototype, {
 			this._events = this._events || {}
 			if (event in this._events === false) return
 			var args = Array.prototype.slice.call(arguments, 1)
-			for (var i=0, l=this._events[event].length; i < l; i++)
+			for (var i = 0, l = this._events[event].length; i < l; i++)
 				this._events[event][i].apply(this, args)
 		}
 	}
@@ -55,10 +55,11 @@ EventEmitter.prototype = Object.create(Object.prototype, {
 
 function mustImplement(name) {
 	return function () {
-		if (!this[name])
+		if (!this[name]) {
 			this.emit('error', new Error(name + ' has not been implemented'))
-		else
+		} else {
 			this[name].apply(this, arguments)
+		}
 	}
 }
 exports.mustImplement = mustImplement
@@ -84,7 +85,7 @@ Readable.prototype = Object.create(EventEmitter.prototype, {
 	split: {
 		value: function () {
 			var dests = _.isArray(arguments[0]) ? arguments[0] : [].slice.call(arguments)
-			for (var i=dests.length; i--;)
+			for (var i = dests.length; i--;)
 				this.pipe(dests[i])
 			return this
 		}
@@ -92,7 +93,7 @@ Readable.prototype = Object.create(EventEmitter.prototype, {
 	pull: {
 		value: function () {
 			var sources = _.isArray(arguments[0]) ? arguments[0] : [].slice.call(arguments)
-			for (var i=sources.length; i--;)
+			for (var i = sources.length; i--;)
 				sources[i].pipe(this)
 			return this
 		}
@@ -154,7 +155,7 @@ JSONStream.prototype = Object.create(Source.prototype, {
 				path += '?' + qs.join('&')
 			}
 			this.fetch(path)
-			this.interval = setInterval(function() {
+			this.interval = setInterval(function () {
 				return this.fetch(path)
 			}.bind(this), this.pollRate)
 			return this
@@ -164,14 +165,24 @@ JSONStream.prototype = Object.create(Source.prototype, {
 		value: function (path) {
 			this.lastPath = path
 			console.log(path)
-			d3.json(this.host + '/' + path, function(error, json) {
+			d3.json(this.host + '/' + path, function (error, json) {
 				this.push(json)
 			}.bind(this))
 			return this
 		}
 	},
-	pause: {value: function() { clearTimeout(this.interval); return this }},
-	resume: {value: function() { this.start(this.lastPath); return this }}
+	pause: {
+		value: function () {
+			clearTimeout(this.interval)
+			return this
+		}
+	},
+	resume: {
+		value: function () {
+			this.start(this.lastPath)
+			return this
+		}
+	}
 })
 exports.JSONStream = JSONStream
 
@@ -183,33 +194,34 @@ function SocketIOStream(host) {
 SocketIOStream.prototype = Object.create(Source.prototype, {
 	start: {
 		value: function (path) {
+			/* global io */
 			this.path = path
 			this.ws = io.connect(this.host)
 
 			var sock = this.ws.socket
-			sock.on('connect', function() {
+			sock.on('connect', function () {
 				return this.ws.emit('ready', path)
 			}.bind(this))
-			sock.on('connect_failed', function() {
+			sock.on('connect_failed', function () {
 				console.error('connection failed')
 			})
-			sock.on('error', function() {
+			sock.on('error', function () {
 				console.error('connection error')
 			})
-			this.ws.on('recvData', function(data) {
+			this.ws.on('recvData', function (data) {
 				return this.push(JSON.parse(data))
 			}.bind(this))
 			return this
 		}
 	},
 	pause: {
-		value: function() {
+		value: function () {
 			this.ws.disconnect()
 			return this
 		}
 	},
 	resume: {
-		value: function() {
+		value: function () {
 			this.start(this.path)
 			return this
 		}
@@ -231,7 +243,16 @@ GeneratorStream.prototype = Object.create(Source.prototype, {
 			return this
 		}
 	},
-	pause: {value: function () { clearInterval(this.interval); return this }},
-	resume: {value: function() { return this.start() }}
+	pause: {
+		value: function () {
+			clearInterval(this.interval)
+			return this
+		}
+	},
+	resume: {
+		value: function () {
+			return this.start()
+		}
+	}
 })
 exports.GeneratorStream = GeneratorStream

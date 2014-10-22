@@ -14,19 +14,23 @@ nio.collect = function (opts) {
 	var min = opts.min || 0
 
 	var getID = opts.dupes || false
-	if (getID)
-		if (_.isString(getID))
+	if (getID) {
+		if (_.isString(getID)) {
 			getID = function (d) { return d[opts.dupes] }
-		else if (_.isBoolean(getID))
+		} else if (_.isBoolean(getID)) {
 			getID = function (d) { return d }
+		}
+	}
 
 	var sortDesc = opts.sortDesc || true
 	var sortBy = opts.sort || false
-	if (sortBy)
-		if (_.isString(sortBy))
+	if (sortBy) {
+		if (_.isString(sortBy)) {
 			sortBy = function (d) { return d[opts.sort] }
-		else if (_.isBoolean(sortBy))
+		} else if (_.isBoolean(sortBy)) {
 			sortBy = function (d) { return d }
+		}
+	}
 
 	var data = []
 
@@ -38,7 +42,7 @@ nio.collect = function (opts) {
 		}
 
 		data.push(chunk)
-		for (var i=0, l=transforms.length; i<l; i++)
+		for (var i = 0, l = transforms.length; i < l; i++)
 			data = transforms[i](data)
 
 		if (sortBy) {
@@ -80,11 +84,12 @@ nio.pick = function (name) {
 	return nio.transform(function (chunk) {
 		if (!(name in chunk)) return
 		var data = chunk[name]
-		if (_.isArray(data))
-			for (var i=data.length; i--;)
+		if (_.isArray(data)) {
+			for (var i = data.length; i--;)
 				this.push(data[i])
-		else
+		} else {
 			this.push(data)
+		}
 	})
 }
 
@@ -98,10 +103,11 @@ nio.defaults = function (opts) {
 // logs output to the console
 nio.log = function (prefix) {
 	return nio.passthrough(function (chunk) {
-		if (prefix)
+		if (prefix) {
 			console.log(prefix, chunk)
-		else
+		} else {
 			console.log(chunk)
+		}
 	})
 }
 
@@ -109,7 +115,7 @@ nio.log = function (prefix) {
 nio.join = function () {
 	var river = new nio.PassThrough()
 	var sources = [].slice.call(arguments)
-	for (var i=sources.length; i--;)
+	for (var i = sources.length; i--;)
 		sources[i].pipe(river)
 	return river
 }
@@ -124,12 +130,11 @@ nio.filter = function (fn) {
 // renames/calculates property values on the chunk
 nio.map = function (map) {
 	return nio.transform(function (chunk) {
-		for (var name in map) {
-			var value = map[name]
+		map.forEach(function (value) {
 			if (_.isFunction(value))
 				value = value(chunk)
 			chunk[name] = value
-		}
+		})
 		this.push(chunk)
 	})
 }

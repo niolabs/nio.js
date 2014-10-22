@@ -14,10 +14,11 @@ function property(name) {
 
 function Graph(opts) {
 	core.PassThrough.call(this)
-	if (_.isString(opts))
+	if (_.isString(opts)) {
 		this.selector = opts
-	else
+	} else {
 		_.assign(this, opts)
+	}
 	if (this.defaults)
 		_.defaults(this, this.defaults)
 }
@@ -76,8 +77,8 @@ LineGraph.prototype = Object.create(Graph.prototype, {
 
 			var line = d3.svg.line()
 				.interpolate('basis')
-				.x(function(d, i) {return x(now - (points - 1 - i) * duration)})
-				.y(function(d, i) {return y(d.y)})
+				.x(function (d, i) {return x(now - (points - 1 - i) * duration)})
+				.y(function (d) {return y(d.y)})
 
 			var svg = d3.select(this.selector).append('svg')
 				.attr('width', width + margin.left + margin.right)
@@ -100,7 +101,7 @@ LineGraph.prototype = Object.create(Graph.prototype, {
 				.attr('class', 'y axis')
 				.attr('transform', 'translate(' + width + ',0)')
 			var yAxisGrid = makeYAxis().tickSize(-width, 0, 0).tickFormat('')
-			var yAxisGridEl = yAxis.append('g')
+			yAxis.append('g')
 				.attr('class', 'y grid')
 				.call(yAxisGrid)
 			var yAxisTicks = makeYAxis()
@@ -125,7 +126,6 @@ LineGraph.prototype = Object.create(Graph.prototype, {
 			var xAxisTicksEl = xAxis.append('g')
 				.attr('class', 'x ticks')
 				.call(xAxisTicks)
-
 
 			var clip = svg.append('g')
 				.attr('clip-path', 'url(#clip)')
@@ -164,19 +164,18 @@ LineGraph.prototype = Object.create(Graph.prototype, {
 				x.domain([now - (points - 2) * duration, now - duration])
 
 				// push the accumulated count onto the back, and reset the count
-				self.data.forEach(function(d) {
+				self.data.forEach(function (d) {
 					d.values.push(d.latest)
 					d.values.shift()
 				})
 
 				if (autoScaleY && self.data.length) {
-					var extents = d3.extent(self.data[0].values, function(d) { return d.y })
+					var extents = d3.extent(self.data[0].values, function (d) { return d.y })
 
-					if (! isNaN(extents[0])) {
-					y.domain([extents[0] * (1 - autoScaleY), extents[1] * (1 + autoScaleY)])
+					if (!isNaN(extents[0])) {
+						y.domain([extents[0] * (1 - autoScaleY), extents[1] * (1 + autoScaleY)])
 					}
 				}
-
 
 				var valueJoin = values.selectAll('.value').data(self.data)
 				var valueEnter = valueJoin.enter().append('g').attr('class', 'value')
@@ -207,18 +206,21 @@ LineGraph.prototype = Object.create(Graph.prototype, {
 
 				// redraw the line
 				var pathJoin = g.selectAll('.line').data(self.data)
-				var pathEnter = pathJoin.enter().append('path')
+
+				pathJoin.enter().append('path')
 					.attr('class', 'line')
 					.style('opacity', 0)
-					.style('stroke', function(d) {
+					.style('stroke', function (d) {
 						return color(d.id)
 					})
 					.transition()
 					.ease('linear')
 					.duration(duration)
 					.style('opacity', 1)
-				var pathExit = pathJoin.exit().remove()
-				pathJoin.attr('d', function(d) { return line(d.values) })
+
+				pathJoin.exit().remove()
+
+				pathJoin.attr('d', function (d) { return line(d.values) })
 
 				g.attr('transform', null)
 					.transition()
@@ -246,21 +248,21 @@ LineGraph.prototype = Object.create(Graph.prototype, {
 		}
 	},
 	write: {
-		value: function(chunk) {
+		value: function (chunk) {
 			// detect if it's a new series
 			if (!this.rendered)
 				this.render()
-			if (!_.any(this.data, function(d) { return d.id === chunk.id })) {
-				var values = d3.range(this.points).map(function() { return {x: 0, y: 0} })
+			if (!_.any(this.data, function (d) { return d.id === chunk.id })) {
+				var values = d3.range(this.points).map(function () { return {x: 0, y: 0} })
 				this.data.push({id: chunk.id, values: values, latest: chunk})
 			}
-			for (var i=this.data.length; i--;)
+			for (var i = this.data.length; i--;)
 				if (this.data[i].id === chunk.id)
 					this.data[i].latest = chunk
 		}
 	}
 })
 
-exports.line = function(opts) {
+exports.line = function (opts) {
 	return new LineGraph(opts)
 }

@@ -2,15 +2,18 @@
 
 var _ = require('lodash')
 var d3 = require('d3')
+var core = require('../core')
 var utils = require('../utils')
+
+/* global htmlTemplates */
 var template = _.template(htmlTemplates['tiles/tiles.html'], null, {
 	imports: utils
 })
 
 var defaults = {
 	type: '',
-	profile_image_url: '',
-	media_url: '',
+	'profile_image_url': '',
+	'media_url': '',
 	source: '',
 	text: '',
 	time: new Date()
@@ -34,7 +37,7 @@ exports.tiles = function (opts) {
 	function getHTML(d) { return template(d) }
 	function getID(d) { return d.id }
 	function getColID(d, i) { return d.length ? d[0].id : i }
-	function tileClicked(d, i) {
+	function tileClicked() {
 		var el = d3.select(this).select('.tile')
 		var isExpanded = el.classed('is-expanded')
 		if (!isExpanded)
@@ -78,7 +81,7 @@ exports.tiles = function (opts) {
 
 	// IDs of posts we've seen already
 	var seen = []
-	var stream = nio.passthrough(function (chunk) {
+	var stream = core.passthrough(function (chunk) {
 		var colLimit = Math.floor(chunk.length / numCols)
 		for (var i = 0, l = chunk.length; i < l; i++) {
 			var post = _.defaults(chunk[i], defaults)
@@ -89,9 +92,9 @@ exports.tiles = function (opts) {
 			}
 		}
 		// check if the size has changed
-		for (var i = data.length; i--;)
-			if (data[i].length >= colLimit)
-				data[i] = data[i].slice(0, colLimit + 1)
+		for (var x = data.length; x--;)
+			if (data[x].length >= colLimit)
+				data[x] = data[x].slice(0, colLimit + 1)
 		render()
 	})
 
