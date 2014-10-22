@@ -16319,13 +16319,14 @@ module.exports = window.nio = _.assign(
 		utils: require('./utils'),
 		tiles: require('./tiles'),
 		graphs: require('./graphs'),
-		instance: require('./instance')
+		instance: require('./instance'),
+		shortcuts: require('./shortcuts')
 	},
 	require('./core'),
 	require('./streams')
 )
 
-},{"./core":3,"./graphs":5,"./instance":8,"./streams":10,"./tiles":11,"./utils":12,"lodash":2}],5:[function(require,module,exports){
+},{"./core":3,"./graphs":5,"./instance":8,"./shortcuts":10,"./streams":11,"./tiles":12,"./utils":13,"lodash":2}],5:[function(require,module,exports){
 'use strict';
 
 var _ = require('lodash')
@@ -16750,6 +16751,40 @@ ServiceStatus.prototype = Object.create(nio.API.prototype, {})
 },{"./api":6}],10:[function(require,module,exports){
 'use strict';
 
+var core = require('./core')
+var tiles = require('./tiles')
+var streams = require('./streams')
+
+exports.tiles = function (selector) {
+	var json = core.json('http://54.85.159.254')
+		// start polling the /posts URL
+		.start('posts')
+		// pick out the "posts" attribute of the returned JSON
+		.pipe(streams.pick('posts'))
+
+	// connect to a socketio server
+	var socketio = core.socketio('http://54.85.159.254:443')
+		// join the "default" room
+		.start('default')
+
+	// combine the streams
+	streams.join(json, socketio)
+		// instead of passing each object 1 by 1, put them in an array so we can sort them
+		.pipe(streams.collect({
+			sort: 'time',
+			dupes: 'id',
+			min: 9,
+			max: 9
+		}))
+		// only update tiles once every second
+		.pipe(streams.throttle(1000))
+		// send them to the tiles
+		.pipe(tiles(selector))
+}
+
+},{"./core":3,"./streams":11,"./tiles":12}],11:[function(require,module,exports){
+'use strict';
+
 var _ = require('lodash')
 var d3 = require('d3')
 var core = require('./core')
@@ -16906,7 +16941,7 @@ exports.display = function (selector, property) {
 	})
 }
 
-},{"./core":3,"d3":1,"lodash":2}],11:[function(require,module,exports){
+},{"./core":3,"d3":1,"lodash":2}],12:[function(require,module,exports){
 'use strict';
 
 var _ = require('lodash')
@@ -17016,7 +17051,7 @@ module.exports = function (opts) {
 	return stream
 }
 
-},{"../core":3,"../utils":12,"d3":1,"lodash":2}],12:[function(require,module,exports){
+},{"../core":3,"../utils":13,"d3":1,"lodash":2}],13:[function(require,module,exports){
 'use strict';
 
 var _ = require('lodash')

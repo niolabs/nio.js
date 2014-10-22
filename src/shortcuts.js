@@ -1,8 +1,8 @@
 'use strict';
 
-var core = require('../core')
-var tiles = require('../tiles')
-var streams = require('../streams')
+var core = require('./core')
+var tiles = require('./tiles')
+var streams = require('./streams')
 
 exports.tiles = function (selector) {
 	var json = core.json('http://54.85.159.254')
