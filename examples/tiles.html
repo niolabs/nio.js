@@ -34,15 +34,10 @@
 
 	// combine the streams
 	nio.join(json, socketio)
-		// set default values on the chunks
-		.pipe(nio.defaults({
-			media_url: null,
-			profile_image_url: null
-		}))
 		// instead of passing each object 1 by 1, put them in an array so we can sort them
 		.pipe(nio.collect({sort: 'time', dupes: 'id', min: 9, max: 9}))
 		// only update tiles once every second
-		.pipe(nio.throttle(10000))
+		.pipe(nio.throttle(1000))
 		// send them to the tiles
 		.pipe(nio.tiles('.tiles'))
 </script>

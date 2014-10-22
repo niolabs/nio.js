@@ -875,11 +875,19 @@ exports.tiles = function(opts) {
 	var getNested = function (d) { return d }
 	var getHTML = function (d) { return template(d) }
 	var getID = function (d) { return d.id }
+	var getColID = function (d, i) { return d.length ? d[0].id : i }
+	var tileClicked = function (d, i) {
+		var el = d3.select(this).select('.tile')
+		var isExpanded = el.classed('is-expanded')
+		if (!isExpanded)
+			elMain.selectAll('.tile').classed('is-expanded', false)
+		el.classed('is-expanded', !isExpanded)
+	}
 
 	var isInitialized = false
 	function render() {
 		var cols = elMain.selectAll('.col')
-			.data(data, function (d, i) { return d.length ? d[0].id : i })
+			.data(data, getColID)
 
 		cols.enter().append('div')
 			.classed('col', true)
@@ -893,13 +901,7 @@ exports.tiles = function(opts) {
 		var tileEnter = tile.enter().insert('div', ':first-child')
 			.attr('class', 'tile-wrapper')
 			.html(getHTML)
-			.on('click', function (d, i) {
-				var el = d3.select(this).select('.tile')
-				var isExpanded = el.classed('is-expanded')
-				if (!isExpanded)
-					elMain.selectAll('.tile').classed('is-expanded', false)
-				el.classed('is-expanded', !isExpanded)
-			})
+			.on('click', tileClicked)
 
 		tileEnter
 			.select('.tile')
