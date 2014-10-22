@@ -1,3 +1,6 @@
+'use strict'
+
+var _ = require('lodash')
 var core = require('../core')
 
 function property(name) {
@@ -166,11 +169,11 @@ LineGraph.prototype = Object.create(Graph.prototype, {
 				})
 
 				if (autoScaleY && self.data.length) {
-				    var extents = d3.extent(self.data[0].values, function(d) { return d.y })
+					var extents = d3.extent(self.data[0].values, function(d) { return d.y })
 
-				    if (! isNaN(extents[0])) {
+					if (! isNaN(extents[0])) {
 					y.domain([extents[0] * (1 - autoScaleY), extents[1] * (1 + autoScaleY)])
-				    }
+					}
 				}
 
 

@@ -1,3 +1,5 @@
+'use strict'
+
 var nio = require('./api')
 
 exports.Service = Service

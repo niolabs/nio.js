@@ -7,6 +7,13 @@ function handleErrors() {
 	})
 }
 
+gulp.task('lint', function () {
+	return gulp.src('src/**/*.js')
+		.pipe($.jshint())
+		.pipe($.jshint.reporter('jshint-stylish'))
+		.pipe($.jscs('.jscsrc'))
+})
+
 // converts html to javascript templates
 gulp.task('build/html.js', function() {
 	return gulp.src('src/**/*.html')
@@ -72,6 +79,10 @@ gulp.task('dist/nio.min.css', ['dist/nio.css'], function() {
 		.pipe($.csso())
 		.pipe($.rename('nio.min.css'))
 		.pipe(gulp.dest('dist'))
+})
+
+gulp.task('server', function () {
+
 })
 
 gulp.task('css', ['dist/nio.min.css', 'examples/*.css', 'elements/*.css'])

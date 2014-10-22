@@ -1,3 +1,7 @@
+'use strict'
+
+var _ = require('lodash')
+
 // base streams
 exports.passthrough = function (fn) {
 	return new PassThrough(fn)

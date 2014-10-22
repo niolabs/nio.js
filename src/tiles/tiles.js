@@ -1,3 +1,6 @@
+'use strict'
+
+var _ = require('lodash')
 var core = require('../core')
 var utils = require('../utils')
 var template = _.template(htmlTemplates['tiles/tiles.html'], null, {

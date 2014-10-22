@@ -1,3 +1,5 @@
+'use strict'
+
 var nio = require('./api'),
     service = require('./service'),
     block = require('./block')
@@ -5,7 +7,7 @@ var nio = require('./api'),
 exports.instance = function(ip, opts) {
     var header = "Basic " + btoa(opts.user + ":" + opts.pass),
 	instance = new Instance()
-	
+
     instance.setInstance(ip, header)
     return instance
 }
@@ -16,17 +18,17 @@ function Instance() {
 Instance.prototype = Object.create(nio.API.prototype, {
     service: {
 	value: function(serviceName) {
-	    var child = this.getChild(service.Service)
-	    child.makeRequest('services/' + serviceName)
-	    return child
+		var child = this.getChild(service.Service)
+		child.makeRequest('services/' + serviceName)
+		return child
 	}
     },
 
     services: {
 	value: function() {
-	    var child = this.getChild(service.Collection)
-	    child.makeRequest('services')
-	    return child
+		var child = this.getChild(service.Collection)
+		child.makeRequest('services')
+		return child
 	}
     },
 
@@ -48,17 +50,17 @@ Instance.prototype = Object.create(nio.API.prototype, {
 
     blockUpdate: {
 	value: function(blockName, blockParams) {
-	    var child = this.getChild(block.Updater)
-	    child.makeRequest('blocks/' + blockName, 'PUT', JSON.stringify(blockParams))
-	    return child
+		var child = this.getChild(block.Updater)
+		child.makeRequest('blocks/' + blockName, 'PUT', JSON.stringify(blockParams))
+		return child
 	}
-    }, 
+    },
 
     block: {
 	value: function(blockName) {
-	    var child = this.getChild(block.Block)
-	    child.makeRequest('blocks/' + blockName)
-	    return child
+		var child = this.getChild(block.Block)
+		child.makeRequest('blocks/' + blockName)
+		return child
 	}
     },
 })

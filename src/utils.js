@@ -1,3 +1,7 @@
+'use strict'
+
+var _ = require('lodash')
+
 // turns urls and twitter handles/hashtags into links
 exports.linkify = function (text) {
     text = text.replace(/(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig, "<a target=_blank href='$1'>$1</a>")

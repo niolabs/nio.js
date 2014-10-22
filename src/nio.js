@@ -1,4 +1,8 @@
+'use strict'
+
+var _ = require('lodash')
 var nio = window.nio = require('./core')
+
 nio.utils = require('./utils')
 
 // collects chunks into an array for sorting/manipulating sets of data
