@@ -128,7 +128,7 @@ exports.filter = function (fn) {
 // renames/calculates property values on the chunk
 exports.props = exports.map = function (map) {
 	return core.transform(function (chunk) {
-		map.forEach(function (value) {
+		_(map).forEach(function (value, name) {
 			if (_.isFunction(value))
 				value = value(chunk)
 			chunk[name] = value
