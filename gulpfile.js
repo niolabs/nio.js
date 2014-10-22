@@ -1,4 +1,4 @@
-'use strict'
+'use strict';
 
 var gulp = require('gulp')
 var $ = require('gulp-load-plugins')()
@@ -11,6 +11,7 @@ function handleErrors() {
 
 gulp.task('lint', function () {
 	return gulp.src('src/**/*.js')
+		//.pipe(handleErrors())
 		.pipe($.jshint())
 		.pipe($.jshint.reporter('jshint-stylish'))
 		.pipe($.jscs('.jscsrc'))
@@ -60,12 +61,14 @@ gulp.task('dist/nio.css', function() {
 		.pipe($.rename('nio.css'))
 		.pipe(gulp.dest('dist'))
 })
+
 gulp.task('examples/*.css', function () {
 	return gulp.src('examples/*.styl')
 		.pipe(handleErrors())
 		.pipe($.stylus({use: nib()}))
 		.pipe(gulp.dest('examples'))
 })
+
 gulp.task('elements/*.css', function () {
 	return gulp.src('elements/*.styl')
 		.pipe(handleErrors())
@@ -93,7 +96,7 @@ gulp.task('server', function () {
 })
 
 gulp.task('css', ['dist/nio.min.css', 'examples/*.css', 'elements/*.css'])
-gulp.task('js', ['lint', 'dist/nio.min.js'])
+gulp.task('js', ['dist/nio.min.js'])
 gulp.task('build', ['css', 'js'])
 gulp.task('default', ['build'])
 gulp.task('watch', ['default', 'server'], function() {

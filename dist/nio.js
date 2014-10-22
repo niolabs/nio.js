@@ -4,7 +4,7 @@ var htmlTemplates = htmlTemplates || {};htmlTemplates['tiles/tiles.html'] = '<di
     '			<% if (profile_image_url) { %>\n' +
     '				<img class=tile-author-avatar src="<%=profile_image_url%><% if (type === \'facebook\') { %>?type=normal<% } %>" alt="<%=name%>\'s avatar">\n' +
     '			<% } %>\n' +
-    '			<strong class="tile-author-name u-textTruncate"><%=name%> (<%=source%>)</strong>\n' +
+    '			<strong class="tile-author-name u-textTruncate"><%=name%></strong>\n' +
     '			<time is=relative-time datetime="<%=time%>"><%=time%></time>\n' +
     '		</a>\n' +
     '		<span class="icon icon-<%=type%>"></span>\n' +
@@ -16099,7 +16099,7 @@ EventEmitter.prototype = Object.create(Object.prototype, {
 			this._events = this._events || {}
 			if (event in this._events === false) return
 			var args = Array.prototype.slice.call(arguments, 1)
-			for (var i=0, l=this._events[event].length; i < l; i++)
+			for (var i = 0, l = this._events[event].length; i < l; i++)
 				this._events[event][i].apply(this, args)
 		}
 	}
@@ -16107,10 +16107,11 @@ EventEmitter.prototype = Object.create(Object.prototype, {
 
 function mustImplement(name) {
 	return function () {
-		if (!this[name])
+		if (!this[name]) {
 			this.emit('error', new Error(name + ' has not been implemented'))
-		else
+		} else {
 			this[name].apply(this, arguments)
+		}
 	}
 }
 exports.mustImplement = mustImplement
@@ -16136,7 +16137,7 @@ Readable.prototype = Object.create(EventEmitter.prototype, {
 	split: {
 		value: function () {
 			var dests = _.isArray(arguments[0]) ? arguments[0] : [].slice.call(arguments)
-			for (var i=dests.length; i--;)
+			for (var i = dests.length; i--;)
 				this.pipe(dests[i])
 			return this
 		}
@@ -16144,7 +16145,7 @@ Readable.prototype = Object.create(EventEmitter.prototype, {
 	pull: {
 		value: function () {
 			var sources = _.isArray(arguments[0]) ? arguments[0] : [].slice.call(arguments)
-			for (var i=sources.length; i--;)
+			for (var i = sources.length; i--;)
 				sources[i].pipe(this)
 			return this
 		}
@@ -16206,7 +16207,7 @@ JSONStream.prototype = Object.create(Source.prototype, {
 				path += '?' + qs.join('&')
 			}
 			this.fetch(path)
-			this.interval = setInterval(function() {
+			this.interval = setInterval(function () {
 				return this.fetch(path)
 			}.bind(this), this.pollRate)
 			return this
@@ -16216,14 +16217,24 @@ JSONStream.prototype = Object.create(Source.prototype, {
 		value: function (path) {
 			this.lastPath = path
 			console.log(path)
-			d3.json(this.host + '/' + path, function(error, json) {
+			d3.json(this.host + '/' + path, function (error, json) {
 				this.push(json)
 			}.bind(this))
 			return this
 		}
 	},
-	pause: {value: function() { clearTimeout(this.interval); return this }},
-	resume: {value: function() { this.start(this.lastPath); return this }}
+	pause: {
+		value: function () {
+			clearTimeout(this.interval)
+			return this
+		}
+	},
+	resume: {
+		value: function () {
+			this.start(this.lastPath)
+			return this
+		}
+	}
 })
 exports.JSONStream = JSONStream
 
@@ -16235,33 +16246,34 @@ function SocketIOStream(host) {
 SocketIOStream.prototype = Object.create(Source.prototype, {
 	start: {
 		value: function (path) {
+			/* global io */
 			this.path = path
 			this.ws = io.connect(this.host)
 
 			var sock = this.ws.socket
-			sock.on('connect', function() {
+			sock.on('connect', function () {
 				return this.ws.emit('ready', path)
 			}.bind(this))
-			sock.on('connect_failed', function() {
+			sock.on('connect_failed', function () {
 				console.error('connection failed')
 			})
-			sock.on('error', function() {
+			sock.on('error', function () {
 				console.error('connection error')
 			})
-			this.ws.on('recvData', function(data) {
+			this.ws.on('recvData', function (data) {
 				return this.push(JSON.parse(data))
 			}.bind(this))
 			return this
 		}
 	},
 	pause: {
-		value: function() {
+		value: function () {
 			this.ws.disconnect()
 			return this
 		}
 	},
 	resume: {
-		value: function() {
+		value: function () {
 			this.start(this.path)
 			return this
 		}
@@ -16283,8 +16295,17 @@ GeneratorStream.prototype = Object.create(Source.prototype, {
 			return this
 		}
 	},
-	pause: {value: function () { clearInterval(this.interval); return this }},
-	resume: {value: function() { return this.start() }}
+	pause: {
+		value: function () {
+			clearInterval(this.interval)
+			return this
+		}
+	},
+	resume: {
+		value: function () {
+			return this.start()
+		}
+	}
 })
 exports.GeneratorStream = GeneratorStream
 
@@ -16292,164 +16313,19 @@ exports.GeneratorStream = GeneratorStream
 'use strict';
 
 var _ = require('lodash')
-var d3 = require('d3')
-var nio = window.nio = require('./core')
 
-nio.utils = require('./utils')
+module.exports = window.nio = _.assign(
+	{
+		utils: require('./utils'),
+		tiles: require('./tiles'),
+		graphs: require('./graphs'),
+		instance: require('./instance')
+	},
+	require('./core'),
+	require('./streams')
+)
 
-// collects chunks into an array for sorting/manipulating sets of data
-nio.collect = function (opts) {
-	var transforms = opts.transforms || []
-	var size = opts.size || 9
-	var max = opts.max || size
-	var min = opts.min || 0
-
-	var getID = opts.dupes || false
-	if (getID)
-		if (_.isString(getID))
-			getID = function (d) { return d[opts.dupes] }
-		else if (_.isBoolean(getID))
-			getID = function (d) { return d }
-
-	var sortDesc = opts.sortDesc || true
-	var sortBy = opts.sort || false
-	if (sortBy)
-		if (_.isString(sortBy))
-			sortBy = function (d) { return d[opts.sort] }
-		else if (_.isBoolean(sortBy))
-			sortBy = function (d) { return d }
-
-	var data = []
-
-	var stream = nio.transform(function (chunk) {
-		if (getID) {
-			var id = getID(chunk)
-			var isDupe = function (d) { return id === getID(d) }
-			if (_.any(data, isDupe)) return
-		}
-
-		data.push(chunk)
-		for (var i=0, l=transforms.length; i<l; i++)
-			data = transforms[i](data)
-
-		if (sortBy) {
-			data = _.sortBy(data, sortBy)
-			if (sortDesc)
-				data = data.reverse()
-		}
-
-		if (max && data.length > max)
-			data = data.slice(0, max)
-		if (min && data.length < min)
-			return
-
-		this.push(data)
-	})
-
-	stream.sort = function (value) {
-		if (!value) return sortBy
-		sortBy = value
-		return this
-	}
-
-	stream.size = function (value) {
-		if (!value) return size
-		size = min = max = value
-		return this
-	}
-
-	stream.clear = function () {
-		data = []
-		return this
-	}
-
-	return stream
-}
-
-// pushes down a select property
-nio.pick = function (name) {
-	return nio.transform(function (chunk) {
-		if (!(name in chunk)) return
-		var data = chunk[name]
-		if (_.isArray(data))
-			for (var i=data.length; i--;)
-				this.push(data[i])
-		else
-			this.push(data)
-	})
-}
-
-// sets defaults on the chunk
-nio.defaults = function (opts) {
-	return nio.transform(function (chunk) {
-		this.push(_.defaults(chunk, opts))
-	})
-}
-
-// logs output to the console
-nio.log = function (prefix) {
-	return nio.passthrough(function (chunk) {
-		if (prefix)
-			console.log(prefix, chunk)
-		else
-			console.log(chunk)
-	})
-}
-
-// combines multiple streams into one
-nio.join = function () {
-	var river = new nio.PassThrough()
-	var sources = [].slice.call(arguments)
-	for (var i=sources.length; i--;)
-		sources[i].pipe(river)
-	return river
-}
-
-// will only push a chunk if the function it's passed to returns true
-nio.filter = function (fn) {
-	return nio.transform(function (chunk) {
-		if (fn(chunk)) this.push(chunk)
-	})
-}
-
-// renames/calculates property values on the chunk
-nio.map = function (map) {
-	return nio.transform(function (chunk) {
-		for (var name in map) {
-			var value = map[name]
-			if (_.isFunction(value))
-				value = value(chunk)
-			chunk[name] = value
-		}
-		this.push(chunk)
-	})
-}
-
-// delays sending chunks down the pipe
-nio.throttle = function (delay) {
-	var throttled = _.throttle(function (chunk) {
-		this.push(chunk)
-	}, delay)
-	return nio.transform(throttled)
-}
-
-// outputs the chunk to an element
-nio.display = function (selector, property) {
-	var el = d3.select(selector)
-	var getDisplay = property
-	if (_.isString(getDisplay))
-		getDisplay = function (d) { return d[property] }
-	return nio.passthrough(function (chunk) {
-		el.html(getDisplay ? getDisplay(chunk) : chunk)
-	})
-}
-
-// visualizations
-nio.tiles = require('./tiles/tiles').tiles
-nio.graphs = require('./graphs/graphs')
-nio.instance = require('./instance/instance').instance
-
-},{"./core":3,"./graphs/graphs":5,"./instance/instance":8,"./tiles/tiles":10,"./utils":11,"d3":1,"lodash":2}],5:[function(require,module,exports){
+},{"./core":3,"./graphs":5,"./instance":8,"./streams":10,"./tiles":11,"./utils":12,"lodash":2}],5:[function(require,module,exports){
 'use strict';
 
 var _ = require('lodash')
@@ -16466,10 +16342,11 @@ function property(name) {
 
 function Graph(opts) {
 	core.PassThrough.call(this)
-	if (_.isString(opts))
+	if (_.isString(opts)) {
 		this.selector = opts
-	else
+	} else {
 		_.assign(this, opts)
+	}
 	if (this.defaults)
 		_.defaults(this, this.defaults)
 }
@@ -16528,8 +16405,8 @@ LineGraph.prototype = Object.create(Graph.prototype, {
 
 			var line = d3.svg.line()
 				.interpolate('basis')
-				.x(function(d, i) {return x(now - (points - 1 - i) * duration)})
-				.y(function(d, i) {return y(d.y)})
+				.x(function (d, i) {return x(now - (points - 1 - i) * duration)})
+				.y(function (d) {return y(d.y)})
 
 			var svg = d3.select(this.selector).append('svg')
 				.attr('width', width + margin.left + margin.right)
@@ -16552,7 +16429,7 @@ LineGraph.prototype = Object.create(Graph.prototype, {
 				.attr('class', 'y axis')
 				.attr('transform', 'translate(' + width + ',0)')
 			var yAxisGrid = makeYAxis().tickSize(-width, 0, 0).tickFormat('')
-			var yAxisGridEl = yAxis.append('g')
+			yAxis.append('g')
 				.attr('class', 'y grid')
 				.call(yAxisGrid)
 			var yAxisTicks = makeYAxis()
@@ -16577,7 +16454,6 @@ LineGraph.prototype = Object.create(Graph.prototype, {
 			var xAxisTicksEl = xAxis.append('g')
 				.attr('class', 'x ticks')
 				.call(xAxisTicks)
-
 
 			var clip = svg.append('g')
 				.attr('clip-path', 'url(#clip)')
@@ -16616,19 +16492,18 @@ LineGraph.prototype = Object.create(Graph.prototype, {
 				x.domain([now - (points - 2) * duration, now - duration])
 
 				// push the accumulated count onto the back, and reset the count
-				self.data.forEach(function(d) {
+				self.data.forEach(function (d) {
 					d.values.push(d.latest)
 					d.values.shift()
 				})
 
 				if (autoScaleY && self.data.length) {
-					var extents = d3.extent(self.data[0].values, function(d) { return d.y })
+					var extents = d3.extent(self.data[0].values, function (d) { return d.y })
 
-					if (! isNaN(extents[0])) {
-					y.domain([extents[0] * (1 - autoScaleY), extents[1] * (1 + autoScaleY)])
+					if (!isNaN(extents[0])) {
+						y.domain([extents[0] * (1 - autoScaleY), extents[1] * (1 + autoScaleY)])
 					}
 				}
-
 
 				var valueJoin = values.selectAll('.value').data(self.data)
 				var valueEnter = valueJoin.enter().append('g').attr('class', 'value')
@@ -16659,18 +16534,21 @@ LineGraph.prototype = Object.create(Graph.prototype, {
 
 				// redraw the line
 				var pathJoin = g.selectAll('.line').data(self.data)
-				var pathEnter = pathJoin.enter().append('path')
+
+				pathJoin.enter().append('path')
 					.attr('class', 'line')
 					.style('opacity', 0)
-					.style('stroke', function(d) {
+					.style('stroke', function (d) {
 						return color(d.id)
 					})
 					.transition()
 					.ease('linear')
 					.duration(duration)
 					.style('opacity', 1)
-				var pathExit = pathJoin.exit().remove()
-				pathJoin.attr('d', function(d) { return line(d.values) })
+
+				pathJoin.exit().remove()
+
+				pathJoin.attr('d', function (d) { return line(d.values) })
 
 				g.attr('transform', null)
 					.transition()
@@ -16698,22 +16576,22 @@ LineGraph.prototype = Object.create(Graph.prototype, {
 		}
 	},
 	write: {
-		value: function(chunk) {
+		value: function (chunk) {
 			// detect if it's a new series
 			if (!this.rendered)
 				this.render()
-			if (!_.any(this.data, function(d) { return d.id === chunk.id })) {
-				var values = d3.range(this.points).map(function() { return {x: 0, y: 0} })
+			if (!_.any(this.data, function (d) { return d.id === chunk.id })) {
+				var values = d3.range(this.points).map(function () { return {x: 0, y: 0} })
 				this.data.push({id: chunk.id, values: values, latest: chunk})
 			}
-			for (var i=this.data.length; i--;)
+			for (var i = this.data.length; i--;)
 				if (this.data[i].id === chunk.id)
 					this.data[i].latest = chunk
 		}
 	}
 })
 
-exports.line = function(opts) {
+exports.line = function (opts) {
 	return new LineGraph(opts)
 }
 
@@ -16874,21 +16752,183 @@ ServiceStatus.prototype = Object.create(nio.API.prototype, {})
 
 var _ = require('lodash')
 var d3 = require('d3')
+var core = require('./core')
+
+// collects chunks into an array for sorting/manipulating sets of data
+exports.collect = function (opts) {
+	var transforms = opts.transforms || []
+	var size = opts.size || 9
+	var max = opts.max || size
+	var min = opts.min || 0
+
+	var getID = opts.dupes || false
+	if (getID) {
+		if (_.isString(getID)) {
+			getID = function (d) { return d[opts.dupes] }
+		} else if (_.isBoolean(getID)) {
+			getID = function (d) { return d }
+		}
+	}
+
+	var sortDesc = opts.sortDesc || true
+	var sortBy = opts.sort || false
+	if (sortBy) {
+		if (_.isString(sortBy)) {
+			sortBy = function (d) { return d[opts.sort] }
+		} else if (_.isBoolean(sortBy)) {
+			sortBy = function (d) { return d }
+		}
+	}
+
+	var data = []
+
+	var stream = core.transform(function (chunk) {
+		if (getID) {
+			var id = getID(chunk)
+			var isDupe = function (d) { return id === getID(d) }
+			if (_.any(data, isDupe)) return
+		}
+
+		data.push(chunk)
+		for (var i = 0, l = transforms.length; i < l; i++)
+			data = transforms[i](data)
+
+		if (sortBy) {
+			data = _.sortBy(data, sortBy)
+			if (sortDesc)
+				data = data.reverse()
+		}
+
+		if (max && data.length > max)
+			data = data.slice(0, max)
+		if (min && data.length < min)
+			return
+
+		this.push(data)
+	})
+
+	stream.sort = function (value) {
+		if (!value) return sortBy
+		sortBy = value
+		return this
+	}
+
+	stream.size = function (value) {
+		if (!value) return size
+		size = min = max = value
+		return this
+	}
+
+	stream.clear = function () {
+		data = []
+		return this
+	}
+
+	return stream
+}
+
+// pushes down a select property
+exports.pick = function (name) {
+	return core.transform(function (chunk) {
+		if (!(name in chunk)) return
+		var data = chunk[name]
+		if (_.isArray(data)) {
+			for (var i = data.length; i--;)
+				this.push(data[i])
+		} else {
+			this.push(data)
+		}
+	})
+}
+
+// sets defaults on the chunk
+exports.defaults = function (opts) {
+	return core.transform(function (chunk) {
+		this.push(_.defaults(chunk, opts))
+	})
+}
+
+// logs output to the console
+exports.log = function (prefix) {
+	return core.passthrough(function (chunk) {
+		if (prefix) {
+			console.log(prefix, chunk)
+		} else {
+			console.log(chunk)
+		}
+	})
+}
+
+// combines multiple streams into one
+exports.join = function () {
+	var river = new core.passthrough()
+	var sources = [].slice.call(arguments)
+	for (var i = sources.length; i--;)
+		sources[i].pipe(river)
+	return river
+}
+
+// will only push a chunk if the function it's passed to returns true
+exports.filter = function (fn) {
+	return core.transform(function (chunk) {
+		if (fn(chunk)) this.push(chunk)
+	})
+}
+
+// renames/calculates property values on the chunk
+exports.props = exports.map = function (map) {
+	return core.transform(function (chunk) {
+		map.forEach(function (value) {
+			if (_.isFunction(value))
+				value = value(chunk)
+			chunk[name] = value
+		})
+		this.push(chunk)
+	})
+}
+
+// delays sending chunks down the pipe
+exports.throttle = function (delay) {
+	var throttled = _.throttle(function (chunk) {
+		this.push(chunk)
+	}, delay)
+	return core.transform(throttled)
+}
+
+// outputs the chunk to an element
+exports.display = function (selector, property) {
+	var el = d3.select(selector)
+	var getDisplay = property
+	if (_.isString(getDisplay))
+		getDisplay = function (d) { return d[property] }
+	return core.passthrough(function (chunk) {
+		el.html(getDisplay ? getDisplay(chunk) : chunk)
+	})
+}
+
+},{"./core":3,"d3":1,"lodash":2}],11:[function(require,module,exports){
+'use strict';
+
+var _ = require('lodash')
+var d3 = require('d3')
+var core = require('../core')
 var utils = require('../utils')
+
+/* global htmlTemplates */
 var template = _.template(htmlTemplates['tiles/tiles.html'], null, {
 	imports: utils
 })
 
 var defaults = {
 	type: '',
-	profile_image_url: '',
-	media_url: '',
+	'profile_image_url': '',
+	'media_url': '',
 	source: '',
 	text: '',
 	time: new Date()
 }
 
-exports.tiles = function (opts) {
+module.exports = function (opts) {
 	var selector = _.isPlainObject(opts) ? opts.selector : opts
 	// var animSpeed = opts.hasOwnProperty('animSpeed') ? opts.animSpeed : 0
 
@@ -16906,7 +16946,7 @@ exports.tiles = function (opts) {
 	function getHTML(d) { return template(d) }
 	function getID(d) { return d.id }
 	function getColID(d, i) { return d.length ? d[0].id : i }
-	function tileClicked(d, i) {
+	function tileClicked() {
 		var el = d3.select(this).select('.tile')
 		var isExpanded = el.classed('is-expanded')
 		if (!isExpanded)
@@ -16950,7 +16990,7 @@ exports.tiles = function (opts) {
 
 	// IDs of posts we've seen already
 	var seen = []
-	var stream = nio.passthrough(function (chunk) {
+	var stream = core.passthrough(function (chunk) {
 		var colLimit = Math.floor(chunk.length / numCols)
 		for (var i = 0, l = chunk.length; i < l; i++) {
 			var post = _.defaults(chunk[i], defaults)
@@ -16961,9 +17001,9 @@ exports.tiles = function (opts) {
 			}
 		}
 		// check if the size has changed
-		for (var i = data.length; i--;)
-			if (data[i].length >= colLimit)
-				data[i] = data[i].slice(0, colLimit + 1)
+		for (var x = data.length; x--;)
+			if (data[x].length >= colLimit)
+				data[x] = data[x].slice(0, colLimit + 1)
 		render()
 	})
 
@@ -16976,7 +17016,7 @@ exports.tiles = function (opts) {
 	return stream
 }
 
-},{"../utils":11,"d3":1,"lodash":2}],11:[function(require,module,exports){
+},{"../core":3,"../utils":12,"d3":1,"lodash":2}],12:[function(require,module,exports){
 'use strict';
 
 var _ = require('lodash')
@@ -16984,14 +17024,26 @@ var d3 = require('d3')
 
 // turns urls and twitter handles/hashtags into links
 exports.linkify = function (text) {
-    text = text.replace(/(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig, "<a target=_blank href='$1'>$1</a>")
-    text = text.replace(/(^|\s)@(\w+)/g, "$1<a target=_blank href=\"http://twitter.com/$2\">@$2</a>")
-    return text.replace(/(^|\s)#(\w+)/g, "$1<a target=_blank href=\"http://twitter.com/search?q=%23$2\">#$2</a>")
+	// urls
+	text = text.replace(
+		/(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig,
+		'<a target=_blank href="$1">$1</a>'
+	)
+	// usernames
+	text = text.replace(
+		/(^|\s)@(\w+)/g,
+		'$1<a target=_blank href="http://twitter.com/$2">@$2</a>'
+	)
+	// hashtags
+	text = text.replace(
+		/(^|\s)#(\w+)/g,
+		'$1<a target=_blank href="http://twitter.com/search?q=%23$2">#$2</a>')
+	return text
 }
 
 exports.truncate = function (text, len) {
-    if (text.length > len) return text.substring(0, len - 3) + '...'
-    return text
+	if (text.length > len) return text.substring(0, len - 3) + '...'
+	return text
 }
 
 exports.isArray = _.isArray
@@ -17016,7 +17068,7 @@ exports.cycle = function (value) {
 		value = d3.range(value)
 	var current = -1 // so the first call will get the first value
 	return function () {
-		current = current === value.length - 1 ? 0 : current+1
+		current = current === value.length - 1 ? 0 : current + 1
 		var target = value[current]
 		return _.isFunction(target) ? target() : target
 	}

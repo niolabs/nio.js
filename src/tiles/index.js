@@ -19,7 +19,7 @@ var defaults = {
 	time: new Date()
 }
 
-exports.tiles = function (opts) {
+module.exports = function (opts) {
 	var selector = _.isPlainObject(opts) ? opts.selector : opts
 	// var animSpeed = opts.hasOwnProperty('animSpeed') ? opts.animSpeed : 0
 
