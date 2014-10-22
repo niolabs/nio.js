@@ -128,7 +128,7 @@ nio.filter = function (fn) {
 }
 
 // renames/calculates property values on the chunk
-nio.map = function (map) {
+nio.props = nio.map = function (map) {
 	return nio.transform(function (chunk) {
 		map.forEach(function (value) {
 			if (_.isFunction(value))

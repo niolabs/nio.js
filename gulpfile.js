@@ -83,14 +83,20 @@ gulp.task('dist/nio.min.css', ['dist/nio.css'], function() {
 })
 
 gulp.task('server', function () {
-
+	return gulp.src('.')
+		.pipe($.webserver({
+			port: 3210,
+			fallback: 'index.html',
+			directoryListing: 'index.html',
+			open: 'examples'
+		}))
 })
 
 gulp.task('css', ['dist/nio.min.css', 'examples/*.css', 'elements/*.css'])
-gulp.task('js', ['dist/nio.min.js'])
+gulp.task('js', ['lint', 'dist/nio.min.js'])
 gulp.task('build', ['css', 'js'])
 gulp.task('default', ['build'])
-gulp.task('watch', ['default'], function() {
+gulp.task('watch', ['default', 'server'], function() {
 	gulp.watch('**/*.{html,js}', ['js'])
 	gulp.watch('**/*.{svg,styl}', ['css'])
 })
