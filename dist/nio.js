@@ -431,8 +431,9 @@ nio.display = function (selector, property) {
 // visualizations
 nio.tiles = require('./tiles/tiles').tiles
 nio.graphs = require('./graphs/graphs')
+nio.instance = require('./instance/instance').instance
 
-},{"./core":1,"./graphs/graphs":3,"./tiles/tiles":4,"./utils":5}],3:[function(require,module,exports){
+},{"./core":1,"./graphs/graphs":3,"./instance/instance":6,"./tiles/tiles":8,"./utils":9}],3:[function(require,module,exports){
 var core = require('../core')
 
 function property(name) {
@@ -458,7 +459,7 @@ var _graphDef = {
 }
 var _graphProps = [
 	'width', 'height', 'domains', 'tickFormat',
-	'title', 'labels', 'points', 'margin'
+	'title', 'labels', 'points', 'margin', 'autoScaleY'
 ]
 _graphProps.forEach(function (name) { _graphDef[name] = property(name) })
 Graph.prototype = Object.create(core.PassThrough.prototype, _graphDef)
@@ -477,7 +478,8 @@ LineGraph.prototype = Object.create(Graph.prototype, {
 			tickFormat: function (d) { return d },
 			points: 243,
 			duration: 750,
-			rendered: false
+			rendered: false,
+			autoScaleY: false
 		}
 	},
 	render: {
@@ -492,6 +494,9 @@ LineGraph.prototype = Object.create(Graph.prototype, {
 			var points = this.points
 			var duration = this.duration
 			var tickFormat = this.tickFormat
+
+			// False if we don't scale the Y - otherwise the percentage to scale each value
+			var autoScaleY = this.autoScaleY
 
 			var x = d3.time.scale()
 				.domain([now - (points - 2) * duration, now - duration])
@@ -596,6 +601,15 @@ LineGraph.prototype = Object.create(Graph.prototype, {
 					d.values.shift()
 				})
 
+				if (autoScaleY && self.data.length) {
+				    var extents = d3.extent(self.data[0].values, function(d) { return d.y })
+
+				    if (! isNaN(extents[0])) {
+					y.domain([extents[0] * (1 - autoScaleY), extents[1] * (1 + autoScaleY)])
+				    }
+				}
+
+
 				var valueJoin = values.selectAll('.value').data(self.data)
 				var valueEnter = valueJoin.enter().append('g').attr('class', 'value')
 					.attr('class', 'value')
@@ -645,13 +659,13 @@ LineGraph.prototype = Object.create(Graph.prototype, {
 					.attr('transform', 'translate(' + x(now - (points - 1) * duration) + ')')
 					.each('end', tick)
 
-				// slide the x-axis left
-				//xAxisGridEl
-				//	.transition()
-				//	.duration(duration)
-				//	.ease('linear')
-				//	.call(xAxisGrid)
+				yAxisTicksEl
+					.transition()
+					.duration(duration)
+					.ease('linear')
+					.call(yAxisTicks)
 
+				// slide the x-axis left
 				xAxisTicksEl
 					.transition()
 					.duration(duration)
@@ -669,7 +683,6 @@ LineGraph.prototype = Object.create(Graph.prototype, {
 			if (!this.rendered)
 				this.render()
 			if (!_.any(this.data, function(d) { return d.id === chunk.id })) {
-				console.log('new series:', chunk.id)
 				var values = d3.range(this.points).map(function() { return {x: 0, y: 0} })
 				this.data.push({id: chunk.id, values: values, latest: chunk})
 			}
@@ -685,6 +698,150 @@ exports.line = function(opts) {
 }
 
 },{"../core":1}],4:[function(require,module,exports){
+var core = require('../core')
+
+function nioAPI() {
+    core.Readable.call(this)
+}
+nioAPI.prototype = Object.create(core.Readable.prototype, {
+    makeRequest : {
+	value: function(endpoint, method, postData) {
+	    var xhr = d3.json('http://' + this.ip + '/' + endpoint)
+		    .header("Authorization", this.authHeader)
+
+	    if (typeof method === 'undefined') {
+		method = 'GET'
+	    }
+
+	    // They want a post request
+	    xhr.send(method, postData, function(err, data) {
+		this.push(data)
+	    }.bind(this))
+	}
+    },
+
+    setInstance: {
+	value: function(ip, authHeader) {
+	    this.ip = ip
+	    this.authHeader = authHeader
+	}
+    },
+
+    getChild: {
+	value: function(type) {
+	    var newType = new type()
+	    newType.setInstance(this.ip, this.authHeader)
+	    return newType
+	}
+    }
+})
+exports.API = nioAPI
+
+},{"../core":1}],5:[function(require,module,exports){
+var nio = require('./api')
+
+exports.Block = Block
+exports.Updater = Updater
+
+function Block() {
+    nio.API.call(this)
+}
+Block.prototype = Object.create(nio.API.prototype, {})
+
+function Updater() {
+    nio.API.call(this)
+}
+Updater.prototype = Object.create(nio.API.prototype, {})
+
+},{"./api":4}],6:[function(require,module,exports){
+var nio = require('./api'),
+    service = require('./service'),
+    block = require('./block')
+
+exports.instance = function(ip, opts) {
+    var header = "Basic " + btoa(opts.user + ":" + opts.pass),
+	instance = new Instance()
+	
+    instance.setInstance(ip, header)
+    return instance
+}
+
+function Instance() {
+    nio.API.call(this)
+}
+Instance.prototype = Object.create(nio.API.prototype, {
+    service: {
+	value: function(serviceName) {
+	    var child = this.getChild(service.Service)
+	    child.makeRequest('services/' + serviceName)
+	    return child
+	}
+    },
+
+    services: {
+	value: function() {
+	    var child = this.getChild(service.Collection)
+	    child.makeRequest('services')
+	    return child
+	}
+    },
+
+    serviceStatus: {
+	value: function(serviceName, status) {
+		if (status) {
+			// they are setting a status
+			var child = this.getChild(service.Status)
+			child.makeRequest('services/' + serviceName + '/' + status)
+			return child
+		} else {
+			// they are getting a status
+			var child = this.getChild(service.Service)
+			child.makeRequest('services/' + serviceName + '/status')
+			return child
+		}
+	}
+    },
+
+    blockUpdate: {
+	value: function(blockName, blockParams) {
+	    var child = this.getChild(block.Updater)
+	    child.makeRequest('blocks/' + blockName, 'PUT', JSON.stringify(blockParams))
+	    return child
+	}
+    }, 
+
+    block: {
+	value: function(blockName) {
+	    var child = this.getChild(block.Block)
+	    child.makeRequest('blocks/' + blockName)
+	    return child
+	}
+    },
+})
+
+},{"./api":4,"./block":5,"./service":7}],7:[function(require,module,exports){
+var nio = require('./api')
+
+exports.Service = Service
+exports.Collection = ServiceCollection
+exports.Status = ServiceStatus
+
+function Service() {
+    nio.API.call(this)
+}
+Service.prototype = Object.create(nio.API.prototype, {})
+
+function ServiceCollection() {
+    nio.API.call(this)
+}
+ServiceCollection.prototype = Object.create(nio.API.prototype, {})
+
+function ServiceStatus() {
+    nio.API.call(this)
+}
+ServiceStatus.prototype = Object.create(nio.API.prototype, {})
+
+},{"./api":4}],8:[function(require,module,exports){
 var core = require('../core')
 var utils = require('../utils')
 var template = _.template(htmlTemplates['tiles/tiles.html'], null, {
@@ -776,7 +933,7 @@ exports.tiles = function(opts) {
 	return stream
 }
 
-},{"../core":1,"../utils":5}],5:[function(require,module,exports){
+},{"../core":1,"../utils":9}],9:[function(require,module,exports){
 // turns urls and twitter handles/hashtags into links
 exports.linkify = function (text) {
     text = text.replace(/(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig, "<a target=_blank href='$1'>$1</a>")

@@ -23,7 +23,7 @@ var _graphDef = {
 }
 var _graphProps = [
 	'width', 'height', 'domains', 'tickFormat',
-	'title', 'labels', 'points', 'margin'
+	'title', 'labels', 'points', 'margin', 'autoScaleY'
 ]
 _graphProps.forEach(function (name) { _graphDef[name] = property(name) })
 Graph.prototype = Object.create(core.PassThrough.prototype, _graphDef)
@@ -42,7 +42,8 @@ LineGraph.prototype = Object.create(Graph.prototype, {
 			tickFormat: function (d) { return d },
 			points: 243,
 			duration: 750,
-			rendered: false
+			rendered: false,
+			autoScaleY: false
 		}
 	},
 	render: {
@@ -57,6 +58,9 @@ LineGraph.prototype = Object.create(Graph.prototype, {
 			var points = this.points
 			var duration = this.duration
 			var tickFormat = this.tickFormat
+
+			// False if we don't scale the Y - otherwise the percentage to scale each value
+			var autoScaleY = this.autoScaleY
 
 			var x = d3.time.scale()
 				.domain([now - (points - 2) * duration, now - duration])
@@ -161,6 +165,15 @@ LineGraph.prototype = Object.create(Graph.prototype, {
 					d.values.shift()
 				})
 
+				if (autoScaleY && self.data.length) {
+				    var extents = d3.extent(self.data[0].values, function(d) { return d.y })
+
+				    if (! isNaN(extents[0])) {
+					y.domain([extents[0] * (1 - autoScaleY), extents[1] * (1 + autoScaleY)])
+				    }
+				}
+
+
 				var valueJoin = values.selectAll('.value').data(self.data)
 				var valueEnter = valueJoin.enter().append('g').attr('class', 'value')
 					.attr('class', 'value')
@@ -210,13 +223,13 @@ LineGraph.prototype = Object.create(Graph.prototype, {
 					.attr('transform', 'translate(' + x(now - (points - 1) * duration) + ')')
 					.each('end', tick)
 
-				// slide the x-axis left
-				//xAxisGridEl
-				//	.transition()
-				//	.duration(duration)
-				//	.ease('linear')
-				//	.call(xAxisGrid)
+				yAxisTicksEl
+					.transition()
+					.duration(duration)
+					.ease('linear')
+					.call(yAxisTicks)
 
+				// slide the x-axis left
 				xAxisTicksEl
 					.transition()
 					.duration(duration)
@@ -234,7 +247,6 @@ LineGraph.prototype = Object.create(Graph.prototype, {
 			if (!this.rendered)
 				this.render()
 			if (!_.any(this.data, function(d) { return d.id === chunk.id })) {
-				console.log('new series:', chunk.id)
 				var values = d3.range(this.points).map(function() { return {x: 0, y: 0} })
 				this.data.push({id: chunk.id, values: values, latest: chunk})
 			}
