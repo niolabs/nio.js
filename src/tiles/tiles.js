@@ -4,6 +4,16 @@ var template = _.template(htmlTemplates['tiles/tiles.html'], null, {
 	imports: utils
 })
 
+var defaults = {
+	type: '',
+	media_url: '',
+	profile_image_url: '',
+	media_url: '',
+	source: '',
+	text: '',
+	time: new Date()
+}
+
 exports.tiles = function(opts) {
 	var selector = _.isPlainObject(opts) ? opts.selector : opts
 	var animSpeed = opts.hasOwnProperty('animSpeed') ? opts.animSpeed : 0
@@ -66,7 +76,7 @@ exports.tiles = function(opts) {
 	var stream = nio.passthrough(function (chunk) {
 		var colLimit = Math.floor(chunk.length / numCols)
 		for (var i=0, l=chunk.length; i<l; i++) {
-			var post = chunk[i]
+			var post = _.defaults(chunk[i], defaults)
 			if (seen.indexOf(post.id) === -1) {
 				seen.push(post.id)
 				var col = getCol()
