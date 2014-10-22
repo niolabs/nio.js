@@ -37,7 +37,7 @@
 	},
 
 	// Disallows space before () or {} in function expressions.
-	"disallowSpacesInFunctionExpression": {
+	"requireSpacesInFunctionExpression": {
 		"beforeOpeningRoundBrace": true
 	},
 

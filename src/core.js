@@ -1,6 +1,7 @@
-'use strict'
+'use strict';
 
 var _ = require('lodash')
+var d3 = require('d3')
 
 // base streams
 exports.passthrough = function (fn) {

@@ -1,3 +1,5 @@
+'use strict'
+
 var gulp = require('gulp')
 var $ = require('gulp-load-plugins')()
 
@@ -72,7 +74,6 @@ gulp.task('elements/*.css', function () {
 })
 
 // minifies css
-var csso = require('gulp-csso')
 gulp.task('dist/nio.min.css', ['dist/nio.css'], function() {
 	return gulp.src('dist/nio.css')
 		.pipe(handleErrors())

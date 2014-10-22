@@ -1,6 +1,7 @@
-'use strict'
+'use strict';
 
 var _ = require('lodash')
+var d3 = require('d3')
 var nio = window.nio = require('./core')
 
 nio.utils = require('./utils')
@@ -97,8 +98,9 @@ nio.defaults = function (opts) {
 // logs output to the console
 nio.log = function (prefix) {
 	return nio.passthrough(function (chunk) {
-		prefix ?
-			console.log(prefix, chunk) :
+		if (prefix)
+			console.log(prefix, chunk)
+		else
 			console.log(chunk)
 	})
 }

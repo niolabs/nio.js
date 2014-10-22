@@ -1,7 +1,7 @@
-'use strict'
+'use strict';
 
 var _ = require('lodash')
-var core = require('../core')
+var d3 = require('d3')
 var utils = require('../utils')
 var template = _.template(htmlTemplates['tiles/tiles.html'], null, {
 	imports: utils
@@ -9,7 +9,6 @@ var template = _.template(htmlTemplates['tiles/tiles.html'], null, {
 
 var defaults = {
 	type: '',
-	media_url: '',
 	profile_image_url: '',
 	media_url: '',
 	source: '',
@@ -17,25 +16,25 @@ var defaults = {
 	time: new Date()
 }
 
-exports.tiles = function(opts) {
+exports.tiles = function (opts) {
 	var selector = _.isPlainObject(opts) ? opts.selector : opts
-	var animSpeed = opts.hasOwnProperty('animSpeed') ? opts.animSpeed : 0
+	// var animSpeed = opts.hasOwnProperty('animSpeed') ? opts.animSpeed : 0
 
 	var numCols = opts.numCols || 3
 	var data = d3.range(numCols).map(function () { return [] })
 
 	var elMain = d3.select(selector)
 
-	//var elCols = []
-	//for (var i=numCols; i--;)
-	//	elCols[i] = elMain.append('div').style('float', 'left')
+	// var elCols = []
+	// for (var i=numCols; i--;)
+	// elCols[i] = elMain.append('div').style('float', 'left')
 
 	// caching these functions for performance
-	var getNested = function (d) { return d }
-	var getHTML = function (d) { return template(d) }
-	var getID = function (d) { return d.id }
-	var getColID = function (d, i) { return d.length ? d[0].id : i }
-	var tileClicked = function (d, i) {
+	function getNested(d) { return d }
+	function getHTML(d) { return template(d) }
+	function getID(d) { return d.id }
+	function getColID(d, i) { return d.length ? d[0].id : i }
+	function tileClicked(d, i) {
 		var el = d3.select(this).select('.tile')
 		var isExpanded = el.classed('is-expanded')
 		if (!isExpanded)
@@ -55,7 +54,7 @@ exports.tiles = function(opts) {
 			.selectAll('.tile-wrapper')
 			.data(getNested, getID)
 
-		//tile.order()
+		// tile.order()
 
 		var tileEnter = tile.enter().insert('div', ':first-child')
 			.attr('class', 'tile-wrapper')
@@ -67,10 +66,11 @@ exports.tiles = function(opts) {
 			.classed('flip-in', true)
 
 		// only start sliding tiles down after the initial load
-		if (isInitialized)
+		if (isInitialized) {
 			tileEnter.classed('slide-down', true)
-		else
+		} else {
 			isInitialized = true
+		}
 		tile.exit().remove()
 	}
 
@@ -80,7 +80,7 @@ exports.tiles = function(opts) {
 	var seen = []
 	var stream = nio.passthrough(function (chunk) {
 		var colLimit = Math.floor(chunk.length / numCols)
-		for (var i=0, l=chunk.length; i<l; i++) {
+		for (var i = 0, l = chunk.length; i < l; i++) {
 			var post = _.defaults(chunk[i], defaults)
 			if (seen.indexOf(post.id) === -1) {
 				seen.push(post.id)
@@ -89,9 +89,9 @@ exports.tiles = function(opts) {
 			}
 		}
 		// check if the size has changed
-		for (var i=data.length; i--;)
+		for (var i = data.length; i--;)
 			if (data[i].length >= colLimit)
-				data[i] = data[i].slice(0, colLimit+1)
+				data[i] = data[i].slice(0, colLimit + 1)
 		render()
 	})
 

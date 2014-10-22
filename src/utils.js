@@ -1,6 +1,7 @@
-'use strict'
+'use strict';
 
 var _ = require('lodash')
+var d3 = require('d3')
 
 // turns urls and twitter handles/hashtags into links
 exports.linkify = function (text) {
