@@ -5,6 +5,7 @@ var tiles = require('./tiles')
 var streams = require('./streams')
 
 exports.tiles = function (selector) {
+	// TODO: make this more customizable
 	var json = core.json('http://54.85.159.254')
 		// start polling the /posts URL
 		.start('posts')
@@ -17,7 +18,13 @@ exports.tiles = function (selector) {
 		.start('default')
 
 	// combine the streams
-	streams.join(json, socketio)
+	return streams.join(json, socketio)
+		.pipe(streams.props({
+			avatar: function (d) { return d['profile_image_url'] },
+			media: function (d) { return d['media_url'] },
+			author: function (d) { return d.name },
+			authorLink: '#'
+		}))
 		// instead of passing each object 1 by 1, put them in an array so we can sort them
 		.pipe(streams.collect({
 			sort: 'time',

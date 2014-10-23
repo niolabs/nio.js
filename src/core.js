@@ -64,8 +64,9 @@ function mustImplement(name) {
 }
 exports.mustImplement = mustImplement
 
-function Readable() {
+function Readable(fn) {
 	EventEmitter.call(this)
+	if (fn) fn.apply(this)
 }
 Readable.prototype = Object.create(EventEmitter.prototype, {
 	push: {

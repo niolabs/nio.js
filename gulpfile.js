@@ -17,15 +17,6 @@ gulp.task('lint', function () {
 		.pipe($.jscs('.jscsrc'))
 })
 
-// converts html to javascript templates
-gulp.task('build/html.js', function() {
-	return gulp.src('src/**/*.html')
-		.pipe(handleErrors())
-		.pipe($.jsifyHtmlTemplates())
-		.pipe($.concat('html.js'))
-		.pipe(gulp.dest('build'))
-})
-
 gulp.task('build/bundle.js', function () {
 	return gulp.src('src/nio.js')
 		.pipe(handleErrors())
@@ -35,8 +26,8 @@ gulp.task('build/bundle.js', function () {
 })
 
 // combines html templates and javascript
-gulp.task('dist/nio.js', ['build/bundle.js', 'build/html.js'], function() {
-	return gulp.src(['build/html.js', 'build/bundle.js'])
+gulp.task('dist/nio.js', ['build/bundle.js'], function() {
+	return gulp.src('build/bundle.js')
 		.pipe(handleErrors())
 		.pipe($.concat('nio.js'))
 		.pipe(gulp.dest('dist'))
@@ -56,7 +47,13 @@ var nib = require('nib')
 gulp.task('dist/nio.css', function() {
 	return gulp.src('src/nio.styl')
 		.pipe(handleErrors())
-		.pipe($.stylus({use: nib()}))
+		.pipe($.stylus({
+			use: nib(),
+			paths: [
+				'src',
+				'node_modules/nio-styl'
+			]
+		}))
 		.pipe($.base64({baseDir: 'src/icons'}))
 		.pipe($.rename('nio.css'))
 		.pipe(gulp.dest('dist'))

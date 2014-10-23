@@ -1,49 +1,3 @@
-var htmlTemplates = htmlTemplates || {};htmlTemplates['tiles/tiles.html'] = '<div id="<%=id%>" class="tile tile--<%=type%><% if (media_url) { %> has-media<% } %><% if (profile_image_url) { %> has-profile-image<% } %>">\n' +
-    '	<header class=tile-header>\n' +
-    '		<a class="tile-author u-block" href=#<%=id%>>\n' +
-    '			<% if (profile_image_url) { %>\n' +
-    '				<img class=tile-author-avatar src="<%=profile_image_url%><% if (type === \'facebook\') { %>?type=normal<% } %>" alt="<%=name%>\'s avatar">\n' +
-    '			<% } %>\n' +
-    '			<strong class="tile-author-name u-textTruncate"><%=name%></strong>\n' +
-    '			<time is=relative-time datetime="<%=time%>"><%=time%></time>\n' +
-    '		</a>\n' +
-    '		<span class="icon icon-<%=type%>"></span>\n' +
-    '	</header>\n' +
-    '	<div class=tile-content>\n' +
-    '		<% if (media_url) { %>\n' +
-    '			<img class=tile-media src="<%=media_url%>" alt="<%=text%>" title="<%=text%>">\n' +
-    '			<div class="tile-text u-marquee">\n' +
-    '				<div>\n' +
-    '					<span><%=linkify(text)%></span>\n' +
-    '					<span><%=linkify(text)%></span>\n' +
-    '				</div>\n' +
-    '			</div>\n' +
-    '		<% } else { %>\n' +
-    '			<div class=tile-text>\n' +
-    '				<% if (type === \'rss\') { %>\n' +
-    '					<p><strong class=font-header><%=text%></strong>\n' +
-    '					<%=linkify(alt_text)%>\n' +
-    '				<% } else { %>\n' +
-    '					<p><%=linkify(text)%>\n' +
-    '				<% } %>\n' +
-    '				<p class="on-expand u-muted">\n' +
-    '					<time is=local-time datetime="<%=time%>"><%=time%></time>\n' +
-    '			</div>\n' +
-    '		<% } %>\n' +
-    '	</div>\n' +
-    '	<footer class=tile-footer>\n' +
-    '		<a class="block u-pullLeft" href="<%=link%>" target=_blank>\n' +
-    '			View on <%=mediaTypeName(type)%>\n' +
-    '			<span class="icon icon-external icon-mini"></span>\n' +
-    '		</a>\n' +
-    '		<a class="block u-pullRight" href=#>\n' +
-    '			Share\n' +
-    '			<span class="icon icon-share icon-mini"></span>\n' +
-    '		</a>\n' +
-    '	</footer>\n' +
-    '</div>\n' +
-    '';
-
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 !function() {
   var d3 = {
@@ -16116,8 +16070,9 @@ function mustImplement(name) {
 }
 exports.mustImplement = mustImplement
 
-function Readable() {
+function Readable(fn) {
 	EventEmitter.call(this)
+	if (fn) fn.apply(this)
 }
 Readable.prototype = Object.create(EventEmitter.prototype, {
 	push: {
@@ -16756,6 +16711,7 @@ var tiles = require('./tiles')
 var streams = require('./streams')
 
 exports.tiles = function (selector) {
+	// TODO: make this more customizable
 	var json = core.json('http://54.85.159.254')
 		// start polling the /posts URL
 		.start('posts')
@@ -16768,7 +16724,13 @@ exports.tiles = function (selector) {
 		.start('default')
 
 	// combine the streams
-	streams.join(json, socketio)
+	return streams.join(json, socketio)
+		.pipe(streams.props({
+			avatar: function (d) { return d['profile_image_url'] },
+			media: function (d) { return d['media_url'] },
+			author: function (d) { return d.name },
+			authorLink: '#'
+		}))
 		// instead of passing each object 1 by 1, put them in an array so we can sort them
 		.pipe(streams.collect({
 			sort: 'time',
@@ -16791,6 +16753,7 @@ var core = require('./core')
 
 // collects chunks into an array for sorting/manipulating sets of data
 exports.collect = function (opts) {
+	opts = opts || {}
 	var transforms = opts.transforms || []
 	var size = opts.size || 9
 	var max = opts.max || size
@@ -16913,7 +16876,7 @@ exports.filter = function (fn) {
 // renames/calculates property values on the chunk
 exports.props = exports.map = function (map) {
 	return core.transform(function (chunk) {
-		map.forEach(function (value) {
+		_.forEach(map, function (value, name) {
 			if (_.isFunction(value))
 				value = value(chunk)
 			chunk[name] = value
@@ -16948,29 +16911,33 @@ var _ = require('lodash')
 var d3 = require('d3')
 var core = require('../core')
 var utils = require('../utils')
-
-/* global htmlTemplates */
-var template = _.template(htmlTemplates['tiles/tiles.html'], null, {
-	imports: utils
-})
+var html = "<div id=\"tile-<%=id%>\" layout vertical class=\"tile -transition -<%=type%><% if (avatar) { %> -avatar<% } %><% if (media) { %> -media<% } %><% if (expanded) { %> -expanded<% } %>\">\n\t<header class=\"-transition\" center layout horizontal full-width>\n\t\t<% if (avatar) { %>\n\t\t\t<a href=\"#/<%=id%>\" class=\"tile-avatar poster\">\n\t\t\t\t<img src=\"<%=avatar%>\">\n\t\t\t</a>\n\t\t<% } %>\n\t\t<div class=\"tile-title\" flex center pad-height pad-width-double>\n\t\t\t<h3 class=\"tile-author ellipsis\">\n\t\t\t\t<a href=\"<%=authorLink%>\"><%=author%></a>\n\t\t\t</h3>\n\t\t\t<time is=\"relative-time\" datetime=\"<%=time%>\" class=\"muted-inverse\">\n\t\t\t\t<%=time%>\n\t\t\t</time>\n\t\t</div>\n\t\t<span class=\"icon icon-<%=type%>\" pad-width-double></span>\n\t</header>\n\t<div class=\"tile-bottom\" flex vertical layout>\n\t\t<div class=\"tile-content\" flex pad-double>\n\t\t\t<% if (media) { %>\n\t\t\t\t<div class=\"tile-media poster\" fit>\n\t\t\t\t\t<img src=\"<%=media%>\">\n\t\t\t\t</div>\n\t\t\t<% } %>\n\t\t\t<span class=\"tile-text -transition<% if (media) { %> marquee -paused<% } %>\" block>\n\t\t\t\t<%=linkify(text)%>\n\t\t\t</span>\n\t\t</div>\n\n\t\t<footer class=\"-transition type-small height-larger\"\n\t\t\t<% if (media) { %>pad-width-double<% } else { %>space-width-double<% } %>\n\t\t\tlayout horizontal justified pad-height-half>\n\t\t\t<a href=\"<%=link%>\" target=\"_blank\">\n\t\t\t\tView on <%=mediaTypeName(type)%>\n\t\t\t\t<span class=\"icon icon-external icon-mini\"></span>\n\t\t\t</a>\n\t\t\t<a href=\"#\" target=\"_blank\">\n\t\t\t\tShare\n\t\t\t\t<span class=\"icon icon-share icon-mini\"></span>\n\t\t\t</a>\n\t\t</footer>\n\t</div>\n</div>\n"
+var template = _.template(html, null, {imports: utils})
 
 var defaults = {
 	type: '',
-	'profile_image_url': '',
-	'media_url': '',
+	author: '',
+	authorLink: '',
+	link: '',
+	media: '',
 	source: '',
 	text: '',
-	time: new Date()
+	time: new Date(),
+	wide: false,
+	expanded: false,
+	avatar: false
 }
 
 module.exports = function (opts) {
 	var selector = _.isPlainObject(opts) ? opts.selector : opts
 	// var animSpeed = opts.hasOwnProperty('animSpeed') ? opts.animSpeed : 0
 
-	var numCols = opts.numCols || 3
+	var numCols = opts.numCols || opts.columns || 3
 	var data = d3.range(numCols).map(function () { return [] })
 
 	var elMain = d3.select(selector)
+		.attr('layout', true)
+		.attr('horizontal', true)
 
 	// var elCols = []
 	// for (var i=numCols; i--;)
@@ -16982,11 +16949,13 @@ module.exports = function (opts) {
 	function getID(d) { return d.id }
 	function getColID(d, i) { return d.length ? d[0].id : i }
 	function tileClicked() {
+		console.log('clicked', this)
 		var el = d3.select(this).select('.tile')
-		var isExpanded = el.classed('is-expanded')
+		var isExpanded = el.classed('-expanded')
 		if (!isExpanded)
-			elMain.selectAll('.tile').classed('is-expanded', false)
-		el.classed('is-expanded', !isExpanded)
+			elMain.selectAll('.tile')
+				.classed('-expanded', false)
+		el.classed('-expanded', !isExpanded)
 	}
 
 	var isInitialized = false
@@ -16996,6 +16965,8 @@ module.exports = function (opts) {
 
 		cols.enter().append('div')
 			.classed('col', true)
+			.attr('layout', true)
+			.attr('vertical', true)
 
 		var tile = cols
 			.selectAll('.tile-wrapper')
@@ -17004,7 +16975,10 @@ module.exports = function (opts) {
 		// tile.order()
 
 		var tileEnter = tile.enter().insert('div', ':first-child')
-			.attr('class', 'tile-wrapper')
+			.classed('tile-wrapper', true)
+			.attr('relative', true)
+			.attr('space-half', true)
+			.classed('-wide', function (d) { return d.wide })
 			.html(getHTML)
 			.on('click', tileClicked)
 
@@ -17050,6 +17024,8 @@ module.exports = function (opts) {
 
 	return stream
 }
+
+module.exports.template = template
 
 },{"../core":3,"../utils":13,"d3":1,"lodash":2}],13:[function(require,module,exports){
 'use strict';

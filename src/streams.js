@@ -6,6 +6,7 @@ var core = require('./core')
 
 // collects chunks into an array for sorting/manipulating sets of data
 exports.collect = function (opts) {
+	opts = opts || {}
 	var transforms = opts.transforms || []
 	var size = opts.size || 9
 	var max = opts.max || size
@@ -128,7 +129,7 @@ exports.filter = function (fn) {
 // renames/calculates property values on the chunk
 exports.props = exports.map = function (map) {
 	return core.transform(function (chunk) {
-		map.forEach(function (value) {
+		_.forEach(map, function (value, name) {
 			if (_.isFunction(value))
 				value = value(chunk)
 			chunk[name] = value
