@@ -16160,38 +16160,33 @@ JSONStream.prototype = Object.create(Source.prototype, {
 		value: function (path, params) {
 			if (this.interval)
 				clearInterval(this.interval)
-			if (params) {
+			this.path = path || this.path
+			this.params = params || this.params
+			if (this.params) {
 				var qs = []
-				for (var param in params)
-					if (params[param])
-						qs.push(param + '=' + encodeURIComponent(params[param]))
-				path += '?' + qs.join('&')
+				for (var param in this.params)
+					if (this.params[param])
+						qs.push(param + '=' + encodeURIComponent(this.params[param]))
+				this.path += '?' + qs.join('&')
 			}
-			this.fetch(path)
+			this.fetch(this.path)
 			this.interval = setInterval(function () {
-				return this.fetch(path)
+				return this.fetch(this.path)
 			}.bind(this), this.pollRate)
 			return this
 		}
 	},
 	fetch: {
 		value: function (path) {
-			this.lastPath = path
 			d3.json(this.host + '/' + path, function (error, json) {
 				this.push(json)
 			}.bind(this))
 			return this
 		}
 	},
-	pause: {
+	stop: {
 		value: function () {
 			clearInterval(this.interval)
-			return this
-		}
-	},
-	resume: {
-		value: function () {
-			this.start(this.lastPath)
 			return this
 		}
 	}
@@ -16207,7 +16202,7 @@ SocketIOStream.prototype = Object.create(Source.prototype, {
 	start: {
 		value: function (path) {
 			/* global io */
-			this.path = path
+			this.path = path || this.path
 			this.ws = io.connect(this.host)
 
 			var sock = this.ws.socket
@@ -16226,15 +16221,9 @@ SocketIOStream.prototype = Object.create(Source.prototype, {
 			return this
 		}
 	},
-	pause: {
+	stop: {
 		value: function () {
 			this.ws.disconnect()
-			return this
-		}
-	},
-	resume: {
-		value: function () {
-			this.start(this.path)
 			return this
 		}
 	}
@@ -16743,7 +16732,7 @@ exports.tiles = function (selector) {
 	var throttle = streams.throttle(1000)
 
 	// a permissive filter by default
-	var filter = nio.filter(function (d) { return true })
+	var filter = streams.filter(function () { return true })
 
 	// combine the streams
 	var stream = streams.join(
@@ -16765,17 +16754,36 @@ exports.tiles = function (selector) {
 		// send them to the tiles
 		.pipe(tiles(selector))
 
+	stream.isStopped = false
+
+	stream.start = function () {
+		if (!stream.isStopped) return
+		stream.isStopped = false
+		filter = streams.filter(function () { return true })
+		json.start()
+		socketio.start()
+	}
+
+	stream.stop = function () {
+		if (stream.isStopped) return
+		stream.isStopped = true
+		filter = streams.filter(function () { return false })
+		json.stop()
+		socketio.stop()
+	}
+
 	stream.filter = function (params) {
 		collect.clear()
 		stream.clear()
 		if (params) {
 			json.start('posts', params)
-			socketio.pause()
+			socketio.stop()
 		} else {
-			json.start('posts')
+			// reset
+			json.start('posts', {})
 			socketio.start('default')
 		}
-		// TODO: filter the socket.io posts
+		// TODO: filter the socket.io posts instead of pausing
 		//filter = nio.filter(function (d) { })
 	}
 

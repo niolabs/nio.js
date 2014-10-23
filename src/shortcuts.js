@@ -25,7 +25,7 @@ exports.tiles = function (selector) {
 	var throttle = streams.throttle(1000)
 
 	// a permissive filter by default
-	var filter = nio.filter(function (d) { return true })
+	var filter = streams.filter(function () { return true })
 
 	// combine the streams
 	var stream = streams.join(
@@ -47,17 +47,36 @@ exports.tiles = function (selector) {
 		// send them to the tiles
 		.pipe(tiles(selector))
 
+	stream.isStopped = false
+
+	stream.start = function () {
+		if (!stream.isStopped) return
+		stream.isStopped = false
+		filter = streams.filter(function () { return true })
+		json.start()
+		socketio.start()
+	}
+
+	stream.stop = function () {
+		if (stream.isStopped) return
+		stream.isStopped = true
+		filter = streams.filter(function () { return false })
+		json.stop()
+		socketio.stop()
+	}
+
 	stream.filter = function (params) {
 		collect.clear()
 		stream.clear()
 		if (params) {
 			json.start('posts', params)
-			socketio.pause()
+			socketio.stop()
 		} else {
-			json.start('posts')
+			// reset
+			json.start('posts', {})
 			socketio.start('default')
 		}
-		// TODO: filter the socket.io posts
+		// TODO: filter the socket.io posts instead of pausing
 		//filter = nio.filter(function (d) { })
 	}
 

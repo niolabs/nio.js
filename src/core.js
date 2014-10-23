@@ -154,38 +154,33 @@ JSONStream.prototype = Object.create(Source.prototype, {
 		value: function (path, params) {
 			if (this.interval)
 				clearInterval(this.interval)
-			if (params) {
+			this.path = path || this.path
+			this.params = params || this.params
+			if (this.params) {
 				var qs = []
-				for (var param in params)
-					if (params[param])
-						qs.push(param + '=' + encodeURIComponent(params[param]))
-				path += '?' + qs.join('&')
+				for (var param in this.params)
+					if (this.params[param])
+						qs.push(param + '=' + encodeURIComponent(this.params[param]))
+				this.path += '?' + qs.join('&')
 			}
-			this.fetch(path)
+			this.fetch(this.path)
 			this.interval = setInterval(function () {
-				return this.fetch(path)
+				return this.fetch(this.path)
 			}.bind(this), this.pollRate)
 			return this
 		}
 	},
 	fetch: {
 		value: function (path) {
-			this.lastPath = path
 			d3.json(this.host + '/' + path, function (error, json) {
 				this.push(json)
 			}.bind(this))
 			return this
 		}
 	},
-	pause: {
+	stop: {
 		value: function () {
 			clearInterval(this.interval)
-			return this
-		}
-	},
-	resume: {
-		value: function () {
-			this.start(this.lastPath)
 			return this
 		}
 	}
@@ -201,7 +196,7 @@ SocketIOStream.prototype = Object.create(Source.prototype, {
 	start: {
 		value: function (path) {
 			/* global io */
-			this.path = path
+			this.path = path || this.path
 			this.ws = io.connect(this.host)
 
 			var sock = this.ws.socket
@@ -220,15 +215,9 @@ SocketIOStream.prototype = Object.create(Source.prototype, {
 			return this
 		}
 	},
-	pause: {
+	stop: {
 		value: function () {
 			this.ws.disconnect()
-			return this
-		}
-	},
-	resume: {
-		value: function () {
-			this.start(this.path)
 			return this
 		}
 	}
