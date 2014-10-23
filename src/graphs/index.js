@@ -170,10 +170,17 @@ LineGraph.prototype = Object.create(Graph.prototype, {
 				})
 
 				if (autoScaleY && self.data.length) {
-					var extents = d3.extent(self.data[0].values, function (d) { return d.y })
+					var minValExtent = Number.MAX_VALUE,
+						maxValExtent = Number.MIN_VALUE
 
-					if (!isNaN(extents[0])) {
-						y.domain([extents[0] * (1 - autoScaleY), extents[1] * (1 + autoScaleY)])
+					for (var i=0; i<self.data.length; i++) {
+						var extents = d3.extent(self.data[i].values, function (d) { return d.y })
+						minValExtent = Math.min(extents[0], minValExtent)
+						maxValExtent = Math.max(extents[1], maxValExtent)
+					}
+
+					if (!isNaN(minValExtent)) {
+						y.domain([minValExtent * (1 - autoScaleY), maxValExtent * (1 + autoScaleY)])
 					}
 				}
 
