@@ -1,13 +1,16 @@
 <div id="tile-<%=id%>" layout vertical class="tile -transition -<%=type%><% if (avatar) { %> -avatar<% } %><% if (media) { %> -media<% } %><% if (expanded) { %> -expanded<% } %>">
 	<header class="-transition" center layout horizontal full-width>
 		<% if (avatar) { %>
-			<a href="#/<%=id%>" class="tile-avatar poster">
+			<a href="<%=authorLink%>" class="tile-avatar poster tile-author-link"
+				data-author="<%=author%>">
 				<img src="<%=avatar%>">
 			</a>
 		<% } %>
 		<div class="tile-title" flex center pad-height pad-width-double>
 			<h3 class="tile-author ellipsis">
-				<a href="<%=authorLink%>"><%=author%></a>
+				<a href="<%=authorLink%>" class="tile-author-link" data-author="<%=author%>">
+					<%=author%>
+				</a>
 			</h3>
 			<time is="relative-time" datetime="<%=time%>" class="muted-inverse">
 				<%=time%>

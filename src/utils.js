@@ -8,17 +8,22 @@ exports.linkify = function (text) {
 	// urls
 	text = text.replace(
 		/(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig,
-		'<a target=_blank href="$1">$1</a>'
+		'<a class="linkify-link" target=_blank href="$1">$1</a>'
 	)
 	// usernames
 	text = text.replace(
 		/(^|\s)@(\w+)/g,
-		'$1<a target=_blank href="http://twitter.com/$2">@$2</a>'
+		'$1<a class="linkify-username" data-username="$2" target=_blank href="http://twitter.com/$2">'
+		+ '@$2' +
+		'</a>'
 	)
 	// hashtags
 	text = text.replace(
 		/(^|\s)#(\w+)/g,
-		'$1<a target=_blank href="http://twitter.com/search?q=%23$2">#$2</a>')
+		'$1<a class="linkify-hashtag" data-hashtag="$2" target=_blank href="http://twitter.com/search?q=%23$2">'
+			+ '#$2' +
+		'</a>'
+	)
 	return text
 }
 

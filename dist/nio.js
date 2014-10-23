@@ -16949,7 +16949,7 @@ var _ = require('lodash')
 var d3 = require('d3')
 var core = require('../core')
 var utils = require('../utils')
-var html = "<div id=\"tile-<%=id%>\" layout vertical class=\"tile -transition -<%=type%><% if (avatar) { %> -avatar<% } %><% if (media) { %> -media<% } %><% if (expanded) { %> -expanded<% } %>\">\n\t<header class=\"-transition\" center layout horizontal full-width>\n\t\t<% if (avatar) { %>\n\t\t\t<a href=\"#/<%=id%>\" class=\"tile-avatar poster\">\n\t\t\t\t<img src=\"<%=avatar%>\">\n\t\t\t</a>\n\t\t<% } %>\n\t\t<div class=\"tile-title\" flex center pad-height pad-width-double>\n\t\t\t<h3 class=\"tile-author ellipsis\">\n\t\t\t\t<a href=\"<%=authorLink%>\"><%=author%></a>\n\t\t\t</h3>\n\t\t\t<time is=\"relative-time\" datetime=\"<%=time%>\" class=\"muted-inverse\">\n\t\t\t\t<%=time%>\n\t\t\t</time>\n\t\t</div>\n\t\t<span class=\"icon icon-<%=type%>\" pad-width-double></span>\n\t</header>\n\t<div class=\"tile-bottom\" flex vertical layout>\n\t\t<div class=\"tile-content\" flex pad-double>\n\t\t\t<% if (media) { %>\n\t\t\t\t<div class=\"tile-media poster\" fit>\n\t\t\t\t\t<img src=\"<%=media%>\">\n\t\t\t\t</div>\n\t\t\t<% } %>\n\t\t\t<span class=\"tile-text -transition<% if (media) { %> marquee -paused<% } %>\" block>\n\t\t\t\t<%=linkify(text)%>\n\t\t\t</span>\n\t\t</div>\n\n\t\t<footer class=\"-transition type-small height-larger\"\n\t\t\t<% if (media) { %>pad-width-double<% } else { %>space-width-double<% } %>\n\t\t\tlayout horizontal justified pad-height-half>\n\t\t\t<a href=\"<%=link%>\" target=\"_blank\">\n\t\t\t\tView on <%=mediaTypeName(type)%>\n\t\t\t\t<span class=\"icon icon-external icon-mini\"></span>\n\t\t\t</a>\n\t\t\t<a href=\"#\" target=\"_blank\">\n\t\t\t\tShare\n\t\t\t\t<span class=\"icon icon-share icon-mini\"></span>\n\t\t\t</a>\n\t\t</footer>\n\t</div>\n</div>\n"
+var html = "<div id=\"tile-<%=id%>\" layout vertical class=\"tile -transition -<%=type%><% if (avatar) { %> -avatar<% } %><% if (media) { %> -media<% } %><% if (expanded) { %> -expanded<% } %>\">\n\t<header class=\"-transition\" center layout horizontal full-width>\n\t\t<% if (avatar) { %>\n\t\t\t<a href=\"<%=authorLink%>\" class=\"tile-avatar poster tile-author-link\"\n\t\t\t\tdata-author=\"<%=author%>\">\n\t\t\t\t<img src=\"<%=avatar%>\">\n\t\t\t</a>\n\t\t<% } %>\n\t\t<div class=\"tile-title\" flex center pad-height pad-width-double>\n\t\t\t<h3 class=\"tile-author ellipsis\">\n\t\t\t\t<a href=\"<%=authorLink%>\" class=\"tile-author-link\" data-author=\"<%=author%>\">\n\t\t\t\t\t<%=author%>\n\t\t\t\t</a>\n\t\t\t</h3>\n\t\t\t<time is=\"relative-time\" datetime=\"<%=time%>\" class=\"muted-inverse\">\n\t\t\t\t<%=time%>\n\t\t\t</time>\n\t\t</div>\n\t\t<span class=\"icon icon-<%=type%>\" pad-width-double></span>\n\t</header>\n\t<div class=\"tile-bottom\" flex vertical layout>\n\t\t<div class=\"tile-content\" flex pad-double>\n\t\t\t<% if (media) { %>\n\t\t\t\t<div class=\"tile-media poster\" fit>\n\t\t\t\t\t<img src=\"<%=media%>\">\n\t\t\t\t</div>\n\t\t\t<% } %>\n\t\t\t<span class=\"tile-text -transition<% if (media) { %> marquee -paused<% } %>\" block>\n\t\t\t\t<%=linkify(text)%>\n\t\t\t</span>\n\t\t</div>\n\n\t\t<footer class=\"-transition type-small height-larger\"\n\t\t\t<% if (media) { %>pad-width-double<% } else { %>space-width-double<% } %>\n\t\t\tlayout horizontal justified pad-height-half>\n\t\t\t<a href=\"<%=link%>\" target=\"_blank\">\n\t\t\t\tView on <%=mediaTypeName(type)%>\n\t\t\t\t<span class=\"icon icon-external icon-mini\"></span>\n\t\t\t</a>\n\t\t\t<a href=\"#\" target=\"_blank\">\n\t\t\t\tShare\n\t\t\t\t<span class=\"icon icon-share icon-mini\"></span>\n\t\t\t</a>\n\t\t</footer>\n\t</div>\n</div>\n"
 var template = _.template(html, null, {imports: utils})
 
 var defaults = {
@@ -17075,17 +17075,22 @@ exports.linkify = function (text) {
 	// urls
 	text = text.replace(
 		/(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig,
-		'<a target=_blank href="$1">$1</a>'
+		'<a class="linkify-link" target=_blank href="$1">$1</a>'
 	)
 	// usernames
 	text = text.replace(
 		/(^|\s)@(\w+)/g,
-		'$1<a target=_blank href="http://twitter.com/$2">@$2</a>'
+		'$1<a class="linkify-username" data-username="$2" target=_blank href="http://twitter.com/$2">'
+		+ '@$2' +
+		'</a>'
 	)
 	// hashtags
 	text = text.replace(
 		/(^|\s)#(\w+)/g,
-		'$1<a target=_blank href="http://twitter.com/search?q=%23$2">#$2</a>')
+		'$1<a class="linkify-hashtag" data-hashtag="$2" target=_blank href="http://twitter.com/search?q=%23$2">'
+			+ '#$2' +
+		'</a>'
+	)
 	return text
 }
 
