@@ -16707,26 +16707,20 @@ ServiceStatus.prototype = Object.create(nio.API.prototype, {})
 },{"./api":6}],10:[function(require,module,exports){
 'use strict';
 
+var _ = require('lodash')
 var core = require('./core')
 var tiles = require('./tiles')
 var streams = require('./streams')
 
-exports.tiles = function (selector) {
-	// TODO: make this more customizable
+exports.tiles = function (opts) {
 	var json = core.json('http://54.85.159.254')
-		// start polling the /posts URL
-		.start('posts')
-
-	// connect to a socketio server
 	var socketio = core.socketio('http://54.85.159.254:443')
-		// join the "default" room
-		.start('default')
 
 	var collect = streams.collect({
-		sort: 'time',
+		sort: opts.sort || 'time',
 		dupes: 'id',
-		min: 9,
-		max: 9
+		min: opts.min || 0,
+		max: opts.max || 9
 	})
 
 	var throttle = streams.throttle(1000)
@@ -16752,7 +16746,7 @@ exports.tiles = function (selector) {
 		.pipe(throttle)
 		.pipe(filter)
 		// send them to the tiles
-		.pipe(tiles(selector))
+		.pipe(tiles(opts))
 
 	stream.isStopped = false
 
@@ -16773,9 +16767,10 @@ exports.tiles = function (selector) {
 	}
 
 	stream.filter = function (params) {
+		console.log(params)
 		collect.clear()
 		stream.clear()
-		if (params) {
+		if (params && _.keys(params).length) {
 			json.start('posts', params)
 			socketio.stop()
 		} else {
@@ -16787,10 +16782,12 @@ exports.tiles = function (selector) {
 		//filter = nio.filter(function (d) { })
 	}
 
+	stream.filter(opts.params)
+
 	return stream
 }
 
-},{"./core":3,"./streams":11,"./tiles":12}],11:[function(require,module,exports){
+},{"./core":3,"./streams":11,"./tiles":12,"lodash":2}],11:[function(require,module,exports){
 'use strict';
 
 var _ = require('lodash')
