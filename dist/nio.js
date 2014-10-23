@@ -16957,7 +16957,7 @@ var _ = require('lodash')
 var d3 = require('d3')
 var core = require('../core')
 var utils = require('../utils')
-var html = "<div id=\"tile-<%=id%>\" layout vertical class=\"tile -transition -<%=type%><% if (avatar) { %> -avatar<% } %><% if (media) { %> -media<% } %><% if (expanded) { %> -expanded<% } %>\">\n\t<header class=\"-transition\" center layout horizontal full-width>\n\t\t<% if (avatar) { %>\n\t\t\t<a href=\"<%=authorLink%>\" class=\"tile-avatar poster tile-author-link\"\n\t\t\t\tdata-author=\"<%=author%>\">\n\t\t\t\t<img src=\"<%=avatar%>\">\n\t\t\t</a>\n\t\t<% } %>\n\t\t<div class=\"tile-title\" flex center pad-height pad-width-double>\n\t\t\t<h3 class=\"tile-author ellipsis\">\n\t\t\t\t<a href=\"<%=authorLink%>\" class=\"tile-author-link\" data-author=\"<%=author%>\">\n\t\t\t\t\t<%=author%>\n\t\t\t\t</a>\n\t\t\t</h3>\n\t\t\t<time is=\"relative-time\" datetime=\"<%=time%>\" class=\"muted-inverse\">\n\t\t\t\t<%=time%>\n\t\t\t</time>\n\t\t</div>\n\t\t<span class=\"icon icon-<%=type%>\" pad-width-double></span>\n\t</header>\n\t<div class=\"tile-bottom\" flex vertical layout>\n\t\t<div class=\"tile-content\" flex pad-double>\n\t\t\t<% if (media) { %>\n\t\t\t\t<div class=\"tile-media poster\" fit>\n\t\t\t\t\t<img src=\"<%=media%>\">\n\t\t\t\t</div>\n\t\t\t<% } %>\n\t\t\t<span class=\"tile-text -transition<% if (media) { %> marquee -paused<% } %>\" block>\n\t\t\t\t<%=linkify(text)%>\n\t\t\t</span>\n\t\t</div>\n\n\t\t<footer class=\"-transition type-small height-larger\"\n\t\t\t<% if (media) { %>pad-width-double<% } else { %>space-width-double<% } %>\n\t\t\tlayout horizontal justified pad-height-half>\n\t\t\t<a href=\"<%=link%>\" target=\"_blank\">\n\t\t\t\tView on <%=mediaTypeName(type)%>\n\t\t\t\t<span class=\"icon icon-external icon-mini\"></span>\n\t\t\t</a>\n\t\t\t<a href=\"#\" target=\"_blank\">\n\t\t\t\tShare\n\t\t\t\t<span class=\"icon icon-share icon-mini\"></span>\n\t\t\t</a>\n\t\t</footer>\n\t</div>\n</div>\n"
+var html = "<div id=\"tile-<%=id%>\" layout vertical class=\"tile -transition -<%=type%><% if (avatar) { %> -avatar<% } %><% if (media) { %> -media<% } %><% if (expanded) { %> -expanded<% } %>\">\n\t<header class=\"-transition\" center layout horizontal full-width>\n\t\t<% if (avatar) { %>\n\t\t\t<a href=\"<%=authorLink%>\" class=\"tile-avatar poster tile-author-link\"\n\t\t\t\tdata-author=\"<%=author%>\">\n\t\t\t\t<img src=\"<%=avatar%>\">\n\t\t\t</a>\n\t\t<% } %>\n\t\t<div class=\"tile-title\" flex center pad-height pad-width-double>\n\t\t\t<h3 class=\"tile-author ellipsis\">\n\t\t\t\t<a href=\"<%=authorLink%>\" class=\"tile-author-link\" data-author=\"<%=author%>\">\n\t\t\t\t\t<%=author%>\n\t\t\t\t</a>\n\t\t\t</h3>\n\t\t\t<time is=\"relative-time\" datetime=\"<%=time%>\" class=\"muted-inverse\">\n\t\t\t\t<%=time%>\n\t\t\t</time>\n\t\t</div>\n\t\t<span class=\"icon icon-<%=type%>\" pad-width-double></span>\n\t</header>\n\t<div class=\"tile-bottom\" flex vertical layout>\n\t\t<div class=\"tile-content\" flex pad-double>\n\t\t\t<% if (media) { %>\n\t\t\t\t<div class=\"tile-media poster\" fit>\n\t\t\t\t\t<img src=\"<%=media%>\" alt=\"<%=text%>\">\n\t\t\t\t</div>\n\t\t\t<% } %>\n\t\t\t<span class=\"tile-text -transition<% if (media) { %> marquee -paused<% } %>\" block>\n\t\t\t\t<%=linkify(text)%>\n\t\t\t</span>\n\t\t</div>\n\n\t\t<footer class=\"-transition type-small height-larger\"\n\t\t\t<% if (media) { %>pad-width-double<% } else { %>space-width-double<% } %>\n\t\t\tlayout horizontal justified pad-height-half>\n\t\t\t<a href=\"<%=link%>\" target=\"_blank\">\n\t\t\t\tView on <%=mediaTypeName(type)%>\n\t\t\t\t<span class=\"icon icon-external icon-mini\"></span>\n\t\t\t</a>\n\t\t\t<a href=\"#\" target=\"_blank\">\n\t\t\t\tShare\n\t\t\t\t<span class=\"icon icon-share icon-mini\"></span>\n\t\t\t</a>\n\t\t</footer>\n\t</div>\n</div>\n"
 var template = _.template(html, null, {imports: utils})
 
 var defaults = {
@@ -16994,12 +16994,28 @@ module.exports = function (opts) {
 	function getHTML(d) { return template(d) }
 	function getID(d) { return d.id }
 	function getColID(d, i) { return d.length ? d[0].id : i }
-	function tileClicked() {
+	function tileClicked(d) {
 		var el = d3.select(this).select('.tile')
 		var isExpanded = el.classed('-expanded')
-		if (!isExpanded)
-			elMain.selectAll('.tile')
-				.classed('-expanded', false)
+		if (!isExpanded) {
+			elMain.selectAll('.tile').classed('-expanded', false)
+			elMain.selectAll('iframe').remove()
+			// embed youtube player on expand
+			if (d.type === 'youtube') {
+				el.select('.tile-media')
+					.append('iframe')
+					.attr({
+						src: 'https://www.youtube.com/embed/' + d.id + '?autoplay=1',
+						frameborder: 0,
+						allowfullscreen: true,
+						fit: true,
+						full: true,
+						block: true
+					})
+			}
+		} else if (d.type === 'youtube') {
+			el.select('iframe').remove()
+		}
 		el.classed('-expanded', !isExpanded)
 	}
 

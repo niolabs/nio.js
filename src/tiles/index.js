@@ -43,12 +43,28 @@ module.exports = function (opts) {
 	function getHTML(d) { return template(d) }
 	function getID(d) { return d.id }
 	function getColID(d, i) { return d.length ? d[0].id : i }
-	function tileClicked() {
+	function tileClicked(d) {
 		var el = d3.select(this).select('.tile')
 		var isExpanded = el.classed('-expanded')
-		if (!isExpanded)
-			elMain.selectAll('.tile')
-				.classed('-expanded', false)
+		if (!isExpanded) {
+			elMain.selectAll('.tile').classed('-expanded', false)
+			elMain.selectAll('iframe').remove()
+			// embed youtube player on expand
+			if (d.type === 'youtube') {
+				el.select('.tile-media')
+					.append('iframe')
+					.attr({
+						src: 'https://www.youtube.com/embed/' + d.id + '?autoplay=1',
+						frameborder: 0,
+						allowfullscreen: true,
+						fit: true,
+						full: true,
+						block: true
+					})
+			}
+		} else if (d.type === 'youtube') {
+			el.select('iframe').remove()
+		}
 		el.classed('-expanded', !isExpanded)
 	}
 

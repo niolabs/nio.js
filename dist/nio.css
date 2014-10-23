@@ -1239,6 +1239,12 @@ svg {
   -ms-filter: none;
   filter: none;
 }
+.-youtube.-expanded header,
+.-youtube.-expanded footer,
+.-youtube.-expanded .tile-media img,
+.-youtube.-expanded .tile-text {
+  display: none !important;
+}
 .on-expand {
   opacity: 0;
   -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=0)";
