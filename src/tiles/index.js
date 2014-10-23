@@ -44,7 +44,6 @@ module.exports = function (opts) {
 	function getID(d) { return d.id }
 	function getColID(d, i) { return d.length ? d[0].id : i }
 	function tileClicked() {
-		console.log('clicked', this)
 		var el = d3.select(this).select('.tile')
 		var isExpanded = el.classed('-expanded')
 		if (!isExpanded)

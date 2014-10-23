@@ -70,9 +70,9 @@ function Readable(fn) {
 }
 Readable.prototype = Object.create(EventEmitter.prototype, {
 	push: {
-		value: function (chunk) { 
+		value: function (chunk) {
 			if (typeof chunk !== 'undefined') {
-				this.emit('data', chunk) 
+				this.emit('data', chunk)
 			}
 		}
 	},
@@ -152,6 +152,8 @@ function JSONStream(host, pollRate) {
 JSONStream.prototype = Object.create(Source.prototype, {
 	start: {
 		value: function (path, params) {
+			if (this.interval)
+				clearInterval(this.interval)
 			if (params) {
 				var qs = []
 				for (var param in params)
@@ -169,7 +171,6 @@ JSONStream.prototype = Object.create(Source.prototype, {
 	fetch: {
 		value: function (path) {
 			this.lastPath = path
-			console.log(path)
 			d3.json(this.host + '/' + path, function (error, json) {
 				this.push(json)
 			}.bind(this))
@@ -178,7 +179,7 @@ JSONStream.prototype = Object.create(Source.prototype, {
 	},
 	pause: {
 		value: function () {
-			clearTimeout(this.interval)
+			clearInterval(this.interval)
 			return this
 		}
 	},

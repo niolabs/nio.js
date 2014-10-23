@@ -16076,9 +16076,9 @@ function Readable(fn) {
 }
 Readable.prototype = Object.create(EventEmitter.prototype, {
 	push: {
-		value: function (chunk) { 
+		value: function (chunk) {
 			if (typeof chunk !== 'undefined') {
-				this.emit('data', chunk) 
+				this.emit('data', chunk)
 			}
 		}
 	},
@@ -16158,6 +16158,8 @@ function JSONStream(host, pollRate) {
 JSONStream.prototype = Object.create(Source.prototype, {
 	start: {
 		value: function (path, params) {
+			if (this.interval)
+				clearInterval(this.interval)
 			if (params) {
 				var qs = []
 				for (var param in params)
@@ -16175,7 +16177,6 @@ JSONStream.prototype = Object.create(Source.prototype, {
 	fetch: {
 		value: function (path) {
 			this.lastPath = path
-			console.log(path)
 			d3.json(this.host + '/' + path, function (error, json) {
 				this.push(json)
 			}.bind(this))
@@ -16184,7 +16185,7 @@ JSONStream.prototype = Object.create(Source.prototype, {
 	},
 	pause: {
 		value: function () {
-			clearTimeout(this.interval)
+			clearInterval(this.interval)
 			return this
 		}
 	},
@@ -16726,33 +16727,59 @@ exports.tiles = function (selector) {
 	var json = core.json('http://54.85.159.254')
 		// start polling the /posts URL
 		.start('posts')
-		// pick out the "posts" attribute of the returned JSON
-		.pipe(streams.pick('posts'))
 
 	// connect to a socketio server
 	var socketio = core.socketio('http://54.85.159.254:443')
 		// join the "default" room
 		.start('default')
 
+	var collect = streams.collect({
+		sort: 'time',
+		dupes: 'id',
+		min: 9,
+		max: 9
+	})
+
+	var throttle = streams.throttle(1000)
+
+	// a permissive filter by default
+	var filter = nio.filter(function (d) { return true })
+
 	// combine the streams
-	return streams.join(json, socketio)
+	var stream = streams.join(
+			// pick out the "posts" attribute of the returned JSON
+			json.pipe(streams.pick('posts')),
+			socketio
+		)
 		.pipe(streams.props({
-			avatar: function (d) { return d['profile_image_url'] },
-			media: function (d) { return d['media_url'] },
+			avatar: function (d) { return d.profile_image_url },
+			media: function (d) { return d.media_url },
 			author: function (d) { return d.name },
 			authorLink: '#'
 		}))
 		// instead of passing each object 1 by 1, put them in an array so we can sort them
-		.pipe(streams.collect({
-			sort: 'time',
-			dupes: 'id',
-			min: 9,
-			max: 9
-		}))
+		.pipe(collect)
 		// only update tiles once every second
-		.pipe(streams.throttle(1000))
+		.pipe(throttle)
+		.pipe(filter)
 		// send them to the tiles
 		.pipe(tiles(selector))
+
+	stream.filter = function (params) {
+		collect.clear()
+		stream.clear()
+		if (params) {
+			json.start('posts', params)
+			socketio.pause()
+		} else {
+			json.start('posts')
+			socketio.start('default')
+		}
+		// TODO: filter the socket.io posts
+		//filter = nio.filter(function (d) { })
+	}
+
+	return stream
 }
 
 },{"./core":3,"./streams":11,"./tiles":12}],11:[function(require,module,exports){
@@ -16960,7 +16987,6 @@ module.exports = function (opts) {
 	function getID(d) { return d.id }
 	function getColID(d, i) { return d.length ? d[0].id : i }
 	function tileClicked() {
-		console.log('clicked', this)
 		var el = d3.select(this).select('.tile')
 		var isExpanded = el.classed('-expanded')
 		if (!isExpanded)
