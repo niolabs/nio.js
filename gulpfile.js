@@ -51,7 +51,7 @@ gulp.task('dist/nio.css', function() {
 			use: nib(),
 			paths: [
 				'src',
-				'node_modules/nio-styl'
+				'node_modules/nio.css'
 			]
 		}))
 		.pipe($.base64({baseDir: 'src/icons'}))
