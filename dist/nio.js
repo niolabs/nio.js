@@ -16008,6 +16008,7 @@
 
 var _ = require('lodash')
 var d3 = require('d3')
+var utils = require('./utils')
 
 // base streams
 exports.passthrough = function (fn) {
@@ -16202,6 +16203,11 @@ SocketIOStream.prototype = Object.create(Source.prototype, {
 	start: {
 		value: function (path) {
 			/* global io */
+			if (!window.io) {
+				var s = utils.loadScript(this.host + '/socket.io/socket.io.js')
+				s.onload = function () { this.start(path) }.bind(this)
+				return this
+			}
 			this.path = path || this.path
 			this.ws = io.connect(this.host)
 
@@ -16258,7 +16264,7 @@ GeneratorStream.prototype = Object.create(Source.prototype, {
 })
 exports.GeneratorStream = GeneratorStream
 
-},{"d3":1,"lodash":2}],4:[function(require,module,exports){
+},{"./utils":13,"d3":1,"lodash":2}],4:[function(require,module,exports){
 'use strict';
 
 var _ = require('lodash')
@@ -17150,6 +17156,13 @@ exports.cycle = function (value) {
 		var target = value[current]
 		return _.isFunction(target) ? target() : target
 	}
+}
+
+exports.loadScript = function (url) {
+		var script = document.createElement('script')
+		script.src = url
+		document.body.appendChild(script)
+		return script
 }
 
 },{"d3":1,"lodash":2}]},{},[4])

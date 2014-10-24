@@ -59,3 +59,10 @@ exports.cycle = function (value) {
 		return _.isFunction(target) ? target() : target
 	}
 }
+
+exports.loadScript = function (url) {
+		var script = document.createElement('script')
+		script.src = url
+		document.body.appendChild(script)
+		return script
+}
