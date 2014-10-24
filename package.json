@@ -4,9 +4,9 @@
   "description": "nio",
   "main": "src/nio.js",
   "dependencies": {
-    "lodash": "^2.4.1",
+    "brfs": "^1.2.0",
     "d3": "^3.4.13",
-    "brfs": "^1.2.0"
+    "lodash": "^2.4.1"
   },
   "devDependencies": {
     "browserify": "^5.11.2",

@@ -1,5 +1,8 @@
 'use strict';
 
+//require('../vendor/CustomElements')
+//require('../vendor/time-elements')
+
 var _ = require('lodash')
 var d3 = require('d3')
 var core = require('../core')
