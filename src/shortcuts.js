@@ -9,11 +9,16 @@ exports.tiles = function (opts) {
 	var json = core.json('http://54.85.159.254')
 	var socketio = core.socketio('http://54.85.159.254:443')
 
+	var max = opts.max
+	if (!max && opts.columns && opts.rows)
+		max = opts.columns * opts.rows
+
+
 	var collect = streams.collect({
 		sort: opts.sort || 'time',
 		dupes: 'id',
 		min: opts.min || 0,
-		max: opts.max || 9
+		max: max || 9
 	})
 
 	var throttle = streams.throttle(1000)
