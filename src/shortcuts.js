@@ -64,7 +64,9 @@ exports.tiles = function (opts) {
 		stream.clear()
 		if (params && _.keys(params).length) {
 			json.start('posts', params)
-			socketio.stop()
+			if (socketio.ws && socketio.ws.socket.connected) {
+				socketio.stop()
+			}
 		} else {
 			// reset
 			json.start('posts', {})
