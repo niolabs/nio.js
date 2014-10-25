@@ -13,15 +13,12 @@ exports.tiles = function (opts) {
 	if (!max && opts.columns && opts.rows)
 		max = opts.columns * opts.rows
 
-
-	var collect = streams.collect({
-		sort: opts.sort || 'time',
+	var collect = streams.collect(_.defaults(opts, {
+		sort: 'time',
 		dupes: 'id',
-		min: opts.min || 0,
+		min: 0,
 		max: max || 9
-	})
-
-	var throttle = streams.throttle(1000)
+	}))
 
 	// a permissive filter by default
 	var filter = streams.filter(function () { return true })
@@ -41,7 +38,7 @@ exports.tiles = function (opts) {
 		// instead of passing each object 1 by 1, put them in an array so we can sort them
 		.pipe(collect)
 		// only update tiles once every second
-		.pipe(throttle)
+		.pipe(streams.throttle(1000))
 		.pipe(filter)
 		// send them to the tiles
 		.pipe(tiles(opts))

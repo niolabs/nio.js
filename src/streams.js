@@ -6,11 +6,13 @@ var core = require('./core')
 
 // collects chunks into an array for sorting/manipulating sets of data
 exports.collect = function (opts) {
+	console.log(opts)
 	opts = opts || {}
 	var transforms = opts.transforms || []
 	var size = opts.size || 9
 	var max = opts.max || size
 	var min = opts.min || 0
+	var maxWait = _.isUndefined(opts.maxWait) ? 2000 : opts.maxWait
 
 	var getID = opts.dupes || false
 	if (getID) {
@@ -54,9 +56,27 @@ exports.collect = function (opts) {
 			data = data.slice(0, max)
 		if (min && data.length < min)
 			return
+		if (this.waiting) {
+			if (data.length == max) {
+				this.waiting = false
+			} else {
+				this.lastData = data
+				return
+			}
+		}
 
 		this.push(data)
 	})
+
+	stream.waiting = false
+	if (!_.isUndefined(maxWait) && maxWait > 0) {
+		console.log('maxWait defined', maxWait)
+		stream.waiting = true
+		setTimeout(function () {
+			stream.waiting = false
+			stream.push(stream.lastData)
+		}, maxWait)
+	}
 
 	stream.sort = function (value) {
 		if (!value) return sortBy
@@ -140,10 +160,13 @@ exports.props = exports.map = function (map) {
 
 // delays sending chunks down the pipe
 exports.throttle = function (delay) {
-	var throttled = _.throttle(function (chunk) {
-		this.push(chunk)
-	}, delay)
+	var throttled = _.throttle(function (chunk) {this.push(chunk)}, delay)
 	return core.transform(throttled)
+}
+
+exports.debounce = function (delay) {
+	var debounced = _.debounce(function (chunk) {this.push(chunk)}, delay)
+	return core.transform(debounced)
 }
 
 // outputs the chunk to an element

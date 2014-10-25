@@ -16,7 +16,11 @@
 				<%=time%>
 			</time>
 		</div>
-		<span class="icon icon-<%=type%>" pad-width-double></span>
+		<span pad-width-double class=muted-inverse>
+			<svg class="icon icon-large">
+				<use xlink:href="#<%=type%>-square"></use>
+			</svg>
+		</span>
 	</header>
 	<div class="tile-bottom" flex vertical layout>
 		<div class="tile-content" flex pad-double>
@@ -35,11 +39,11 @@
 			layout horizontal justified pad-height-half>
 			<a href="<%=link%>" target="_blank">
 				View on <%=mediaTypeName(type)%>
-				<span class="icon icon-external icon-mini"></span>
+				<svg class="icon icon-small muted"><use xlink:href="#open-in-new"></use></svg>
 			</a>
 			<a href="#" target="_blank">
 				Share
-				<span class="icon icon-share icon-mini"></span>
+				<svg class="icon icon-small muted"><use xlink:href="#share"></use></svg>
 			</a>
 		</footer>
 	</div>
