@@ -6,7 +6,6 @@ var core = require('./core')
 
 // collects chunks into an array for sorting/manipulating sets of data
 exports.collect = function (opts) {
-	console.log(opts)
 	opts = opts || {}
 	var transforms = opts.transforms || []
 	var size = opts.size || 9
@@ -68,16 +67,6 @@ exports.collect = function (opts) {
 		this.push(data)
 	})
 
-	stream.waiting = false
-	if (!_.isUndefined(maxWait) && maxWait > 0) {
-		console.log('maxWait defined', maxWait)
-		stream.waiting = true
-		setTimeout(function () {
-			stream.waiting = false
-			stream.push(stream.lastData)
-		}, maxWait)
-	}
-
 	stream.sort = function (value) {
 		if (!value) return sortBy
 		sortBy = value
@@ -92,8 +81,18 @@ exports.collect = function (opts) {
 
 	stream.clear = function () {
 		data = []
+		stream.waiting = false
+		if (!_.isUndefined(maxWait) && maxWait > 0) {
+			stream.waiting = true
+			setTimeout(function () {
+				stream.waiting = false
+				stream.push(stream.lastData)
+			}, maxWait)
+		}
 		return this
 	}
+
+	stream.clear()
 
 	return stream
 }

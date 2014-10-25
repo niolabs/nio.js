@@ -16722,14 +16722,16 @@ exports.tiles = function (opts) {
 	var json = core.json('http://54.85.159.254')
 	var socketio = core.socketio('http://54.85.159.254:443')
 
-	var collect = streams.collect({
-		sort: opts.sort || 'time',
-		dupes: 'id',
-		min: opts.min || 0,
-		max: opts.max || 9
-	})
+	var max = opts.max
+	if (!max && opts.columns && opts.rows)
+		max = opts.columns * opts.rows
 
-	var throttle = streams.throttle(1000)
+	var collect = streams.collect(_.defaults(opts, {
+		sort: 'time',
+		dupes: 'id',
+		min: 0,
+		max: max || 9
+	}))
 
 	// a permissive filter by default
 	var filter = streams.filter(function () { return true })
@@ -16749,7 +16751,7 @@ exports.tiles = function (opts) {
 		// instead of passing each object 1 by 1, put them in an array so we can sort them
 		.pipe(collect)
 		// only update tiles once every second
-		.pipe(throttle)
+		.pipe(streams.throttle(1000))
 		.pipe(filter)
 		// send them to the tiles
 		.pipe(tiles(opts))
@@ -16808,6 +16810,7 @@ exports.collect = function (opts) {
 	var size = opts.size || 9
 	var max = opts.max || size
 	var min = opts.min || 0
+	var maxWait = _.isUndefined(opts.maxWait) ? 2000 : opts.maxWait
 
 	var getID = opts.dupes || false
 	if (getID) {
@@ -16851,6 +16854,14 @@ exports.collect = function (opts) {
 			data = data.slice(0, max)
 		if (min && data.length < min)
 			return
+		if (this.waiting) {
+			if (data.length == max) {
+				this.waiting = false
+			} else {
+				this.lastData = data
+				return
+			}
+		}
 
 		this.push(data)
 	})
@@ -16869,8 +16880,18 @@ exports.collect = function (opts) {
 
 	stream.clear = function () {
 		data = []
+		stream.waiting = false
+		if (!_.isUndefined(maxWait) && maxWait > 0) {
+			stream.waiting = true
+			setTimeout(function () {
+				stream.waiting = false
+				stream.push(stream.lastData)
+			}, maxWait)
+		}
 		return this
 	}
+
+	stream.clear()
 
 	return stream
 }
@@ -16937,10 +16958,13 @@ exports.props = exports.map = function (map) {
 
 // delays sending chunks down the pipe
 exports.throttle = function (delay) {
-	var throttled = _.throttle(function (chunk) {
-		this.push(chunk)
-	}, delay)
+	var throttled = _.throttle(function (chunk) {this.push(chunk)}, delay)
 	return core.transform(throttled)
+}
+
+exports.debounce = function (delay) {
+	var debounced = _.debounce(function (chunk) {this.push(chunk)}, delay)
+	return core.transform(debounced)
 }
 
 // outputs the chunk to an element
@@ -16964,7 +16988,7 @@ var _ = require('lodash')
 var d3 = require('d3')
 var core = require('../core')
 var utils = require('../utils')
-var html = "<div id=\"tile-<%=id%>\" layout vertical class=\"tile -transition -<%=type%><% if (avatar) { %> -avatar<% } %><% if (media) { %> -media<% } %><% if (expanded) { %> -expanded<% } %>\">\n\t<header class=\"-transition\" center layout horizontal full-width>\n\t\t<% if (avatar) { %>\n\t\t\t<a href=\"<%=authorLink%>\" class=\"tile-avatar poster tile-author-link\"\n\t\t\t\tdata-author=\"<%=author%>\">\n\t\t\t\t<img src=\"<%=avatar%>\">\n\t\t\t</a>\n\t\t<% } %>\n\t\t<div class=\"tile-title\" flex center pad-height pad-width-double>\n\t\t\t<h3 class=\"tile-author ellipsis\">\n\t\t\t\t<a href=\"<%=authorLink%>\" class=\"tile-author-link\" data-author=\"<%=author%>\">\n\t\t\t\t\t<%=author%>\n\t\t\t\t</a>\n\t\t\t</h3>\n\t\t\t<time is=\"relative-time\" datetime=\"<%=time%>\" class=\"muted-inverse\">\n\t\t\t\t<%=time%>\n\t\t\t</time>\n\t\t</div>\n\t\t<span class=\"icon icon-<%=type%>\" pad-width-double></span>\n\t</header>\n\t<div class=\"tile-bottom\" flex vertical layout>\n\t\t<div class=\"tile-content\" flex pad-double>\n\t\t\t<% if (media) { %>\n\t\t\t\t<div class=\"tile-media poster\" fit>\n\t\t\t\t\t<img src=\"<%=media%>\" alt=\"<%=text%>\">\n\t\t\t\t</div>\n\t\t\t<% } %>\n\t\t\t<span class=\"tile-text -transition<% if (media) { %> marquee -paused<% } %>\" block>\n\t\t\t\t<%=linkify(text)%>\n\t\t\t</span>\n\t\t</div>\n\n\t\t<footer class=\"-transition type-small height-larger\"\n\t\t\t<% if (media) { %>pad-width-double<% } else { %>space-width-double<% } %>\n\t\t\tlayout horizontal justified pad-height-half>\n\t\t\t<a href=\"<%=link%>\" target=\"_blank\">\n\t\t\t\tView on <%=mediaTypeName(type)%>\n\t\t\t\t<span class=\"icon icon-external icon-mini\"></span>\n\t\t\t</a>\n\t\t\t<a href=\"#\" target=\"_blank\">\n\t\t\t\tShare\n\t\t\t\t<span class=\"icon icon-share icon-mini\"></span>\n\t\t\t</a>\n\t\t</footer>\n\t</div>\n</div>\n"
+var html = "<div id=\"tile-<%=id%>\" layout vertical class=\"tile -transition -<%=type%><% if (avatar) { %> -avatar<% } %><% if (media) { %> -media<% } %><% if (expanded) { %> -expanded<% } %>\">\n\t<header class=\"-transition\" center layout horizontal full-width>\n\t\t<% if (avatar) { %>\n\t\t\t<a href=\"<%=authorLink%>\" class=\"tile-avatar poster tile-author-link\"\n\t\t\t\tdata-author=\"<%=author%>\">\n\t\t\t\t<img src=\"<%=avatar%>\">\n\t\t\t</a>\n\t\t<% } %>\n\t\t<div class=\"tile-title\" flex center pad-height pad-width-double>\n\t\t\t<h3 class=\"tile-author ellipsis\" space-zero>\n\t\t\t\t<a href=\"<%=authorLink%>\" class=\"tile-author-link\" data-author=\"<%=author%>\">\n\t\t\t\t\t<%=author%>\n\t\t\t\t</a>\n\t\t\t</h3>\n\t\t\t<time is=\"relative-time\" datetime=\"<%=time%>\" class=\"muted-inverse\">\n\t\t\t\t<%=time%>\n\t\t\t</time>\n\t\t</div>\n\t\t<span pad-width-double class=muted-inverse>\n\t\t\t<svg class=\"icon icon-large\">\n\t\t\t\t<use xlink:href=\"#<%=type%>-square\"></use>\n\t\t\t</svg>\n\t\t</span>\n\t</header>\n\t<div class=\"tile-bottom\" flex vertical layout>\n\t\t<div class=\"tile-content\" flex pad-double>\n\t\t\t<% if (media) { %>\n\t\t\t\t<div class=\"tile-media poster\" fit>\n\t\t\t\t\t<img src=\"<%=media%>\" alt=\"<%=text%>\">\n\t\t\t\t</div>\n\t\t\t<% } %>\n\t\t\t<span class=\"tile-text -transition<% if (media) { %> marquee -paused<% } %>\" block>\n\t\t\t\t<%=linkify(text)%>\n\t\t\t</span>\n\t\t</div>\n\n\t\t<footer class=\"-transition type-small height-larger\"\n\t\t\t<% if (media) { %>pad-width-double<% } else { %>space-width-double<% } %>\n\t\t\tlayout horizontal justified pad-height-half>\n\t\t\t<a href=\"<%=link%>\" target=\"_blank\">\n\t\t\t\tView on <%=mediaTypeName(type)%>\n\t\t\t\t<svg class=\"icon icon-small muted\"><use xlink:href=\"#open-in-new\"></use></svg>\n\t\t\t</a>\n\t\t\t<a href=\"#\" target=\"_blank\">\n\t\t\t\tShare\n\t\t\t\t<svg class=\"icon icon-small muted\"><use xlink:href=\"#share\"></use></svg>\n\t\t\t</a>\n\t\t</footer>\n\t</div>\n</div>\n"
 var template = _.template(html, null, {imports: utils})
 
 var defaults = {

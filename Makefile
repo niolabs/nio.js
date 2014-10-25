@@ -14,5 +14,5 @@ run:
 	python -m SimpleHTTPServer 3210
 
 vendor:
-	wget -o src/vendor/CustomElements.js https://raw.githubusercontent.com/Polymer/webcomponentsjs/master/CustomElements.js
-	wget -o src/vendor/time-elements.js https://raw.githubusercontent.com/github/time-elements/master/time-elements.js
+	curl https://raw.githubusercontent.com/Polymer/webcomponentsjs/master/CustomElements.js > src/vendor/CustomElements.js
+	curl https://raw.githubusercontent.com/github/time-elements/master/time-elements.js > src/vendor/time-elements.js
