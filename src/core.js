@@ -3,6 +3,8 @@
 var _ = require('lodash')
 var d3 = require('d3')
 var utils = require('./utils')
+var util = require('util')
+var events = require('events')
 
 // base streams
 exports.passthrough = function (fn) {
@@ -26,34 +28,6 @@ exports.generate = function (msg, rate) {
 	return new GeneratorStream(msg, rate)
 }
 
-// base functions for an event emitter
-function EventEmitter() {}
-EventEmitter.prototype = Object.create(Object.prototype, {
-	on: {
-		value: function (event, fn) {
-			this._events = this._events || {}
-			this._events[event] = this._events[event] || []
-			this._events[event].push(fn)
-		}
-	},
-	off: {
-		value: function (event, fn) {
-			this._events = this._events || {}
-			if (event in this._events === false) return
-			this._events[event].splice(this._events[event].indexOf(fn), 1)
-		}
-	},
-	emit: {
-		value: function (event) {
-			this._events = this._events || {}
-			if (event in this._events === false) return
-			var args = Array.prototype.slice.call(arguments, 1)
-			for (var i = 0, l = this._events[event].length; i < l; i++)
-				this._events[event][i].apply(this, args)
-		}
-	}
-})
-
 function mustImplement(name) {
 	return function () {
 		if (!this[name]) {
@@ -66,81 +40,77 @@ function mustImplement(name) {
 exports.mustImplement = mustImplement
 
 function Readable(fn) {
-	EventEmitter.call(this)
+	events.EventEmitter.call(this)
 	if (fn) fn.apply(this)
 }
-Readable.prototype = Object.create(EventEmitter.prototype, {
-	push: {
-		value: function (chunk) {
-			if (typeof chunk !== 'undefined') {
-				this.emit('data', chunk)
-			}
-		}
-	},
-	pipe: {
-		value: function () {
-			var dests = _.isArray(arguments[0]) ? arguments[0] : [].slice.call(arguments)
-			var dest = dests[0]
-			this.on('data', dest.write.bind(dest))
-			// use recursion to string the streams together
-			if (dests.length > 1)
-				dest.pipe(dests.slice(1))
-			return dest
-		}
-	},
-	split: {
-		value: function () {
-			var dests = _.isArray(arguments[0]) ? arguments[0] : [].slice.call(arguments)
-			for (var i = dests.length; i--;)
-				this.pipe(dests[i])
-			return this
-		}
-	},
-	pull: {
-		value: function () {
-			var sources = _.isArray(arguments[0]) ? arguments[0] : [].slice.call(arguments)
-			for (var i = sources.length; i--;)
-				sources[i].pipe(this)
-			return this
-		}
+
+util.inherits(Readable, events.EventEmitter)
+
+Readable.prototype.push = function (chunk) {
+	if (typeof chunk !== 'undefined') {
+		this.emit('data', chunk)
 	}
-})
+}
+
+Readable.prototype.pipe = function () {
+	var dests = _.isArray(arguments[0]) ? arguments[0] : [].slice.call(arguments)
+	var dest = dests[0]
+	this.on('data', dest.write.bind(dest))
+	// use recursion to string the streams together
+	if (dests.length > 1)
+		dest.pipe(dests.slice(1))
+	return dest
+}
+
+Readable.prototype.split = function () {
+	var dests = _.isArray(arguments[0]) ? arguments[0] : [].slice.call(arguments)
+	for (var i = dests.length; i--;)
+		this.pipe(dests[i])
+	return this
+}
+
+Readable.prototype.pull = function () {
+	var sources = _.isArray(arguments[0]) ? arguments[0] : [].slice.call(arguments)
+	for (var i = sources.length; i--;)
+		sources[i].pipe(this)
+	return this
+}
+
 exports.Readable = Readable
 
 function Transform(_write) {
 	Readable.call(this)
 	this._write = _write
 }
-Transform.prototype = Object.create(Readable.prototype, {
-	write: {
-		value: mustImplement('_write')
-	}
-})
+
+util.inherits(Transform, Readable)
+
+Transform.prototype.write = mustImplement('_write')
+
 exports.Transform = Transform
 
 function PassThrough(_write) {
 	Readable.call(this)
 	this._write = _write
 }
-PassThrough.prototype = Object.create(Readable.prototype, {
-	write: {
-		value: function (chunk) {
-			this.push(chunk)
-			if (this._write) this._write(chunk)
-		}
-	}
-})
+
+util.inherits(PassThrough, Readable)
+
+PassThrough.prototype.write = function (chunk) {
+	this.push(chunk)
+	if (this._write) this._write(chunk)
+}
+
 exports.PassThrough = PassThrough
 
 // base functions for a source
 function Source() {
 	Readable.call(this)
 }
-Source.prototype = Object.create(Readable.prototype, {
-	start: {value: mustImplement},
-	pause: {value: mustImplement},
-	resume: {value: mustImplement}
-})
+util.inherits(Source, Readable)
+Source.prototype.start = mustImplement('start')
+Source.prototype.pause = mustImplement('pause')
+Source.prototype.resume = mustImplement('resume')
 exports.Source = Source
 
 function JSONStream(host, pollRate) {
@@ -150,42 +120,40 @@ function JSONStream(host, pollRate) {
 	this.lastPath = null
 	this.pollRate = pollRate || 20 * 1000
 }
-JSONStream.prototype = Object.create(Source.prototype, {
-	start: {
-		value: function (path, params) {
-			if (this.interval)
-				clearInterval(this.interval)
-			this.path = path || this.path
-			this.params = params || this.params
-			if (this.params) {
-				var qs = []
-				for (var param in this.params)
-					if (this.params[param])
-						qs.push(param + '=' + encodeURIComponent(this.params[param]))
-				this.path += '?' + qs.join('&')
-			}
-			this.fetch(this.path)
-			this.interval = setInterval(function () {
-				return this.fetch(this.path)
-			}.bind(this), this.pollRate)
-			return this
-		}
-	},
-	fetch: {
-		value: function (path) {
-			d3.json(this.host + '/' + path, function (error, json) {
-				this.push(json)
-			}.bind(this))
-			return this
-		}
-	},
-	stop: {
-		value: function () {
-			clearInterval(this.interval)
-			return this
-		}
+
+util.inherits(JSONStream, Source)
+
+JSONStream.prototype.start = function (path, params) {
+	if (this.interval)
+		clearInterval(this.interval)
+	this.path = path || this.path
+	this.params = params || this.params
+	if (this.params) {
+		var qs = []
+		for (var param in this.params)
+			if (this.params[param])
+				qs.push(param + '=' + encodeURIComponent(this.params[param]))
+		this.path += '?' + qs.join('&')
 	}
-})
+	this.fetch(this.path)
+	this.interval = setInterval(function () {
+		return this.fetch(this.path)
+	}.bind(this), this.pollRate)
+	return this
+}
+
+JSONStream.prototype.fetch = function (path) {
+	d3.json(this.host + '/' + path, function (error, json) {
+		this.push(json)
+	}.bind(this))
+	return this
+}
+
+JSONStream.prototype.stop = function () {
+	clearInterval(this.interval)
+	return this
+}
+
 exports.JSONStream = JSONStream
 
 function SocketIOStream(host) {

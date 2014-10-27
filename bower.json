@@ -14,8 +14,13 @@
     "bower_components",
     "static/components",
     "test",
-    "tests"
+    "tests",
+    "components"
   ],
-  "dependencies": { },
-  "devDependencies": { }
+  "dependencies": {},
+  "devDependencies": {
+    "nio.css": "neutralio/nio.css",
+    "mocha": "~2.0.1",
+    "chai": "~1.9.2"
+  }
 }

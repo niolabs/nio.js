@@ -4,23 +4,65 @@ var _ = require('lodash')
 var d3 = require('d3')
 var core = require('./core')
 
+function getPropertyFunc(opts) {
+	if (_.isUndefined(opts))
+		return function (chunk) { return chunk }
+	else if (_.isString(opts))
+		return function (chunk) { return chunk[opts] }
+	else if (_.isFunction(opts))
+		return opts
+	else
+		throw new Error('opts must be a string or function')
+}
+
+// only pushes unique chunks
+exports.unique = function (opts) {
+	var fn = getPropertyFunc(opts)
+	var seen = []
+	var stream = core.transform(function (chunk) {
+		var id = fn(chunk)
+		if (_.contains(seen, id))
+			return
+		seen.push(id)
+		this.push(chunk)
+	})
+	stream.clear = function () {
+		seen = []
+	}
+	return stream
+}
+
+// waits until the passed function returns true, or a timeout is reached
+exports.wait = function (opts) {
+	if (_.isFunction(opts))
+		opts = {fn: opts}
+	var waiting = true
+	var lastChunk = null
+	var stream = core.transform(function (chunk) {
+		if (opts.fn(chunk))
+			waiting = false
+		if (waiting)
+			lastChunk = chunk
+		else
+			this.push(chunk)
+	})
+
+	if (opts.timeout)
+		setTimeout(function () {
+			if (!waiting) return
+			waiting = false
+			stream.push(lastChunk)
+		}, opts.timeout)
+
+	return stream
+}
+
 // collects chunks into an array for sorting/manipulating sets of data
 exports.collect = function (opts) {
 	opts = opts || {}
-	var transforms = opts.transforms || []
 	var size = opts.size || 9
 	var max = opts.max || size
 	var min = opts.min || 0
-	var maxWait = _.isUndefined(opts.maxWait) ? 2000 : opts.maxWait
-
-	var getID = opts.dupes || false
-	if (getID) {
-		if (_.isString(getID)) {
-			getID = function (d) { return d[opts.dupes] }
-		} else if (_.isBoolean(getID)) {
-			getID = function (d) { return d }
-		}
-	}
 
 	var sortDesc = opts.sortDesc || true
 	var sortBy = opts.sort || false
@@ -35,15 +77,7 @@ exports.collect = function (opts) {
 	var data = []
 
 	var stream = core.transform(function (chunk) {
-		if (getID) {
-			var id = getID(chunk)
-			var isDupe = function (d) { return id === getID(d) }
-			if (_.any(data, isDupe)) return
-		}
-
 		data.push(chunk)
-		for (var i = 0, l = transforms.length; i < l; i++)
-			data = transforms[i](data)
 
 		if (sortBy) {
 			data = _.sortBy(data, sortBy)
@@ -55,14 +89,6 @@ exports.collect = function (opts) {
 			data = data.slice(0, max)
 		if (min && data.length < min)
 			return
-		if (this.waiting) {
-			if (data.length == max) {
-				this.waiting = false
-			} else {
-				this.lastData = data
-				return
-			}
-		}
 
 		this.push(data)
 	})
@@ -81,14 +107,6 @@ exports.collect = function (opts) {
 
 	stream.clear = function () {
 		data = []
-		stream.waiting = false
-		if (!_.isUndefined(maxWait) && maxWait > 0) {
-			stream.waiting = true
-			setTimeout(function () {
-				stream.waiting = false
-				stream.push(stream.lastData)
-			}, maxWait)
-		}
 		return this
 	}
 

@@ -15,7 +15,7 @@ exports.tiles = function (opts) {
 
 	var collect = streams.collect(_.defaults(opts, {
 		sort: 'time',
-		dupes: 'id',
+		sortDesc: true,
 		min: 0,
 		max: max || 9
 	}))
@@ -35,10 +35,15 @@ exports.tiles = function (opts) {
 			author: function (d) { return d.name },
 			authorLink: '#'
 		}))
+		.pipe(streams.unique('id'))
 		// instead of passing each object 1 by 1, put them in an array so we can sort them
 		.pipe(collect)
 		// only update tiles once every second
 		.pipe(streams.throttle(1000))
+		.pipe(streams.wait({
+			fn: function (chunk) { return chunk.length === 9 },
+			timeout: 2000
+		}))
 		.pipe(filter)
 		// send them to the tiles
 		.pipe(tiles(opts))
