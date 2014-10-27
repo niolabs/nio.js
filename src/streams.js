@@ -36,10 +36,13 @@ exports.unique = function (opts) {
 exports.wait = function (opts) {
 	if (_.isFunction(opts))
 		opts = {fn: opts}
+	if (_.isNumber(opts))
+		opts = {timeout: opts}
+
 	var waiting = true
 	var lastChunk = null
 	var stream = core.transform(function (chunk) {
-		if (opts.fn(chunk))
+		if (opts.fn && opts.fn(chunk))
 			waiting = false
 		if (waiting)
 			lastChunk = chunk
@@ -196,3 +199,14 @@ exports.display = function (selector, property) {
 		el.html(getDisplay ? getDisplay(chunk) : chunk)
 	})
 }
+
+exports.times = function (max) {
+	var count = 0
+	return core.transform(function (chunk) {
+		if (count === max) return
+		this.push(chunk)
+		count++
+	})
+}
+
+exports.once = _.partial(exports.times, 1)

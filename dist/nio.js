@@ -17157,69 +17157,68 @@ function SocketIOStream(host) {
 	this.ws = null
 	this.host = host
 }
-SocketIOStream.prototype = Object.create(Source.prototype, {
-	start: {
-		value: function (path) {
-			/* global io */
-			if (!window.io) {
-				var s = utils.loadScript(this.host + '/socket.io/socket.io.js')
-				s.onload = function () { this.start(path) }.bind(this)
-				return this
-			}
-			this.path = path || this.path
-			this.ws = io.connect(this.host)
 
-			var sock = this.ws.socket
-			sock.on('connect', function () {
-				return this.ws.emit('ready', path)
-			}.bind(this))
-			sock.on('connect_failed', function () {
-				console.error('connection failed')
-			})
-			sock.on('error', function () {
-				console.error('connection error')
-			})
-			this.ws.on('recvData', function (data) {
-				return this.push(JSON.parse(data))
-			}.bind(this))
-			return this
-		}
-	},
-	stop: {
-		value: function () {
-			this.ws.disconnect()
-			return this
-		}
+util.inherits(SocketIOStream, Source)
+
+SocketIOStream.prototype.start = function (path) {
+	/* global io */
+	if (!window.io) {
+		var s = utils.loadScript(this.host + '/socket.io/socket.io.js')
+		s.onload = function () { this.start(path) }.bind(this)
+		return this
 	}
-})
+	this.path = path || this.path
+	this.ws = io.connect(this.host)
+
+	var sock = this.ws.socket
+	sock.on('connect', function () {
+		return this.ws.emit('ready', path)
+	}.bind(this))
+	sock.on('connect_failed', function () {
+		console.error('connection failed')
+	})
+	sock.on('error', function () {
+		console.error('connection error')
+	})
+	this.ws.on('recvData', function (data) {
+		return this.push(JSON.parse(data))
+	}.bind(this))
+	return this
+}
+
+SocketIOStream.prototype.stop = function () {
+	this.ws.disconnect()
+	return this
+}
+
 exports.SocketIOStream = SocketIOStream
 
 function GeneratorStream(msg, rate) {
+	Source.call(this)
 	this.msg = msg || 'Hello world'
 	this.rate = rate || 1000
 	this.interval = null
+	this.start()
 }
-GeneratorStream.prototype = Object.create(Source.prototype, {
-	start: {
-		value: function () {
-			this.interval = setInterval(function () {
-				this.push(_.isFunction(this.msg) ? this.msg() : this.msg)
-			}.bind(this), this.rate)
-			return this
-		}
-	},
-	pause: {
-		value: function () {
-			clearInterval(this.interval)
-			return this
-		}
-	},
-	resume: {
-		value: function () {
-			return this.start()
-		}
-	}
-})
+
+util.inherits(GeneratorStream, Source)
+
+GeneratorStream.prototype.start = function () {
+	this.interval = setInterval(function () {
+		this.push(_.isFunction(this.msg) ? this.msg() : this.msg)
+	}.bind(this), this.rate)
+	return this
+}
+
+GeneratorStream.prototype.pause = function () {
+	clearInterval(this.interval)
+	return this
+}
+
+GeneratorStream.prototype.resume = function () {
+	return this.start()
+}
+
 exports.GeneratorStream = GeneratorStream
 
 },{"./utils":18,"d3":1,"events":2,"lodash":7,"util":6}],9:[function(require,module,exports){
@@ -17798,10 +17797,13 @@ exports.unique = function (opts) {
 exports.wait = function (opts) {
 	if (_.isFunction(opts))
 		opts = {fn: opts}
+	if (_.isNumber(opts))
+		opts = {timeout: opts}
+
 	var waiting = true
 	var lastChunk = null
 	var stream = core.transform(function (chunk) {
-		if (opts.fn(chunk))
+		if (opts.fn && opts.fn(chunk))
 			waiting = false
 		if (waiting)
 			lastChunk = chunk
@@ -17958,6 +17960,17 @@ exports.display = function (selector, property) {
 		el.html(getDisplay ? getDisplay(chunk) : chunk)
 	})
 }
+
+exports.times = function (max) {
+	var count = 0
+	return core.transform(function (chunk) {
+		if (count === max) return
+		this.push(chunk)
+		count++
+	})
+}
+
+exports.once = _.partial(exports.times, 1)
 
 },{"./core":8,"d3":1,"lodash":7}],17:[function(require,module,exports){
 'use strict';

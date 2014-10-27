@@ -161,67 +161,66 @@ function SocketIOStream(host) {
 	this.ws = null
 	this.host = host
 }
-SocketIOStream.prototype = Object.create(Source.prototype, {
-	start: {
-		value: function (path) {
-			/* global io */
-			if (!window.io) {
-				var s = utils.loadScript(this.host + '/socket.io/socket.io.js')
-				s.onload = function () { this.start(path) }.bind(this)
-				return this
-			}
-			this.path = path || this.path
-			this.ws = io.connect(this.host)
 
-			var sock = this.ws.socket
-			sock.on('connect', function () {
-				return this.ws.emit('ready', path)
-			}.bind(this))
-			sock.on('connect_failed', function () {
-				console.error('connection failed')
-			})
-			sock.on('error', function () {
-				console.error('connection error')
-			})
-			this.ws.on('recvData', function (data) {
-				return this.push(JSON.parse(data))
-			}.bind(this))
-			return this
-		}
-	},
-	stop: {
-		value: function () {
-			this.ws.disconnect()
-			return this
-		}
+util.inherits(SocketIOStream, Source)
+
+SocketIOStream.prototype.start = function (path) {
+	/* global io */
+	if (!window.io) {
+		var s = utils.loadScript(this.host + '/socket.io/socket.io.js')
+		s.onload = function () { this.start(path) }.bind(this)
+		return this
 	}
-})
+	this.path = path || this.path
+	this.ws = io.connect(this.host)
+
+	var sock = this.ws.socket
+	sock.on('connect', function () {
+		return this.ws.emit('ready', path)
+	}.bind(this))
+	sock.on('connect_failed', function () {
+		console.error('connection failed')
+	})
+	sock.on('error', function () {
+		console.error('connection error')
+	})
+	this.ws.on('recvData', function (data) {
+		return this.push(JSON.parse(data))
+	}.bind(this))
+	return this
+}
+
+SocketIOStream.prototype.stop = function () {
+	this.ws.disconnect()
+	return this
+}
+
 exports.SocketIOStream = SocketIOStream
 
 function GeneratorStream(msg, rate) {
+	Source.call(this)
 	this.msg = msg || 'Hello world'
 	this.rate = rate || 1000
 	this.interval = null
+	this.start()
 }
-GeneratorStream.prototype = Object.create(Source.prototype, {
-	start: {
-		value: function () {
-			this.interval = setInterval(function () {
-				this.push(_.isFunction(this.msg) ? this.msg() : this.msg)
-			}.bind(this), this.rate)
-			return this
-		}
-	},
-	pause: {
-		value: function () {
-			clearInterval(this.interval)
-			return this
-		}
-	},
-	resume: {
-		value: function () {
-			return this.start()
-		}
-	}
-})
+
+util.inherits(GeneratorStream, Source)
+
+GeneratorStream.prototype.start = function () {
+	this.interval = setInterval(function () {
+		this.push(_.isFunction(this.msg) ? this.msg() : this.msg)
+	}.bind(this), this.rate)
+	return this
+}
+
+GeneratorStream.prototype.pause = function () {
+	clearInterval(this.interval)
+	return this
+}
+
+GeneratorStream.prototype.resume = function () {
+	return this.start()
+}
+
 exports.GeneratorStream = GeneratorStream
