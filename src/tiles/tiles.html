@@ -17,15 +17,18 @@
 			</time>
 		</div>
 		<span pad-width-double class=muted-inverse>
-			<svg class="icon icon-large">
-				<use xlink:href="#<%=type%>-square"></use>
-			</svg>
+			<svg class="icon icon-larger"><use xlink:href="#<%=type%>-square"></use></svg>
 		</span>
 	</header>
 	<div class="tile-bottom" flex vertical layout>
 		<div class="tile-content" flex pad-double>
 			<% if (media) { %>
 				<div class="tile-media poster" fit>
+					<% if (type === 'youtube' || type === 'vimeo') { %>
+						<svg class="icon icon-largest play-arrow muted-inverse">
+							<use xlink:href="#play-arrow"></use>
+						</svg>
+					<% } %>
 					<img src="<%=media%>" alt="<%=text%>">
 				</div>
 			<% } %>

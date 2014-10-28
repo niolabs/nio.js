@@ -17146,15 +17146,20 @@ JSONStream.prototype.start = function (path, params) {
 }
 
 JSONStream.prototype.fetch = function (path) {
-	d3.json(this.host + '/' + path, function (error, json) {
+	this.xhr = d3.json(this.host + '/' + path, function (error, json) {
 		this.push(json)
 	}.bind(this))
 	return this
 }
 
 JSONStream.prototype.stop = function () {
-	clearInterval(this.interval)
+	this._flush()
 	return this
+}
+
+JSONStream.prototype._flush = function () {
+	if (this.interval) clearInterval(this.interval)
+	if (this.xhr) this.xhr.abort()
 }
 
 exports.JSONStream = JSONStream
@@ -18002,7 +18007,7 @@ var _ = require('lodash')
 var d3 = require('d3')
 var core = require('../core')
 var utils = require('../utils')
-var html = "<div id=\"tile-<%=id%>\" layout vertical class=\"tile -transition -<%=type%><% if (avatar) { %> -avatar<% } %><% if (media) { %> -media<% } %><% if (expanded) { %> -expanded<% } %>\">\n\t<header class=\"-transition\" center layout horizontal full-width>\n\t\t<% if (avatar) { %>\n\t\t\t<a href=\"<%=authorLink%>\" class=\"tile-avatar poster tile-author-link\"\n\t\t\t\tdata-author=\"<%=author%>\">\n\t\t\t\t<img src=\"<%=avatar%>\">\n\t\t\t</a>\n\t\t<% } %>\n\t\t<div class=\"tile-title\" flex center pad-height pad-width-double>\n\t\t\t<h3 class=\"tile-author ellipsis\" space-zero>\n\t\t\t\t<a href=\"<%=authorLink%>\" class=\"tile-author-link\" data-author=\"<%=author%>\">\n\t\t\t\t\t<%=author%>\n\t\t\t\t</a>\n\t\t\t</h3>\n\t\t\t<time is=\"relative-time\" datetime=\"<%=time%>\" class=\"muted-inverse\">\n\t\t\t\t<%=time%>\n\t\t\t</time>\n\t\t</div>\n\t\t<span pad-width-double class=muted-inverse>\n\t\t\t<svg class=\"icon icon-large\">\n\t\t\t\t<use xlink:href=\"#<%=type%>-square\"></use>\n\t\t\t</svg>\n\t\t</span>\n\t</header>\n\t<div class=\"tile-bottom\" flex vertical layout>\n\t\t<div class=\"tile-content\" flex pad-double>\n\t\t\t<% if (media) { %>\n\t\t\t\t<div class=\"tile-media poster\" fit>\n\t\t\t\t\t<img src=\"<%=media%>\" alt=\"<%=text%>\">\n\t\t\t\t</div>\n\t\t\t<% } %>\n\t\t\t<span class=\"tile-text -transition<% if (media) { %> marquee -paused<% } %>\" block>\n\t\t\t\t<%=linkify(text)%>\n\t\t\t</span>\n\t\t</div>\n\n\t\t<footer class=\"-transition type-small height-larger\"\n\t\t\t<% if (media) { %>pad-width-double<% } else { %>space-width-double<% } %>\n\t\t\tlayout horizontal justified pad-height-half>\n\t\t\t<a href=\"<%=link%>\" target=\"_blank\">\n\t\t\t\tView on <%=mediaTypeName(type)%>\n\t\t\t\t<svg class=\"icon icon-small muted\"><use xlink:href=\"#open-in-new\"></use></svg>\n\t\t\t</a>\n\t\t\t<a href=\"#\" target=\"_blank\">\n\t\t\t\tShare\n\t\t\t\t<svg class=\"icon icon-small muted\"><use xlink:href=\"#share\"></use></svg>\n\t\t\t</a>\n\t\t</footer>\n\t</div>\n</div>\n"
+var html = "<div id=\"tile-<%=id%>\" layout vertical class=\"tile -transition -<%=type%><% if (avatar) { %> -avatar<% } %><% if (media) { %> -media<% } %><% if (expanded) { %> -expanded<% } %>\">\n\t<header class=\"-transition\" center layout horizontal full-width>\n\t\t<% if (avatar) { %>\n\t\t\t<a href=\"<%=authorLink%>\" class=\"tile-avatar poster tile-author-link\"\n\t\t\t\tdata-author=\"<%=author%>\">\n\t\t\t\t<img src=\"<%=avatar%>\">\n\t\t\t</a>\n\t\t<% } %>\n\t\t<div class=\"tile-title\" flex center pad-height pad-width-double>\n\t\t\t<h3 class=\"tile-author ellipsis\" space-zero>\n\t\t\t\t<a href=\"<%=authorLink%>\" class=\"tile-author-link\" data-author=\"<%=author%>\">\n\t\t\t\t\t<%=author%>\n\t\t\t\t</a>\n\t\t\t</h3>\n\t\t\t<time is=\"relative-time\" datetime=\"<%=time%>\" class=\"muted-inverse\">\n\t\t\t\t<%=time%>\n\t\t\t</time>\n\t\t</div>\n\t\t<span pad-width-double class=muted-inverse>\n\t\t\t<svg class=\"icon icon-larger\"><use xlink:href=\"#<%=type%>-square\"></use></svg>\n\t\t</span>\n\t</header>\n\t<div class=\"tile-bottom\" flex vertical layout>\n\t\t<div class=\"tile-content\" flex pad-double>\n\t\t\t<% if (media) { %>\n\t\t\t\t<div class=\"tile-media poster\" fit>\n\t\t\t\t\t<% if (type === 'youtube' || type === 'vimeo') { %>\n\t\t\t\t\t\t<svg class=\"icon icon-largest play-arrow muted-inverse\">\n\t\t\t\t\t\t\t<use xlink:href=\"#play-arrow\"></use>\n\t\t\t\t\t\t</svg>\n\t\t\t\t\t<% } %>\n\t\t\t\t\t<img src=\"<%=media%>\" alt=\"<%=text%>\">\n\t\t\t\t</div>\n\t\t\t<% } %>\n\t\t\t<span class=\"tile-text -transition<% if (media) { %> marquee -paused<% } %>\" block>\n\t\t\t\t<%=linkify(text)%>\n\t\t\t</span>\n\t\t</div>\n\n\t\t<footer class=\"-transition type-small height-larger\"\n\t\t\t<% if (media) { %>pad-width-double<% } else { %>space-width-double<% } %>\n\t\t\tlayout horizontal justified pad-height-half>\n\t\t\t<a href=\"<%=link%>\" target=\"_blank\">\n\t\t\t\tView on <%=mediaTypeName(type)%>\n\t\t\t\t<svg class=\"icon icon-small muted\"><use xlink:href=\"#open-in-new\"></use></svg>\n\t\t\t</a>\n\t\t\t<a href=\"#\" target=\"_blank\">\n\t\t\t\tShare\n\t\t\t\t<svg class=\"icon icon-small muted\"><use xlink:href=\"#share\"></use></svg>\n\t\t\t</a>\n\t\t</footer>\n\t</div>\n</div>\n"
 var template = _.template(html, null, {imports: utils})
 
 var defaults = {

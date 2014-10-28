@@ -150,15 +150,20 @@ JSONStream.prototype.start = function (path, params) {
 }
 
 JSONStream.prototype.fetch = function (path) {
-	d3.json(this.host + '/' + path, function (error, json) {
+	this.xhr = d3.json(this.host + '/' + path, function (error, json) {
 		this.push(json)
 	}.bind(this))
 	return this
 }
 
 JSONStream.prototype.stop = function () {
-	clearInterval(this.interval)
+	this._flush()
 	return this
+}
+
+JSONStream.prototype._flush = function () {
+	if (this.interval) clearInterval(this.interval)
+	if (this.xhr) this.xhr.abort()
 }
 
 exports.JSONStream = JSONStream
