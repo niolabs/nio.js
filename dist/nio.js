@@ -18010,7 +18010,7 @@ var defaults = {
 }
 
 module.exports = function (opts) {
-	var selector = _.isPlainObject(opts) ? opts.selector : opts
+	var selector = _.isPlainObject(opts) ? opts.el : opts
 	// var animSpeed = opts.hasOwnProperty('animSpeed') ? opts.animSpeed : 0
 
 	var numCols = opts.numCols || opts.columns || 3
