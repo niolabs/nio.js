@@ -39,10 +39,10 @@ exports.tiles = function (opts) {
 		// instead of passing each object 1 by 1, put them in an array so we can sort them
 		.pipe(collect)
 		// only update tiles once every second
-		.pipe(streams.throttle(1000))
+		.pipe(streams.throttle(500))
 		.pipe(streams.wait({
 			fn: function (chunk) { return chunk.length === 9 },
-			timeout: 2000
+			timeout: 500
 		}))
 		.pipe(filter)
 		// send them to the tiles
