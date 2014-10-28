@@ -125,7 +125,7 @@ module.exports = function (opts) {
 		// check if the size has changed
 		for (var x = data.length; x--;)
 			if (data[x].length >= colLimit)
-				data[x] = data[x].slice(0, colLimit + 1)
+				data[x] = data[x].slice(0, colLimit)
 		render()
 	})
 

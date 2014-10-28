@@ -17043,7 +17043,7 @@ function Readable(fn) {
 util.inherits(Readable, events.EventEmitter)
 
 Readable.prototype.push = function (chunk) {
-	if (typeof chunk !== 'undefined') {
+	if (!_.isUndefined(chunk)) {
 		this.emit('data', chunk)
 	}
 }
@@ -17052,6 +17052,7 @@ Readable.prototype.pipe = function () {
 	var dests = _.isArray(arguments[0]) ? arguments[0] : [].slice.call(arguments)
 	var dest = dests[0]
 	this.on('data', dest.write.bind(dest))
+	this.on('flush', dest.flush.bind(dest))
 	// use recursion to string the streams together
 	if (dests.length > 1)
 		dest.pipe(dests.slice(1))
@@ -17070,6 +17071,11 @@ Readable.prototype.pull = function () {
 	for (var i = sources.length; i--;)
 		sources[i].pipe(this)
 	return this
+}
+
+Readable.prototype.flush = function () {
+	this.emit('flush')
+	if (this._flush) this._flush()
 }
 
 exports.Readable = Readable
@@ -17120,6 +17126,7 @@ function JSONStream(host, pollRate) {
 util.inherits(JSONStream, Source)
 
 JSONStream.prototype.start = function (path, params) {
+	this.flush()
 	if (this.interval)
 		clearInterval(this.interval)
 	this.path = path || this.path
@@ -17161,6 +17168,7 @@ function SocketIOStream(host) {
 util.inherits(SocketIOStream, Source)
 
 SocketIOStream.prototype.start = function (path) {
+	this.flush()
 	/* global io */
 	if (!window.io) {
 		var s = utils.loadScript(this.host + '/socket.io/socket.io.js')
@@ -17715,6 +17723,7 @@ exports.tiles = function (opts) {
 			timeout: 2000
 		}))
 		.pipe(filter)
+		.pipe(streams.log())
 		// send them to the tiles
 		.pipe(tiles(opts))
 
@@ -17737,8 +17746,7 @@ exports.tiles = function (opts) {
 	}
 
 	stream.filter = function (params) {
-		collect.clear()
-		stream.clear()
+		//stream.flush()
 		if (params && _.keys(params).length) {
 			json.start('posts', params)
 			if (socketio.ws && socketio.ws.socket.connected) {
@@ -17787,7 +17795,7 @@ exports.unique = function (opts) {
 		seen.push(id)
 		this.push(chunk)
 	})
-	stream.clear = function () {
+	stream._flush = function () {
 		seen = []
 	}
 	return stream
@@ -17869,12 +17877,11 @@ exports.collect = function (opts) {
 		return this
 	}
 
-	stream.clear = function () {
+	stream._flush = function () {
 		data = []
-		return this
 	}
 
-	stream.clear()
+	stream.flush()
 
 	return stream
 }
@@ -17963,11 +17970,13 @@ exports.display = function (selector, property) {
 
 exports.times = function (max) {
 	var count = 0
-	return core.transform(function (chunk) {
+	var stream = core.transform(function (chunk) {
 		if (count === max) return
 		this.push(chunk)
 		count++
 	})
+	stream._flush = function () {count = 0}
+	return stream
 }
 
 exports.once = _.partial(exports.times, 1)
@@ -17975,11 +17984,13 @@ exports.once = _.partial(exports.times, 1)
 // will only send chunks if they are different from the last
 exports.changed = function () {
 	var previous = null
-	return core.transform(function (chunk) {
+	var stream = core.transform(function (chunk) {
 		if (_.isEqual(chunk, previous)) return
 		this.push(chunk, previous)
 		previous = chunk
 	})
+	stream._flush = function () {previous = null}
+	return stream
 }
 
 },{"./core":8,"d3":1,"lodash":7}],17:[function(require,module,exports){
@@ -18108,11 +18119,11 @@ module.exports = function (opts) {
 		// check if the size has changed
 		for (var x = data.length; x--;)
 			if (data[x].length >= colLimit)
-				data[x] = data[x].slice(0, colLimit + 1)
+				data[x] = data[x].slice(0, colLimit)
 		render()
 	})
 
-	stream.clear = function () {
+	stream._flush = function () {
 		elMain.selectAll('.col').remove()
 		data = d3.range(numCols).map(function () { return [] })
 		seen = []
@@ -18187,10 +18198,10 @@ exports.cycle = function (value) {
 }
 
 exports.loadScript = function (url) {
-		var script = document.createElement('script')
-		script.src = url
-		document.body.appendChild(script)
-		return script
+	var script = document.createElement('script')
+	script.src = url
+	document.body.appendChild(script)
+	return script
 }
 
 },{"d3":1,"lodash":7}]},{},[9])
