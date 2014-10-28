@@ -26,7 +26,7 @@ exports.unique = function (opts) {
 		seen.push(id)
 		this.push(chunk)
 	})
-	stream.clear = function () {
+	stream._flush = function () {
 		seen = []
 	}
 	return stream
@@ -108,12 +108,11 @@ exports.collect = function (opts) {
 		return this
 	}
 
-	stream.clear = function () {
+	stream._flush = function () {
 		data = []
-		return this
 	}
 
-	stream.clear()
+	stream.flush()
 
 	return stream
 }
@@ -202,11 +201,13 @@ exports.display = function (selector, property) {
 
 exports.times = function (max) {
 	var count = 0
-	return core.transform(function (chunk) {
+	var stream = core.transform(function (chunk) {
 		if (count === max) return
 		this.push(chunk)
 		count++
 	})
+	stream._flush = function () {count = 0}
+	return stream
 }
 
 exports.once = _.partial(exports.times, 1)
@@ -214,9 +215,11 @@ exports.once = _.partial(exports.times, 1)
 // will only send chunks if they are different from the last
 exports.changed = function () {
 	var previous = null
-	return core.transform(function (chunk) {
+	var stream = core.transform(function (chunk) {
 		if (_.isEqual(chunk, previous)) return
 		this.push(chunk, previous)
 		previous = chunk
 	})
+	stream._flush = function () {previous = null}
+	return stream
 }

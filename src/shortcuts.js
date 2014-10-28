@@ -67,8 +67,7 @@ exports.tiles = function (opts) {
 	}
 
 	stream.filter = function (params) {
-		collect.clear()
-		stream.clear()
+		//stream.flush()
 		if (params && _.keys(params).length) {
 			json.start('posts', params)
 			if (socketio.ws && socketio.ws.socket.connected) {

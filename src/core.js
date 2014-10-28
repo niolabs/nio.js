@@ -47,7 +47,7 @@ function Readable(fn) {
 util.inherits(Readable, events.EventEmitter)
 
 Readable.prototype.push = function (chunk) {
-	if (typeof chunk !== 'undefined') {
+	if (!_.isUndefined(chunk)) {
 		this.emit('data', chunk)
 	}
 }
@@ -56,6 +56,7 @@ Readable.prototype.pipe = function () {
 	var dests = _.isArray(arguments[0]) ? arguments[0] : [].slice.call(arguments)
 	var dest = dests[0]
 	this.on('data', dest.write.bind(dest))
+	this.on('flush', dest.flush.bind(dest))
 	// use recursion to string the streams together
 	if (dests.length > 1)
 		dest.pipe(dests.slice(1))
@@ -74,6 +75,11 @@ Readable.prototype.pull = function () {
 	for (var i = sources.length; i--;)
 		sources[i].pipe(this)
 	return this
+}
+
+Readable.prototype.flush = function () {
+	this.emit('flush')
+	if (this._flush) this._flush()
 }
 
 exports.Readable = Readable
@@ -124,6 +130,7 @@ function JSONStream(host, pollRate) {
 util.inherits(JSONStream, Source)
 
 JSONStream.prototype.start = function (path, params) {
+	this.flush()
 	if (this.interval)
 		clearInterval(this.interval)
 	this.path = path || this.path
@@ -165,6 +172,7 @@ function SocketIOStream(host) {
 util.inherits(SocketIOStream, Source)
 
 SocketIOStream.prototype.start = function (path) {
+	this.flush()
 	/* global io */
 	if (!window.io) {
 		var s = utils.loadScript(this.host + '/socket.io/socket.io.js')

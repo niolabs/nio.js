@@ -61,8 +61,8 @@ exports.cycle = function (value) {
 }
 
 exports.loadScript = function (url) {
-		var script = document.createElement('script')
-		script.src = url
-		document.body.appendChild(script)
-		return script
+	var script = document.createElement('script')
+	script.src = url
+	document.body.appendChild(script)
+	return script
 }

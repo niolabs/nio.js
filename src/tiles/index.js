@@ -129,7 +129,7 @@ module.exports = function (opts) {
 		render()
 	})
 
-	stream.clear = function () {
+	stream._flush = function () {
 		elMain.selectAll('.col').remove()
 		data = d3.range(numCols).map(function () { return [] })
 		seen = []
