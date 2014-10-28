@@ -134,3 +134,47 @@ suite('collect()', function () {
 		})
 	})
 })
+
+suite('changed()', function () {
+
+	[
+		{
+			name: 'should only push new chunks',
+			values: [1, 2, 2, 3, 3, 3, 4, 4, 4, 4],
+			count: 4
+		}, {
+			name: 'should work with objects',
+			values: [{foo: 'bar'}, {foo: 'bar'}, {hello: 'world'}, {foo: 'bar'}],
+			count: 3
+		}, {
+			name: 'should work with arrays of objects',
+			values: [
+				[{test: 1}, {test: 2}],
+				[{test: 1}, {test: 2}, {test: 3}],
+				[{test: 1}, {test: 2}, {test: 3}],
+				[{test: 1}, {test: 2}, {test: 3}, {test: 4}],
+				[{test: 4}, {test: 3}, {test: 2}, {test: 1}]
+			],
+			count: 4
+		}
+	].forEach(function (opts) {
+		test(opts.name, function (done) {
+			var count = 0
+			var stream = nio.readable()
+			stream
+				.pipe(nio.changed())
+				.pipe(nio.transform(function (chunk, previous) {
+					assert.notDeepEqual(chunk, previous)
+					count++
+				}))
+			opts.values.forEach(function (value) {
+				stream.push(value)
+			})
+			setTimeout(function () {
+				assert.equal(count, opts.count)
+				done()
+			}, 50)
+		})
+	})
+
+})

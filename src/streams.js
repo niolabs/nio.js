@@ -210,3 +210,13 @@ exports.times = function (max) {
 }
 
 exports.once = _.partial(exports.times, 1)
+
+// will only send chunks if they are different from the last
+exports.changed = function () {
+	var previous = null
+	return core.transform(function (chunk) {
+		if (_.isEqual(chunk, previous)) return
+		this.push(chunk, previous)
+		previous = chunk
+	})
+}
