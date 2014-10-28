@@ -17723,7 +17723,6 @@ exports.tiles = function (opts) {
 			timeout: 2000
 		}))
 		.pipe(filter)
-		.pipe(streams.log())
 		// send them to the tiles
 		.pipe(tiles(opts))
 
