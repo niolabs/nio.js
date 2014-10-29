@@ -13,7 +13,7 @@ function property(name) {
 }
 
 function Graph(opts) {
-	core.PassThrough.call(this)
+	core.Stream.call(this)
 	if (_.isString(opts)) {
 		this.selector = opts
 	} else {
@@ -31,7 +31,7 @@ var _graphProps = [
 	'title', 'labels', 'points', 'margin', 'autoScaleY'
 ]
 _graphProps.forEach(function (name) { _graphDef[name] = property(name) })
-Graph.prototype = Object.create(core.PassThrough.prototype, _graphDef)
+Graph.prototype = Object.create(core.Stream.prototype, _graphDef)
 
 function LineGraph(opts) {
 	Graph.call(this, opts)

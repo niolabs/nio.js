@@ -3,11 +3,11 @@
 //require('../vendor/CustomElements')
 //require('../vendor/time-elements')
 
+var fs = require('fs')
 var _ = require('lodash')
 var d3 = require('d3')
-var core = require('../core')
 var utils = require('../utils')
-var fs = require('fs')
+var streams = require('../streams')
 
 var html = fs.readFileSync(__dirname + '/tiles.html', 'utf8')
 var template = _.template(html, null, {imports: utils})
@@ -20,22 +20,55 @@ var defaults = {
 	media: '',
 	source: '',
 	text: '',
-	time: new Date(),
+	time: '',
 	wide: false,
 	expanded: false,
 	avatar: false
 }
 
 module.exports = function (opts) {
-	var selector = _.isPlainObject(opts) ? opts.el : opts
-	// var animSpeed = opts.hasOwnProperty('animSpeed') ? opts.animSpeed : 0
-
-	var numCols = opts.numCols || opts.columns || 3
+	if (_.isString(opts))
+		opts = {el: opts}
+	var numRows = opts.rows || 3
+	var numCols = opts.cols || 3
 	var data = d3.range(numCols).map(function () { return [] })
 
-	var elMain = d3.select(selector)
+	var elMain = d3.select(opts.el)
 		.attr('layout', true)
 		.attr('horizontal', true)
+
+	var getCol = utils.cycle(numCols)
+
+	var isInitialized = false
+
+	function handleChunk(chunk) {
+		if (_.isArray(chunk)) {
+			_.forEach(chunk, handleChunk)
+		} else {
+			var post = _.defaults(chunk, defaults)
+			var col = getCol()
+			data[col].unshift(post)
+		}
+	}
+
+	function trimColumns() {
+		for (var x = data.length; x--;)
+			if (data[x].length >= numRows)
+				data[x] = data[x].slice(0, numRows)
+	}
+
+	// IDs of posts we've seen already
+	var stream = streams.pass(function (chunk) {
+		handleChunk(chunk)
+		trimColumns()
+		render()
+	})
+
+	stream._flush = function () {
+		elMain.selectAll('.col').remove()
+		data = d3.range(numCols).map(function () { return [] })
+		isInitialized = false
+	}
 
 	// var elCols = []
 	// for (var i=numCols; i--;)
@@ -71,7 +104,6 @@ module.exports = function (opts) {
 		el.classed('-expanded', !isExpanded)
 	}
 
-	var isInitialized = false
 	function render() {
 		var cols = elMain.selectAll('.col')
 			.data(data, getColID)
@@ -97,42 +129,16 @@ module.exports = function (opts) {
 
 		tileEnter
 			.select('.tile')
-			.classed('flip-in', true)
+			//.classed('flip-in', true)
 
 		// only start sliding tiles down after the initial load
 		if (isInitialized) {
 			tileEnter.classed('slide-down', true)
 		} else {
 			isInitialized = true
+			stream.propogate('init')
 		}
 		tile.exit().remove()
-	}
-
-	var getCol = utils.cycle(numCols)
-
-	// IDs of posts we've seen already
-	var seen = []
-	var stream = core.passthrough(function (chunk) {
-		var colLimit = Math.floor(chunk.length / numCols)
-		for (var i = 0, l = chunk.length; i < l; i++) {
-			var post = _.defaults(chunk[i], defaults)
-			if (seen.indexOf(post.id) === -1) {
-				seen.push(post.id)
-				var col = getCol()
-				data[col].unshift(post)
-			}
-		}
-		// check if the size has changed
-		for (var x = data.length; x--;)
-			if (data[x].length >= colLimit)
-				data[x] = data[x].slice(0, colLimit)
-		render()
-	})
-
-	stream._flush = function () {
-		elMain.selectAll('.col').remove()
-		data = d3.range(numCols).map(function () { return [] })
-		seen = []
 	}
 
 	return stream

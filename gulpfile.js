@@ -20,7 +20,7 @@ gulp.task('lint', function () {
 gulp.task('browserify', function () {
 	return gulp.src('src/nio.js')
 		.pipe(handleErrors())
-		.pipe($.browserify())
+		.pipe($.browserify({debug: true}))
 		.pipe($.rename('bundle.js'))
 		.pipe(gulp.dest('build'))
 })

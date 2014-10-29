@@ -3,9 +3,9 @@
 var core = require('../core')
 
 function nioAPI() {
-    core.Readable.call(this)
+    core.Stream.call(this)
 }
-nioAPI.prototype = Object.create(core.Readable.prototype, {
+nioAPI.prototype = Object.create(core.Stream.prototype, {
     makeRequest : {
 	value: function(endpoint, method, postData) {
 		var xhr = d3.json('http://' + this.ip + '/' + endpoint)

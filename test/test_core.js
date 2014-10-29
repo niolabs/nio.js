@@ -1,6 +1,9 @@
 /* global suite,test,assert,nio */
 'use strict';
 
+suite('stream()', function () {
+})
+
 suite('generate()', function () {
 
 	[
@@ -24,7 +27,7 @@ suite('generate()', function () {
 		test(opts.name, function (done) {
 			nio.generate(opts.msg, 1)
 				.pipe(nio.once())
-				.pipe(nio.transform(function (chunk) {
+				.pipe(nio.stream(function (chunk) {
 					assert.deepEqual(chunk, opts.expected)
 					done()
 				}))
@@ -50,7 +53,7 @@ suite('props()', function () {
 			nio.generate({hello: 'world'}, 1)
 				.pipe(nio.once())
 				.pipe(nio.props({foo: opts.value}))
-				.pipe(nio.transform(function (data) {
+				.pipe(nio.stream(function (data) {
 					assert.propertyVal(data, 'foo', opts.expected)
 					done()
 				}))
@@ -65,7 +68,7 @@ suite('collect()', function () {
 		nio.generate(null, 1)
 			.pipe(nio.collect())
 			.pipe(nio.once())
-			.pipe(nio.transform(function (chunk) {
+			.pipe(nio.stream(function (chunk) {
 				assert.instanceOf(chunk, Array)
 				done()
 			}))
@@ -77,7 +80,7 @@ suite('collect()', function () {
 			.pipe(nio.collect({size: size}))
 			.pipe(nio.wait(150))
 			.pipe(nio.once())
-			.pipe(nio.transform(function (chunk) {
+			.pipe(nio.stream(function (chunk) {
 				assert.lengthOf(chunk, size)
 				done()
 			}))
@@ -89,7 +92,7 @@ suite('collect()', function () {
 			.pipe(nio.collect({size: size, sort: true}))
 			.pipe(nio.wait(150))
 			.pipe(nio.once())
-			.pipe(nio.transform(function (chunk) {
+			.pipe(nio.stream(function (chunk) {
 				assert.lengthOf(chunk, size)
 				done()
 			}))
@@ -119,7 +122,7 @@ suite('collect()', function () {
 				.pipe(collect)
 				.pipe(nio.wait(150))
 				.pipe(nio.once())
-				.pipe(nio.transform(function (chunk) {
+				.pipe(nio.stream(function (chunk) {
 					assert.lengthOf(chunk, size)
 					var l = chunk.length - 1
 					var i = 0
@@ -160,10 +163,10 @@ suite('changed()', function () {
 	].forEach(function (opts) {
 		test(opts.name, function (done) {
 			var count = 0
-			var stream = nio.readable()
+			var stream = nio.stream()
 			stream
 				.pipe(nio.changed())
-				.pipe(nio.transform(function (chunk, previous) {
+				.pipe(nio.stream(function (chunk, previous) {
 					assert.notDeepEqual(chunk, previous)
 					count++
 				}))

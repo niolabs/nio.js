@@ -11,5 +11,6 @@ module.exports = window.nio = _.assign(
 		shortcuts: require('./shortcuts')
 	},
 	require('./core'),
+	require('./sources'),
 	require('./streams')
 )

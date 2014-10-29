@@ -20,3 +20,5 @@ vendor:
 
 watch:
 	./node_modules/.bin/gulp watch
+
+.PHONY: install build run watch

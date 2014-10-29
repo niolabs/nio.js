@@ -1,239 +1,91 @@
-'use strict';
-
 var _ = require('lodash')
-var d3 = require('d3')
-var utils = require('./utils')
 var util = require('util')
 var events = require('events')
 
-// base streams
-exports.passthrough = function (fn) {
-	return new PassThrough(fn)
-}
-exports.readable = function (fn) {
-	return new Readable(fn)
-}
-exports.transform = function (fn) {
-	return new Transform(fn)
-}
-
-// source streams
-exports.socketio = function (host) {
-	return new SocketIOStream(host)
-}
-exports.json = function (host, pollRate) {
-	return new JSONStream(host, pollRate)
-}
-exports.generate = function (msg, rate) {
-	return new GeneratorStream(msg, rate)
-}
-
-function mustImplement(name) {
-	return function () {
-		if (!this[name]) {
-			this.emit('error', new Error(name + ' has not been implemented'))
-		} else {
-			this[name].apply(this, arguments)
-		}
-	}
-}
-exports.mustImplement = mustImplement
-
-function Readable(fn) {
+function Stream() {
+	if (!(this instanceof Stream))
+		return new Stream()
 	events.EventEmitter.call(this)
-	if (fn) fn.apply(this)
+	if (this._init) this._init()
 }
 
-util.inherits(Readable, events.EventEmitter)
+util.inherits(Stream, events.EventEmitter)
 
-Readable.prototype.push = function (chunk) {
-	if (!_.isUndefined(chunk)) {
-		this.emit('data', chunk)
-	}
+// Send data down the pipeline
+Stream.prototype.push = function (chunk) {
+	if (_.isUndefined(chunk)) return
+	this.emit('data', chunk)
 }
 
-Readable.prototype.pipe = function () {
+// Connect to other streams
+Stream.prototype.pipe = function () {
 	var dests = _.isArray(arguments[0]) ? arguments[0] : [].slice.call(arguments)
 	var dest = dests[0]
 	this.on('data', dest.write.bind(dest))
-	this.on('flush', dest.flush.bind(dest))
+	this.on('propogate', dest.propogate.bind(dest))
 	// use recursion to string the streams together
 	if (dests.length > 1)
 		dest.pipe(dests.slice(1))
 	return dest
 }
 
-Readable.prototype.split = function () {
-	var dests = _.isArray(arguments[0]) ? arguments[0] : [].slice.call(arguments)
-	for (var i = dests.length; i--;)
-		this.pipe(dests[i])
+// Pipe to multiple streams at a time
+Stream.prototype.split = function () {
+	if (_.isArray(arguments[0]))
+		return this.split.apply(this, arguments[0])
+	_.each(arguments, this.pipe, this)
 	return this
 }
 
-Readable.prototype.pull = function () {
-	var sources = _.isArray(arguments[0]) ? arguments[0] : [].slice.call(arguments)
-	for (var i = sources.length; i--;)
-		sources[i].pipe(this)
+// Pull data from other streams
+Stream.prototype.pull = function () {
+	if (_.isArray(arguments[0]))
+		return this.pull.apply(this, arguments[0])
+	_.each(arguments, function (source) {source.pipe(this)}, this)
 	return this
 }
 
-Readable.prototype.flush = function () {
-	this.emit('flush')
-	if (this._flush) this._flush()
-}
-
-exports.Readable = Readable
-
-function Transform(_write) {
-	Readable.call(this)
-	this._write = _write
-}
-
-util.inherits(Transform, Readable)
-
-Transform.prototype.write = mustImplement('_write')
-
-exports.Transform = Transform
-
-function PassThrough(_write) {
-	Readable.call(this)
-	this._write = _write
-}
-
-util.inherits(PassThrough, Readable)
-
-PassThrough.prototype.write = function (chunk) {
-	this.push(chunk)
+Stream.prototype.write = function (chunk) {
 	if (this._write) this._write(chunk)
 }
 
-exports.PassThrough = PassThrough
-
-// base functions for a source
-function Source() {
-	Readable.call(this)
-}
-util.inherits(Source, Readable)
-Source.prototype.start = mustImplement('start')
-Source.prototype.pause = mustImplement('pause')
-Source.prototype.resume = mustImplement('resume')
-exports.Source = Source
-
-function JSONStream(host, pollRate) {
-	Source.call(this)
-	this.host = host
-	this.interval = null
-	this.lastPath = null
-	this.pollRate = pollRate || 20 * 1000
+Stream.prototype._write = function (chunk) {
+	this.push(chunk)
 }
 
-util.inherits(JSONStream, Source)
-
-JSONStream.prototype.start = function (path, params) {
-	this.flush()
-	if (this.interval)
-		clearInterval(this.interval)
-	this.path = path || this.path
-	this.params = params || this.params
-	if (this.params) {
-		var qs = []
-		for (var param in this.params)
-			if (this.params[param])
-				qs.push(param + '=' + encodeURIComponent(this.params[param]))
-		this.path += '?' + qs.join('&')
-	}
-	this.fetch(this.path)
-	this.interval = setInterval(function () {
-		return this.fetch(this.path)
-	}.bind(this), this.pollRate)
-	return this
-}
-
-JSONStream.prototype.fetch = function (path) {
-	this.xhr = d3.json(this.host + '/' + path, function (error, json) {
-		this.push(json)
-	}.bind(this))
-	return this
-}
-
-JSONStream.prototype.stop = function () {
-	this._flush()
-	return this
-}
-
-JSONStream.prototype._flush = function () {
-	if (this.interval) clearInterval(this.interval)
-	if (this.xhr) this.xhr.abort()
-}
-
-exports.JSONStream = JSONStream
-
-function SocketIOStream(host) {
-	Source.call(this)
-	this.ws = null
-	this.host = host
-}
-
-util.inherits(SocketIOStream, Source)
-
-SocketIOStream.prototype.start = function (path) {
-	this.flush()
-	/* global io */
-	if (!window.io) {
-		var s = utils.loadScript(this.host + '/socket.io/socket.io.js')
-		s.onload = function () { this.start(path) }.bind(this)
+// sends events down the pipeline
+Stream.prototype.propogate = function () {
+	var args = [].slice.call(arguments)
+	if (args.length === 0) {
+		console.warn('propogate() called without any arguments')
 		return this
 	}
-	this.path = path || this.path
-	this.ws = io.connect(this.host)
+	// emit the desired event
+	this.emit.apply(this, args)
 
-	var sock = this.ws.socket
-	sock.on('connect', function () {
-		return this.ws.emit('ready', path)
-	}.bind(this))
-	sock.on('connect_failed', function () {
-		console.error('connection failed')
-	})
-	sock.on('error', function () {
-		console.error('connection error')
-	})
-	this.ws.on('recvData', function (data) {
-		return this.push(JSON.parse(data))
-	}.bind(this))
+	// if there's a _func function, run it
+	var funcName = '_' + args[0]
+	if (this[funcName]) this[funcName]()
+
+	// propogate the event
+	args.unshift('propogate')
+	this.emit.apply(this, args)
 	return this
 }
 
-SocketIOStream.prototype.stop = function () {
-	this.ws.disconnect()
-	return this
+// native propgating functions
+_.each([
+	'flush',
+	'pause',
+	'resume'
+], function (name) {
+	Stream.prototype[name] = function () {
+		this.propogate(name)
+		return this
+	}
+})
+
+module.exports = {
+	Stream: Stream,
+	stream: Stream
 }
-
-exports.SocketIOStream = SocketIOStream
-
-function GeneratorStream(msg, rate) {
-	Source.call(this)
-	this.msg = msg || 'Hello world'
-	this.rate = rate || 1000
-	this.interval = null
-	this.start()
-}
-
-util.inherits(GeneratorStream, Source)
-
-GeneratorStream.prototype.start = function () {
-	this.interval = setInterval(function () {
-		this.push(_.isFunction(this.msg) ? this.msg() : this.msg)
-	}.bind(this), this.rate)
-	return this
-}
-
-GeneratorStream.prototype.pause = function () {
-	clearInterval(this.interval)
-	return this
-}
-
-GeneratorStream.prototype.resume = function () {
-	return this.start()
-}
-
-exports.GeneratorStream = GeneratorStream
