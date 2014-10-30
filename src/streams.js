@@ -34,32 +34,6 @@ exports.func = function (fn) {
 }
 
 /**
- * times halts the stream when a set number of chunks have passed through it.
- * Useful for testing/debugging.
- *
- * @param {number} max
- * @return {stream}
- */
-exports.times = function (max) {
-	var count = 0
-	var s = stream(function (chunk) {
-		if (count === max) return
-		this.push(chunk)
-		count++
-	})
-	s._flush = function () {count = 0}
-	return s
-}
-
-/**
- * once halts the stream after one chunk has passed through it. Useful for
- * testing/debugging.
- *
- * @return {stream}
- */
-exports.once = _.partial(exports.times, 1)
-
-/**
  * pass creates a stream observes chunks passed through it.
  *
  * @param {function} fn
@@ -73,8 +47,37 @@ exports.pass = function (fn) {
 }
 
 /**
+ * times halts the stream when a set number of chunks have passed through it.
+ * Useful for testing/debugging.
+ *
+ * @param {number} max
+ * @return {stream}
+ */
+exports.times = function (max) {
+	var count = 0
+	return stream({
+		onwrite: function (chunk) {
+			if (count === max) return
+			this.push(chunk)
+			count++
+		},
+		onreset: function () {count = 0}
+	})
+}
+
+/**
+ * once halts the stream after one chunk has passed through it. Useful for
+ * testing/debugging.
+ *
+ * @return {stream}
+ */
+exports.once = _.partial(exports.times, 1)
+
+/**
  * pull creates a stream that passes data from other streams. This is useful
  * for pulling in data mid-pipeline.
+ *
+ * TODO: is this function really necessary? why not just use pipe?
  *
  * @param {(...stream|stream[])} streams Streams to pull from.
  * @return {stream} The unified stream.
@@ -121,10 +124,9 @@ exports.filter = function (fn) {
 		if (fn(chunk))
 			this.push(chunk)
 		else
-			this.propogate('filtered', chunk)
+			this.broadcast('filtered', chunk)
 	})
 }
-
 
 /**
  * unique IDs chunks that are sent to it and only pushes ones it hasn't seen
@@ -143,7 +145,7 @@ exports.unique = function (value) {
 		seen.push(id)
 		return chunk
 	})
-	s._flush = function () {
+	s.onreset = function () {
 		seen = []
 	}
 	return s
@@ -241,7 +243,7 @@ exports.collect = function (opts) {
 		return this
 	}
 
-	s._flush = function () {
+	s.onreset = function () {
 		data = []
 	}
 
@@ -338,10 +340,10 @@ exports.log = function (prefix) {
 exports.throttle = function (delay) {
 	var pass = function (chunk) {this.push(chunk)}
 	var s = stream()
-	s._flush = function () {
-		this._write = _.throttle(pass, delay)
+	s.onreset = function () {
+		this.onwrite = _.throttle(pass, delay)
 	}
-	s._flush()
+	s.onreset()
 	return s
 }
 
@@ -384,14 +386,14 @@ exports.changed = function () {
 		if (_.isEqual(chunk, previous)) return
 		this.push(chunk)
 		previous = chunk
-		this.propogate('changed', chunk, previous, _.difference(chunk, previous))
+		this.broadcast('changed', chunk, previous, _.difference(chunk, previous))
 	})
-	s._flush = function () {previous = null}
+	s.onreset = function () {previous = null}
 	return s
 }
 
 // counts chunks that match a function
-exports.count = function (opts) {
+/*exports.count = function (opts) {
 	// TODO: incomplete
 	if (_.isFunction(opts))
 		opts = [{id: 'count', fn: opts}]
@@ -400,9 +402,9 @@ exports.count = function (opts) {
 	var s = exports.pass(function (chunk) {
 
 	})
-	s._flush = function () {counts = {}}
+	s.onreset = function () {counts = {}}
 	return s
-}
+}*/
 
 /**
  * on listens to an event on the pipeline

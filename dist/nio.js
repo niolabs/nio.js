@@ -9215,306 +9215,209 @@
   this.d3 = d3;
 }();
 },{}],2:[function(require,module,exports){
-// Copyright Joyent, Inc. and other Node contributors.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a
-// copy of this software and associated documentation files (the
-// "Software"), to deal in the Software without restriction, including
-// without limitation the rights to use, copy, modify, merge, publish,
-// distribute, sublicense, and/or sell copies of the Software, and to permit
-// persons to whom the Software is furnished to do so, subject to the
-// following conditions:
-//
-// The above copyright notice and this permission notice shall be included
-// in all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
-// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
-// USE OR OTHER DEALINGS IN THE SOFTWARE.
+'use strict';
 
-function EventEmitter() {
-  this._events = this._events || {};
-  this._maxListeners = this._maxListeners || undefined;
+/**
+ * Representation of a single EventEmitter function.
+ *
+ * @param {Function} fn Event handler to be called.
+ * @param {Mixed} context Context for function execution.
+ * @param {Boolean} once Only emit once
+ * @api private
+ */
+function EE(fn, context, once) {
+  this.fn = fn;
+  this.context = context;
+  this.once = once || false;
 }
-module.exports = EventEmitter;
 
-// Backwards-compat with node 0.10.x
-EventEmitter.EventEmitter = EventEmitter;
+/**
+ * Minimal EventEmitter interface that is molded against the Node.js
+ * EventEmitter interface.
+ *
+ * @constructor
+ * @api public
+ */
+function EventEmitter() { /* Nothing to set */ }
 
+/**
+ * Holds the assigned EventEmitters by name.
+ *
+ * @type {Object}
+ * @private
+ */
 EventEmitter.prototype._events = undefined;
-EventEmitter.prototype._maxListeners = undefined;
 
-// By default EventEmitters will print a warning if more than 10 listeners are
-// added to it. This is a useful default which helps finding memory leaks.
-EventEmitter.defaultMaxListeners = 10;
+/**
+ * Return a list of assigned event listeners.
+ *
+ * @param {String} event The events that should be listed.
+ * @returns {Array}
+ * @api public
+ */
+EventEmitter.prototype.listeners = function listeners(event) {
+  if (!this._events || !this._events[event]) return [];
 
-// Obviously not all Emitters should be limited to 10. This function allows
-// that to be increased. Set to zero for unlimited.
-EventEmitter.prototype.setMaxListeners = function(n) {
-  if (!isNumber(n) || n < 0 || isNaN(n))
-    throw TypeError('n must be a positive number');
-  this._maxListeners = n;
-  return this;
-};
-
-EventEmitter.prototype.emit = function(type) {
-  var er, handler, len, args, i, listeners;
-
-  if (!this._events)
-    this._events = {};
-
-  // If there is no 'error' event listener then throw.
-  if (type === 'error') {
-    if (!this._events.error ||
-        (isObject(this._events.error) && !this._events.error.length)) {
-      er = arguments[1];
-      if (er instanceof Error) {
-        throw er; // Unhandled 'error' event
-      }
-      throw TypeError('Uncaught, unspecified "error" event.');
-    }
+  for (var i = 0, l = this._events[event].length, ee = []; i < l; i++) {
+    ee.push(this._events[event][i].fn);
   }
 
-  handler = this._events[type];
+  return ee;
+};
 
-  if (isUndefined(handler))
-    return false;
+/**
+ * Emit an event to all registered event listeners.
+ *
+ * @param {String} event The name of the event.
+ * @returns {Boolean} Indication if we've emitted an event.
+ * @api public
+ */
+EventEmitter.prototype.emit = function emit(event, a1, a2, a3, a4, a5) {
+  if (!this._events || !this._events[event]) return false;
 
-  if (isFunction(handler)) {
-    switch (arguments.length) {
-      // fast cases
-      case 1:
-        handler.call(this);
-        break;
-      case 2:
-        handler.call(this, arguments[1]);
-        break;
-      case 3:
-        handler.call(this, arguments[1], arguments[2]);
-        break;
-      // slower
-      default:
-        len = arguments.length;
-        args = new Array(len - 1);
-        for (i = 1; i < len; i++)
-          args[i - 1] = arguments[i];
-        handler.apply(this, args);
+  var listeners = this._events[event]
+    , length = listeners.length
+    , len = arguments.length
+    , ee = listeners[0]
+    , args
+    , i, j;
+
+  if (1 === length) {
+    if (ee.once) this.removeListener(event, ee.fn, true);
+
+    switch (len) {
+      case 1: return ee.fn.call(ee.context), true;
+      case 2: return ee.fn.call(ee.context, a1), true;
+      case 3: return ee.fn.call(ee.context, a1, a2), true;
+      case 4: return ee.fn.call(ee.context, a1, a2, a3), true;
+      case 5: return ee.fn.call(ee.context, a1, a2, a3, a4), true;
+      case 6: return ee.fn.call(ee.context, a1, a2, a3, a4, a5), true;
     }
-  } else if (isObject(handler)) {
-    len = arguments.length;
-    args = new Array(len - 1);
-    for (i = 1; i < len; i++)
-      args[i - 1] = arguments[i];
 
-    listeners = handler.slice();
-    len = listeners.length;
-    for (i = 0; i < len; i++)
-      listeners[i].apply(this, args);
+    for (i = 1, args = new Array(len -1); i < len; i++) {
+      args[i - 1] = arguments[i];
+    }
+
+    ee.fn.apply(ee.context, args);
+  } else {
+    for (i = 0; i < length; i++) {
+      if (listeners[i].once) this.removeListener(event, listeners[i].fn, true);
+
+      switch (len) {
+        case 1: listeners[i].fn.call(listeners[i].context); break;
+        case 2: listeners[i].fn.call(listeners[i].context, a1); break;
+        case 3: listeners[i].fn.call(listeners[i].context, a1, a2); break;
+        default:
+          if (!args) for (j = 1, args = new Array(len -1); j < len; j++) {
+            args[j - 1] = arguments[j];
+          }
+
+          listeners[i].fn.apply(listeners[i].context, args);
+      }
+    }
   }
 
   return true;
 };
 
-EventEmitter.prototype.addListener = function(type, listener) {
-  var m;
-
-  if (!isFunction(listener))
-    throw TypeError('listener must be a function');
-
-  if (!this._events)
-    this._events = {};
-
-  // To avoid recursion in the case that type === "newListener"! Before
-  // adding it to the listeners, first emit "newListener".
-  if (this._events.newListener)
-    this.emit('newListener', type,
-              isFunction(listener.listener) ?
-              listener.listener : listener);
-
-  if (!this._events[type])
-    // Optimize the case of one listener. Don't need the extra array object.
-    this._events[type] = listener;
-  else if (isObject(this._events[type]))
-    // If we've already got an array, just append.
-    this._events[type].push(listener);
-  else
-    // Adding the second element, need to change to array.
-    this._events[type] = [this._events[type], listener];
-
-  // Check for listener leak
-  if (isObject(this._events[type]) && !this._events[type].warned) {
-    var m;
-    if (!isUndefined(this._maxListeners)) {
-      m = this._maxListeners;
-    } else {
-      m = EventEmitter.defaultMaxListeners;
-    }
-
-    if (m && m > 0 && this._events[type].length > m) {
-      this._events[type].warned = true;
-      console.error('(node) warning: possible EventEmitter memory ' +
-                    'leak detected. %d listeners added. ' +
-                    'Use emitter.setMaxListeners() to increase limit.',
-                    this._events[type].length);
-      if (typeof console.trace === 'function') {
-        // not supported in IE 10
-        console.trace();
-      }
-    }
-  }
+/**
+ * Register a new EventListener for the given event.
+ *
+ * @param {String} event Name of the event.
+ * @param {Functon} fn Callback function.
+ * @param {Mixed} context The context of the function.
+ * @api public
+ */
+EventEmitter.prototype.on = function on(event, fn, context) {
+  if (!this._events) this._events = {};
+  if (!this._events[event]) this._events[event] = [];
+  this._events[event].push(new EE( fn, context || this ));
 
   return this;
 };
 
-EventEmitter.prototype.on = EventEmitter.prototype.addListener;
-
-EventEmitter.prototype.once = function(type, listener) {
-  if (!isFunction(listener))
-    throw TypeError('listener must be a function');
-
-  var fired = false;
-
-  function g() {
-    this.removeListener(type, g);
-
-    if (!fired) {
-      fired = true;
-      listener.apply(this, arguments);
-    }
-  }
-
-  g.listener = listener;
-  this.on(type, g);
+/**
+ * Add an EventListener that's only called once.
+ *
+ * @param {String} event Name of the event.
+ * @param {Function} fn Callback function.
+ * @param {Mixed} context The context of the function.
+ * @api public
+ */
+EventEmitter.prototype.once = function once(event, fn, context) {
+  if (!this._events) this._events = {};
+  if (!this._events[event]) this._events[event] = [];
+  this._events[event].push(new EE(fn, context || this, true ));
 
   return this;
 };
 
-// emits a 'removeListener' event iff the listener was removed
-EventEmitter.prototype.removeListener = function(type, listener) {
-  var list, position, length, i;
+/**
+ * Remove event listeners.
+ *
+ * @param {String} event The event we want to remove.
+ * @param {Function} fn The listener that we need to find.
+ * @param {Boolean} once Only remove once listeners.
+ * @api public
+ */
+EventEmitter.prototype.removeListener = function removeListener(event, fn, once) {
+  if (!this._events || !this._events[event]) return this;
 
-  if (!isFunction(listener))
-    throw TypeError('listener must be a function');
+  var listeners = this._events[event]
+    , events = [];
 
-  if (!this._events || !this._events[type])
-    return this;
-
-  list = this._events[type];
-  length = list.length;
-  position = -1;
-
-  if (list === listener ||
-      (isFunction(list.listener) && list.listener === listener)) {
-    delete this._events[type];
-    if (this._events.removeListener)
-      this.emit('removeListener', type, listener);
-
-  } else if (isObject(list)) {
-    for (i = length; i-- > 0;) {
-      if (list[i] === listener ||
-          (list[i].listener && list[i].listener === listener)) {
-        position = i;
-        break;
-      }
+  if (fn) for (var i = 0, length = listeners.length; i < length; i++) {
+    if (listeners[i].fn !== fn && listeners[i].once !== once) {
+      events.push(listeners[i]);
     }
-
-    if (position < 0)
-      return this;
-
-    if (list.length === 1) {
-      list.length = 0;
-      delete this._events[type];
-    } else {
-      list.splice(position, 1);
-    }
-
-    if (this._events.removeListener)
-      this.emit('removeListener', type, listener);
   }
+
+  //
+  // Reset the array, or remove it completely if we have no more listeners.
+  //
+  if (events.length) this._events[event] = events;
+  else this._events[event] = null;
 
   return this;
 };
 
-EventEmitter.prototype.removeAllListeners = function(type) {
-  var key, listeners;
+/**
+ * Remove all listeners or only the listeners for the specified event.
+ *
+ * @param {String} event The event want to remove all listeners for.
+ * @api public
+ */
+EventEmitter.prototype.removeAllListeners = function removeAllListeners(event) {
+  if (!this._events) return this;
 
-  if (!this._events)
-    return this;
-
-  // not listening for removeListener, no need to emit
-  if (!this._events.removeListener) {
-    if (arguments.length === 0)
-      this._events = {};
-    else if (this._events[type])
-      delete this._events[type];
-    return this;
-  }
-
-  // emit removeListener for all listeners on all events
-  if (arguments.length === 0) {
-    for (key in this._events) {
-      if (key === 'removeListener') continue;
-      this.removeAllListeners(key);
-    }
-    this.removeAllListeners('removeListener');
-    this._events = {};
-    return this;
-  }
-
-  listeners = this._events[type];
-
-  if (isFunction(listeners)) {
-    this.removeListener(type, listeners);
-  } else {
-    // LIFO order
-    while (listeners.length)
-      this.removeListener(type, listeners[listeners.length - 1]);
-  }
-  delete this._events[type];
+  if (event) this._events[event] = null;
+  else this._events = {};
 
   return this;
 };
 
-EventEmitter.prototype.listeners = function(type) {
-  var ret;
-  if (!this._events || !this._events[type])
-    ret = [];
-  else if (isFunction(this._events[type]))
-    ret = [this._events[type]];
-  else
-    ret = this._events[type].slice();
-  return ret;
+//
+// Alias methods names because people roll like that.
+//
+EventEmitter.prototype.off = EventEmitter.prototype.removeListener;
+EventEmitter.prototype.addListener = EventEmitter.prototype.on;
+
+//
+// This function doesn't apply anymore.
+//
+EventEmitter.prototype.setMaxListeners = function setMaxListeners() {
+  return this;
 };
 
-EventEmitter.listenerCount = function(emitter, type) {
-  var ret;
-  if (!emitter._events || !emitter._events[type])
-    ret = 0;
-  else if (isFunction(emitter._events[type]))
-    ret = 1;
-  else
-    ret = emitter._events[type].length;
-  return ret;
-};
+//
+// Expose the module.
+//
+EventEmitter.EventEmitter = EventEmitter;
+EventEmitter.EventEmitter2 = EventEmitter;
+EventEmitter.EventEmitter3 = EventEmitter;
 
-function isFunction(arg) {
-  return typeof arg === 'function';
-}
-
-function isNumber(arg) {
-  return typeof arg === 'number';
-}
-
-function isObject(arg) {
-  return typeof arg === 'object' && arg !== null;
-}
-
-function isUndefined(arg) {
-  return arg === void 0;
+if ('object' === typeof module && module.exports) {
+  module.exports = EventEmitter;
 }
 
 },{}],3:[function(require,module,exports){
@@ -18399,8 +18302,12 @@ var _ = require('lodash')
 
 module.exports = window.nio = _.assign(
 	{
+		// exposing various dependencies
+		d3: require('d3'),
+		_: require('lodash'),
+
+		// our modules
 		stream: require('./stream'),
-		events: require('events'),
 		utils: require('./utils'),
 		tiles: require('./tiles'),
 		graphs: require('./graphs'),
@@ -18411,7 +18318,7 @@ module.exports = window.nio = _.assign(
 	require('./streams')
 )
 
-},{"./graphs":14,"./instance":17,"./shortcuts":19,"./sources":20,"./stream":21,"./streams":22,"./tiles":23,"./utils":24,"events":2,"lodash":12}],14:[function(require,module,exports){
+},{"./graphs":14,"./instance":17,"./shortcuts":19,"./sources":20,"./stream":21,"./streams":22,"./tiles":23,"./utils":24,"d3":1,"lodash":12}],14:[function(require,module,exports){
 'use strict';
 
 var _ = require('lodash')
@@ -18841,8 +18748,6 @@ function ServiceStatus() {
 ServiceStatus.prototype = Object.create(nio.API.prototype, {})
 
 },{"./api":15}],19:[function(require,module,exports){
-'use strict';
-
 var _ = require('lodash')
 var util = require('util')
 var Stream = require('./stream')
@@ -18904,7 +18809,6 @@ function TilesShortcut(opts) {
 
 	var sortFunc = streams.sortFunc('seconds_ago')
 
-	//this
 	this
 		.pipe(this.json)
 		.pipe(streams.log())
@@ -18981,10 +18885,10 @@ function applyParams(uri, params) {
 	return u.format()
 }
 
-JSONStream.prototype._init = function () { this._resume() }
+JSONStream.prototype.oninit = function () { this.onresume() }
 
-JSONStream.prototype._resume = function () {
-	this._flush()
+JSONStream.prototype.onresume = function () {
+	this.onreset()
 	var uri = applyParams(this.uri, this.params)
 	this.xhr = d3.json(uri, function (error, json) {
 		this.push(json)
@@ -18992,12 +18896,12 @@ JSONStream.prototype._resume = function () {
 	return this
 }
 
-JSONStream.prototype._pause = function () {
-	this._flush()
+JSONStream.prototype.onpause = function () {
+	this.onreset()
 	return this
 }
 
-JSONStream.prototype._flush = function () {
+JSONStream.prototype.onreset = function () {
 	this.params = {}
 	if (this.xhr) this.xhr.abort()
 }
@@ -19013,15 +18917,15 @@ function SocketIOStream(opts) {
 
 util.inherits(SocketIOStream, Stream)
 
-SocketIOStream.prototype._resume = function () {
+SocketIOStream.prototype.onresume = function () {
 	/* global io */
 	if (!window.io) {
 		var s = utils.loadScript(this.host + '/socket.io/socket.io.js')
-		s.onload = function () { this._resume() }.bind(this)
+		s.onload = function () { this.onresume() }.bind(this)
 		return this
 	}
 
-	this._flush()
+	this.onreset()
 	this.ws = io.connect(this.host)
 
 	var sock = this.ws.socket
@@ -19042,12 +18946,12 @@ SocketIOStream.prototype._resume = function () {
 	return this
 }
 
-SocketIOStream.prototype._pause = function () {
-	this._flush()
+SocketIOStream.prototype.onpause = function () {
+	this.onreset()
 	return this
 }
 
-SocketIOStream.prototype._flush = function () {
+SocketIOStream.prototype.onreset = function () {
 	if (this.ws && this.ws.socket.connected)
 		this.ws.disconnect()
 }
@@ -19062,21 +18966,21 @@ function GeneratorStream(msg, rate) {
 
 util.inherits(GeneratorStream, Stream)
 
-GeneratorStream.prototype._init = function () { this._resume() }
+GeneratorStream.prototype.oninit = function () { this.onresume() }
 
-GeneratorStream.prototype._resume = function () {
+GeneratorStream.prototype.onresume = function () {
 	this.interval = setInterval(function () {
 		this.push(_.isFunction(this.msg) ? this.msg() : this.msg)
 	}.bind(this), this.rate)
 	return this
 }
 
-GeneratorStream.prototype._pause = function () {
-	this._flush()
+GeneratorStream.prototype.onpause = function () {
+	this.onreset()
 	return this
 }
 
-GeneratorStream.prototype._flush = function () {
+GeneratorStream.prototype.onreset = function () {
 	if (this.interval) clearInterval(this.interval)
 }
 
@@ -19098,34 +19002,85 @@ module.exports = {
  */
 
 var _ = require('lodash')
-var util = require('util')
-var events = require('events')
+var utils = require('./utils')
 
 /**
  * Stream is an event emitter for creating pipeline-based asynchronus workflows.
  *
- * @extends {events.EventEmitter}
  * @constructor
- * @param {function} _write
+ * @extends {utils.EventEmitter}
+ * @param {function} onwrite
  */
-function Stream(_write) {
+function Stream(opts) {
 	if (!(this instanceof Stream))
-		return new Stream(_write)
-	events.EventEmitter.call(this)
-	if (_write) this._write = _write
-	if (this._init) this._init()
+		return new Stream(opts)
+	utils.EventEmitter.call(this)
+
+	// listen for events and call onevent functions
+	this.on('*', function () {
+		var args = [].slice.call(arguments)
+		var event = args[0]
+		var func = this['on' + event]
+		if (func) func.apply(this, args.slice(1))
+	})
+
+	if (_.isFunction(opts))
+		this.onwrite = opts
+	else if (_.isPlainObject(opts))
+		_.assign(this, opts)
+	this.emit('init')
 }
 
-util.inherits(Stream, events.EventEmitter)
+utils.inherits(Stream, utils.EventEmitter)
+
+/**
+ * emit is overwritten to support the '*' event, which is fired on every event.
+ * This lets us listen to all events at once.
+ *
+ * @return {Stream}
+ */
+Stream.prototype.emit = function () {
+	var args = [].slice.call(arguments)
+	utils.EventEmitter.prototype.emit.apply(this, args)
+
+	// emit the '*' event
+	args.unshift('*')
+	utils.EventEmitter.prototype.emit.apply(this, args)
+}
 
 /**
  * push sends chunks down the pipeline.
  *
- * @param {*} chunk Arbitrary data sent down the pipeline.
+ * @param {*} chunk Arbitrary write sent down the pipeline.
  */
 Stream.prototype.push = function (chunk) {
-	if (_.isEmpty(chunk)) return
+	if (this.state === Stream.STATES.PAUSE) return
+	if (_.isUndefined(chunk) || _.isNull(chunk)) return
 	this.emit('data', chunk)
+}
+
+/**
+ * write handles data that is piped to the stream.
+ *
+ * For now it just calls the _write function if it exists, but in the future it
+ * may emit events or handle special cases.
+ *
+ * @param {*} chunk Arbitrary data sent down the pipeline.
+ */
+Stream.prototype.write = function (chunk) {
+	if (this.onwrite) this.onwrite(chunk)
+}
+
+/**
+ * onwrite allows users to read/modify data sent down the pipeline.
+ *
+ * This function should be overwritten. It passes data along by default.
+ *
+ * @param {*} chunk Arbitrary data sent down the pipeline.
+ * @override
+ */
+Stream.prototype.onwrite = function (chunk) {
+	this.push(chunk)
 }
 
 /**
@@ -19139,8 +19094,10 @@ Stream.prototype.pipe = function () {
 	if (_.isArray(arguments[0]))
 		return this.pipe.apply(this, arguments[0])
 	var dest = arguments[0]
+
 	this.on('data', dest.write.bind(dest))
-	this.on('propogate', dest.propogate.bind(dest))
+	this.on('broadcast', dest.broadcast.bind(dest))
+
 	// use recursion to pipe the streams together
 	if (arguments.length > 1) {
 		var args = [].slice.call(arguments, 1)
@@ -19150,70 +19107,77 @@ Stream.prototype.pipe = function () {
 }
 
 /**
- * propogate sends an event down the pipeline and calls the associated
+ * broadcast sends an event down the pipeline and calls the associated
  * functions on each.
  *
- * @param {string} event The name of the event to propogate.
+ * @param {string} event The name of the event to broadcast.
  * @param {...*} arguments Any data to send along with the event.
  * @return {Stream} This stream.
  */
-Stream.prototype.propogate = function () {
+Stream.prototype.broadcast = function () {
 	var args = [].slice.call(arguments)
-	if (args.length === 0) {
-		console.warn('propogate() called without any arguments')
-		return this
-	}
-	// emit the desired event
-	this.emit.apply(this, args)
-
-	// if there's a _func function, run it
-	var funcName = '_' + args[0]
-	if (this[funcName]) this[funcName]()
-
-	// propogate the event
-	args.unshift('propogate')
+	args.unshift('broadcast')
 	this.emit.apply(this, args)
 	return this
 }
 
-Stream.NATIVE_PROPOGATING = ['flush', 'pause', 'resume']
 /**
- * Native propogating functions that can be called directly.
+ * onbroadcast emits the arguments to the broadcasted event.
  */
-_.each(Stream.NATIVE_PROPOGATING, function (name) {
-	Stream.prototype[name] = function () {
-		this.propogate(name)
+Stream.prototype.onbroadcast = function () {
+	if (arguments.length === 0) {
+		console.warn('broadcast() called without any arguments')
+		return this
+	}
+
+	// handle special case for states
+	var event = arguments[0].toUpperCase()
+	if (event in Stream.STATES)
+		this.state = Stream.STATES[event]
+
+	this.emit.apply(this, arguments)
+}
+
+/**
+ * reset tells a stream to flush their stored values, if any.
+ *
+ * @return {Stream} this
+ */
+Stream.prototype.reset = function () {
+	this.broadcast('reset')
+	return this
+}
+
+/**
+ * States that the stream can be in.
+ */
+Stream.STATES = {
+	DEFAULT: 0,
+	PAUSE: 1,
+	RESUME: 2
+}
+
+/**
+ * Set the default state.
+ */
+Stream.prototype.state = Stream.STATES.DEFAULT
+
+/**
+ * Create a propogating function for each state.
+ */
+_.each(Stream.STATES, function (value, name) {
+	name = name.toLowerCase()
+	Stream.prototype[name] = function (broadcast) {
+		this.state = value
+		if (_.isUndefined(broadcast) || broadcast)
+			this.broadcast(name)
 		return this
 	}
 })
 
-/**
- * write handles data that is piped to the stream.
- *
- * For now it just calls the _write function if it exists, but in the future it
- * may emit events or handle special cases.
- *
- * @param {*} chunk Arbitrary data sent down the pipeline.
- */
-Stream.prototype.write = function (chunk) {
-	if (this._write) this._write(chunk)
-}
-
-/**
- * _write allows users to read/modify data sent down the pipeline.
- *
- * This function should be overwritten. It passes data along by default.
- *
- * @param {*} chunk Arbitrary data sent down the pipeline.
- * @override
- */
-Stream.prototype._write = function (chunk) {
-	this.push(chunk)
-}
-
 module.exports = Stream
 
-},{"events":2,"lodash":12,"util":11}],22:[function(require,module,exports){
+},{"./utils":24,"lodash":12}],22:[function(require,module,exports){
 'use strict';
 
 var _ = require('lodash')
@@ -19250,32 +19214,6 @@ exports.func = function (fn) {
 }
 
 /**
- * times halts the stream when a set number of chunks have passed through it.
- * Useful for testing/debugging.
- *
- * @param {number} max
- * @return {stream}
- */
-exports.times = function (max) {
-	var count = 0
-	var s = stream(function (chunk) {
-		if (count === max) return
-		this.push(chunk)
-		count++
-	})
-	s._flush = function () {count = 0}
-	return s
-}
-
-/**
- * once halts the stream after one chunk has passed through it. Useful for
- * testing/debugging.
- *
- * @return {stream}
- */
-exports.once = _.partial(exports.times, 1)
-
-/**
  * pass creates a stream observes chunks passed through it.
  *
  * @param {function} fn
@@ -19289,8 +19227,37 @@ exports.pass = function (fn) {
 }
 
 /**
+ * times halts the stream when a set number of chunks have passed through it.
+ * Useful for testing/debugging.
+ *
+ * @param {number} max
+ * @return {stream}
+ */
+exports.times = function (max) {
+	var count = 0
+	return stream({
+		onwrite: function (chunk) {
+			if (count === max) return
+			this.push(chunk)
+			count++
+		},
+		onreset: function () {count = 0}
+	})
+}
+
+/**
+ * once halts the stream after one chunk has passed through it. Useful for
+ * testing/debugging.
+ *
+ * @return {stream}
+ */
+exports.once = _.partial(exports.times, 1)
+
+/**
  * pull creates a stream that passes data from other streams. This is useful
  * for pulling in data mid-pipeline.
+ *
+ * TODO: is this function really necessary? why not just use pipe?
  *
  * @param {(...stream|stream[])} streams Streams to pull from.
  * @return {stream} The unified stream.
@@ -19337,10 +19304,9 @@ exports.filter = function (fn) {
 		if (fn(chunk))
 			this.push(chunk)
 		else
-			this.propogate('filtered', chunk)
+			this.broadcast('filtered', chunk)
 	})
 }
-
 
 /**
  * unique IDs chunks that are sent to it and only pushes ones it hasn't seen
@@ -19359,7 +19325,7 @@ exports.unique = function (value) {
 		seen.push(id)
 		return chunk
 	})
-	s._flush = function () {
+	s.onreset = function () {
 		seen = []
 	}
 	return s
@@ -19457,7 +19423,7 @@ exports.collect = function (opts) {
 		return this
 	}
 
-	s._flush = function () {
+	s.onreset = function () {
 		data = []
 	}
 
@@ -19554,10 +19520,10 @@ exports.log = function (prefix) {
 exports.throttle = function (delay) {
 	var pass = function (chunk) {this.push(chunk)}
 	var s = stream()
-	s._flush = function () {
-		this._write = _.throttle(pass, delay)
+	s.onreset = function () {
+		this.onwrite = _.throttle(pass, delay)
 	}
-	s._flush()
+	s.onreset()
 	return s
 }
 
@@ -19600,14 +19566,14 @@ exports.changed = function () {
 		if (_.isEqual(chunk, previous)) return
 		this.push(chunk)
 		previous = chunk
-		this.propogate('changed', chunk, previous, _.difference(chunk, previous))
+		this.broadcast('changed', chunk, previous, _.difference(chunk, previous))
 	})
-	s._flush = function () {previous = null}
+	s.onreset = function () {previous = null}
 	return s
 }
 
 // counts chunks that match a function
-exports.count = function (opts) {
+/*exports.count = function (opts) {
 	// TODO: incomplete
 	if (_.isFunction(opts))
 		opts = [{id: 'count', fn: opts}]
@@ -19616,9 +19582,9 @@ exports.count = function (opts) {
 	var s = exports.pass(function (chunk) {
 
 	})
-	s._flush = function () {counts = {}}
+	s.onreset = function () {counts = {}}
 	return s
-}
+}*/
 
 /**
  * on listens to an event on the pipeline
@@ -19699,27 +19665,13 @@ exports.each = function (fn) {
 //var fs = require('fs')
 var _ = require('lodash')
 var d3 = require('d3')
-var utils = require('../utils')
-var streams = require('../streams')
+var utils = require('./utils')
+var streams = require('./streams')
 
 // TODO: this is causing `gulp watch` to throw errors about too many files open
 //var html = fs.readFileSync(__dirname + '/tiles.html', 'utf8')
 var html = ''
 var template = _.template(html, null, {imports: utils})
-
-var defaults = {
-	type: '',
-	author: '',
-	authorLink: '',
-	link: '',
-	media: '',
-	source: '',
-	text: '',
-	time: '',
-	wide: false,
-	expanded: false,
-	avatar: false
-}
 
 module.exports = function (opts) {
 	if (_.isString(opts))
@@ -19841,14 +19793,14 @@ module.exports = function (opts) {
 
 module.exports.template = template
 
-},{"../streams":22,"../utils":24,"d3":1,"lodash":12}],24:[function(require,module,exports){
-'use strict';
-
-var util = require('util')
+},{"./streams":22,"./utils":24,"d3":1,"lodash":12}],24:[function(require,module,exports){
 var _ = require('lodash')
-var d3 = require('d3')
+var events = require('eventemitter3')
 
-exports.inherits = util.inherits
+/**
+ * Make an alias for EventEmitter so that it's easy to swap out
+ */
+exports.EventEmitter = events.EventEmitter
 
 // turns urls and twitter handles/hashtags into links
 exports.linkify = function (text) {
@@ -19879,26 +19831,9 @@ exports.truncate = function (text, len) {
 	return text
 }
 
-exports.isArray = _.isArray
-exports.isFunc = _.isFunction
-exports.isStr = _.isString
-
-var mediaTypeNames = {
-	'twitter': 'Twitter',
-	'twitter-photo': 'Twitter',
-	'facebook': 'Facebook',
-	'gplus': 'Google+',
-	'linkedin': 'LinkedIn',
-	'rss': 'RSS'
-}
-
-exports.mediaTypeName = function (type) {
-	return type in mediaTypeNames ? mediaTypeNames[type] : type
-}
-
 exports.cycle = function (value) {
 	if (_.isNumber(value))
-		value = d3.range(value)
+		value = _.range(1, value + 1)
 	var current = -1 // so the first call will get the first value
 	return function () {
 		current = current === value.length - 1 ? 0 : current + 1
@@ -19907,7 +19842,19 @@ exports.cycle = function (value) {
 	}
 }
 
-exports.loadScript = function (url) {
+/**
+ * choose picks out a random value in an array
+ *
+ * @param {array} values
+ * @return {*}
+ */
+exports.choose = function (values) {
+	if (!values.length) return
+	var chosen = _.random(0, values.length - 1)
+	return values[chosen]
+}
+
+exports.script = function (url, defined) {
 	var script = document.createElement('script')
 	script.src = url
 	document.body.appendChild(script)
@@ -19915,4 +19862,14 @@ exports.loadScript = function (url) {
 }
 
 
-},{"d3":1,"lodash":12,"util":11}]},{},[13])
+exports.argsOrArray = function (fn) {
+	return function () {
+		if (_.isArray(arguments[0]))
+			return fn.apply(fn, arguments[0])
+		return fn.apply(fn, arguments)
+	}
+}
+
+module.exports = _.assign(require('util'), _, exports)
+
+},{"eventemitter3":2,"lodash":12,"util":11}]},{},[13])

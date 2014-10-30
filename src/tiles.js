@@ -7,27 +7,13 @@
 //var fs = require('fs')
 var _ = require('lodash')
 var d3 = require('d3')
-var utils = require('../utils')
-var streams = require('../streams')
+var utils = require('./utils')
+var streams = require('./streams')
 
 // TODO: this is causing `gulp watch` to throw errors about too many files open
 //var html = fs.readFileSync(__dirname + '/tiles.html', 'utf8')
 var html = ''
 var template = _.template(html, null, {imports: utils})
-
-var defaults = {
-	type: '',
-	author: '',
-	authorLink: '',
-	link: '',
-	media: '',
-	source: '',
-	text: '',
-	time: '',
-	wide: false,
-	expanded: false,
-	avatar: false
-}
 
 module.exports = function (opts) {
 	if (_.isString(opts))

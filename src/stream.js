@@ -6,34 +6,85 @@
  */
 
 var _ = require('lodash')
-var util = require('util')
-var events = require('events')
+var utils = require('./utils')
 
 /**
  * Stream is an event emitter for creating pipeline-based asynchronus workflows.
  *
- * @extends {events.EventEmitter}
  * @constructor
- * @param {function} _write
+ * @extends {utils.EventEmitter}
+ * @param {function} onwrite
  */
-function Stream(_write) {
+function Stream(opts) {
 	if (!(this instanceof Stream))
-		return new Stream(_write)
-	events.EventEmitter.call(this)
-	if (_write) this._write = _write
-	if (this._init) this._init()
+		return new Stream(opts)
+	utils.EventEmitter.call(this)
+
+	// listen for events and call onevent functions
+	this.on('*', function () {
+		var args = [].slice.call(arguments)
+		var event = args[0]
+		var func = this['on' + event]
+		if (func) func.apply(this, args.slice(1))
+	})
+
+	if (_.isFunction(opts))
+		this.onwrite = opts
+	else if (_.isPlainObject(opts))
+		_.assign(this, opts)
+	this.emit('init')
 }
 
-util.inherits(Stream, events.EventEmitter)
+utils.inherits(Stream, utils.EventEmitter)
+
+/**
+ * emit is overwritten to support the '*' event, which is fired on every event.
+ * This lets us listen to all events at once.
+ *
+ * @return {Stream}
+ */
+Stream.prototype.emit = function () {
+	var args = [].slice.call(arguments)
+	utils.EventEmitter.prototype.emit.apply(this, args)
+
+	// emit the '*' event
+	args.unshift('*')
+	utils.EventEmitter.prototype.emit.apply(this, args)
+}
 
 /**
  * push sends chunks down the pipeline.
  *
- * @param {*} chunk Arbitrary data sent down the pipeline.
+ * @param {*} chunk Arbitrary write sent down the pipeline.
  */
 Stream.prototype.push = function (chunk) {
-	if (_.isEmpty(chunk)) return
+	if (this.state === Stream.STATES.PAUSE) return
+	if (_.isUndefined(chunk) || _.isNull(chunk)) return
 	this.emit('data', chunk)
+}
+
+/**
+ * write handles data that is piped to the stream.
+ *
+ * For now it just calls the _write function if it exists, but in the future it
+ * may emit events or handle special cases.
+ *
+ * @param {*} chunk Arbitrary data sent down the pipeline.
+ */
+Stream.prototype.write = function (chunk) {
+	if (this.onwrite) this.onwrite(chunk)
+}
+
+/**
+ * onwrite allows users to read/modify data sent down the pipeline.
+ *
+ * This function should be overwritten. It passes data along by default.
+ *
+ * @param {*} chunk Arbitrary data sent down the pipeline.
+ * @override
+ */
+Stream.prototype.onwrite = function (chunk) {
+	this.push(chunk)
 }
 
 /**
@@ -47,8 +98,10 @@ Stream.prototype.pipe = function () {
 	if (_.isArray(arguments[0]))
 		return this.pipe.apply(this, arguments[0])
 	var dest = arguments[0]
+
 	this.on('data', dest.write.bind(dest))
-	this.on('propogate', dest.propogate.bind(dest))
+	this.on('broadcast', dest.broadcast.bind(dest))
+
 	// use recursion to pipe the streams together
 	if (arguments.length > 1) {
 		var args = [].slice.call(arguments, 1)
@@ -58,65 +111,72 @@ Stream.prototype.pipe = function () {
 }
 
 /**
- * propogate sends an event down the pipeline and calls the associated
+ * broadcast sends an event down the pipeline and calls the associated
  * functions on each.
  *
- * @param {string} event The name of the event to propogate.
+ * @param {string} event The name of the event to broadcast.
  * @param {...*} arguments Any data to send along with the event.
  * @return {Stream} This stream.
  */
-Stream.prototype.propogate = function () {
+Stream.prototype.broadcast = function () {
 	var args = [].slice.call(arguments)
-	if (args.length === 0) {
-		console.warn('propogate() called without any arguments')
-		return this
-	}
-	// emit the desired event
-	this.emit.apply(this, args)
-
-	// if there's a _func function, run it
-	var funcName = '_' + args[0]
-	if (this[funcName]) this[funcName]()
-
-	// propogate the event
-	args.unshift('propogate')
+	args.unshift('broadcast')
 	this.emit.apply(this, args)
 	return this
 }
 
-Stream.NATIVE_PROPOGATING = ['flush', 'pause', 'resume']
 /**
- * Native propogating functions that can be called directly.
+ * onbroadcast emits the arguments to the broadcasted event.
  */
-_.each(Stream.NATIVE_PROPOGATING, function (name) {
-	Stream.prototype[name] = function () {
-		this.propogate(name)
+Stream.prototype.onbroadcast = function () {
+	if (arguments.length === 0) {
+		console.warn('broadcast() called without any arguments')
+		return this
+	}
+
+	// handle special case for states
+	var event = arguments[0].toUpperCase()
+	if (event in Stream.STATES)
+		this.state = Stream.STATES[event]
+
+	this.emit.apply(this, arguments)
+}
+
+/**
+ * reset tells a stream to flush their stored values, if any.
+ *
+ * @return {Stream} this
+ */
+Stream.prototype.reset = function () {
+	this.broadcast('reset')
+	return this
+}
+
+/**
+ * States that the stream can be in.
+ */
+Stream.STATES = {
+	DEFAULT: 0,
+	PAUSE: 1,
+	RESUME: 2
+}
+
+/**
+ * Set the default state.
+ */
+Stream.prototype.state = Stream.STATES.DEFAULT
+
+/**
+ * Create a propogating function for each state.
+ */
+_.each(Stream.STATES, function (value, name) {
+	name = name.toLowerCase()
+	Stream.prototype[name] = function (broadcast) {
+		this.state = value
+		if (_.isUndefined(broadcast) || broadcast)
+			this.broadcast(name)
 		return this
 	}
 })
-
-/**
- * write handles data that is piped to the stream.
- *
- * For now it just calls the _write function if it exists, but in the future it
- * may emit events or handle special cases.
- *
- * @param {*} chunk Arbitrary data sent down the pipeline.
- */
-Stream.prototype.write = function (chunk) {
-	if (this._write) this._write(chunk)
-}
-
-/**
- * _write allows users to read/modify data sent down the pipeline.
- *
- * This function should be overwritten. It passes data along by default.
- *
- * @param {*} chunk Arbitrary data sent down the pipeline.
- * @override
- */
-Stream.prototype._write = function (chunk) {
-	this.push(chunk)
-}
 
 module.exports = Stream

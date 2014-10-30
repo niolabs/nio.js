@@ -1,10 +1,10 @@
-'use strict';
-
-var util = require('util')
 var _ = require('lodash')
-var d3 = require('d3')
+var events = require('eventemitter3')
 
-exports.inherits = util.inherits
+/**
+ * Make an alias for EventEmitter so that it's easy to swap out
+ */
+exports.EventEmitter = events.EventEmitter
 
 // turns urls and twitter handles/hashtags into links
 exports.linkify = function (text) {
@@ -35,26 +35,9 @@ exports.truncate = function (text, len) {
 	return text
 }
 
-exports.isArray = _.isArray
-exports.isFunc = _.isFunction
-exports.isStr = _.isString
-
-var mediaTypeNames = {
-	'twitter': 'Twitter',
-	'twitter-photo': 'Twitter',
-	'facebook': 'Facebook',
-	'gplus': 'Google+',
-	'linkedin': 'LinkedIn',
-	'rss': 'RSS'
-}
-
-exports.mediaTypeName = function (type) {
-	return type in mediaTypeNames ? mediaTypeNames[type] : type
-}
-
 exports.cycle = function (value) {
 	if (_.isNumber(value))
-		value = d3.range(value)
+		value = _.range(1, value + 1)
 	var current = -1 // so the first call will get the first value
 	return function () {
 		current = current === value.length - 1 ? 0 : current + 1
@@ -63,10 +46,32 @@ exports.cycle = function (value) {
 	}
 }
 
-exports.loadScript = function (url) {
+/**
+ * choose picks out a random value in an array
+ *
+ * @param {array} values
+ * @return {*}
+ */
+exports.choose = function (values) {
+	if (!values.length) return
+	var chosen = _.random(0, values.length - 1)
+	return values[chosen]
+}
+
+exports.script = function (url, defined) {
 	var script = document.createElement('script')
 	script.src = url
 	document.body.appendChild(script)
 	return script
 }
 
+
+exports.argsOrArray = function (fn) {
+	return function () {
+		if (_.isArray(arguments[0]))
+			return fn.apply(fn, arguments[0])
+		return fn.apply(fn, arguments)
+	}
+}
+
+module.exports = _.assign(require('util'), _, exports)

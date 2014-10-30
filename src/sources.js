@@ -23,10 +23,10 @@ function applyParams(uri, params) {
 	return u.format()
 }
 
-JSONStream.prototype._init = function () { this._resume() }
+JSONStream.prototype.oninit = function () { this.onresume() }
 
-JSONStream.prototype._resume = function () {
-	this._flush()
+JSONStream.prototype.onresume = function () {
+	this.onreset()
 	var uri = applyParams(this.uri, this.params)
 	this.xhr = d3.json(uri, function (error, json) {
 		this.push(json)
@@ -34,12 +34,12 @@ JSONStream.prototype._resume = function () {
 	return this
 }
 
-JSONStream.prototype._pause = function () {
-	this._flush()
+JSONStream.prototype.onpause = function () {
+	this.onreset()
 	return this
 }
 
-JSONStream.prototype._flush = function () {
+JSONStream.prototype.onreset = function () {
 	this.params = {}
 	if (this.xhr) this.xhr.abort()
 }
@@ -55,15 +55,15 @@ function SocketIOStream(opts) {
 
 util.inherits(SocketIOStream, Stream)
 
-SocketIOStream.prototype._resume = function () {
+SocketIOStream.prototype.onresume = function () {
 	/* global io */
 	if (!window.io) {
 		var s = utils.loadScript(this.host + '/socket.io/socket.io.js')
-		s.onload = function () { this._resume() }.bind(this)
+		s.onload = function () { this.onresume() }.bind(this)
 		return this
 	}
 
-	this._flush()
+	this.onreset()
 	this.ws = io.connect(this.host)
 
 	var sock = this.ws.socket
@@ -84,12 +84,12 @@ SocketIOStream.prototype._resume = function () {
 	return this
 }
 
-SocketIOStream.prototype._pause = function () {
-	this._flush()
+SocketIOStream.prototype.onpause = function () {
+	this.onreset()
 	return this
 }
 
-SocketIOStream.prototype._flush = function () {
+SocketIOStream.prototype.onreset = function () {
 	if (this.ws && this.ws.socket.connected)
 		this.ws.disconnect()
 }
@@ -104,21 +104,21 @@ function GeneratorStream(msg, rate) {
 
 util.inherits(GeneratorStream, Stream)
 
-GeneratorStream.prototype._init = function () { this._resume() }
+GeneratorStream.prototype.oninit = function () { this.onresume() }
 
-GeneratorStream.prototype._resume = function () {
+GeneratorStream.prototype.onresume = function () {
 	this.interval = setInterval(function () {
 		this.push(_.isFunction(this.msg) ? this.msg() : this.msg)
 	}.bind(this), this.rate)
 	return this
 }
 
-GeneratorStream.prototype._pause = function () {
-	this._flush()
+GeneratorStream.prototype.onpause = function () {
+	this.onreset()
 	return this
 }
 
-GeneratorStream.prototype._flush = function () {
+GeneratorStream.prototype.onreset = function () {
 	if (this.interval) clearInterval(this.interval)
 }
 

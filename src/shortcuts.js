@@ -1,5 +1,3 @@
-'use strict';
-
 var _ = require('lodash')
 var util = require('util')
 var Stream = require('./stream')
@@ -61,7 +59,6 @@ function TilesShortcut(opts) {
 
 	var sortFunc = streams.sortFunc('seconds_ago')
 
-	//this
 	this
 		.pipe(this.json)
 		.pipe(streams.log())
