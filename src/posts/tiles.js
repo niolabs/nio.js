@@ -3,7 +3,7 @@ var _ = require('lodash')
 var d3 = require('d3')
 var utils = require('../utils')
 var streams = require('../streams')
-var posts = require('./index')
+var posts = require('../posts')
 
 var html = fs.readFileSync(__dirname + '/tiles.html', 'utf8')
 var template = _.template(html, null, {imports: utils})
@@ -31,8 +31,7 @@ module.exports = function (opts) {
 		if (_.isArray(chunk)) {
 			_.forEach(chunk, handleChunk)
 		} else {
-			console.log('posts', posts, posts.Post)
-			var post = posts.Post(chunk)
+			var post = posts.post(chunk)
 			var col = getCol()
 			data[col].unshift(post)
 		}
@@ -51,11 +50,14 @@ module.exports = function (opts) {
 		render()
 	})
 
+
 	stream.onreset = function () {
 		elMain.selectAll('.col').remove()
 		data = d3.range(numCols).map(function () { return [] })
 		isInitialized = false
 	}
+
+	stream.onfilter = stream.onreset
 
 	// var elCols = []
 	// for (var i=numCols; i--;)

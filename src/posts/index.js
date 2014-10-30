@@ -4,7 +4,6 @@ var Stream = require('../stream')
 var streams = require('../streams')
 var sources = require('../sources')
 var Model = require('../model')
-var tiles = require('./tiles')
 
 /**
  * Post is a entry on Twitter, Instagram, Facebook, Google+, etc.
@@ -106,8 +105,9 @@ var propmap = {
 	time: function (d) { return new Date(d.time) },
 	seconds_ago: function (d) {
 		if (d.seconds_ago) return d.seconds_ago
-		var now = new Date()
-		var ms = now.getTime() - d.time.getTime()
+		var utc = utils.utc()
+		var time = utils.utc(d.time)
+		var ms = utc.getTime() - time.getTime()
 		return ms / 1000
 	}
 }
@@ -116,22 +116,23 @@ function PostsStream(opts) {
 	if (!(this instanceof PostsStream))
 		return new PostsStream(opts)
 	Stream.call(this)
+	this.opts = opts
 
 	var socketio = sources.socketio({
 		host: opts.socketio,
 		rooms: ['default']
 	})
 
-	//var sortFunc = streams.sortFunc('seconds_ago')
-	var sortFunc = streams.sortFunc('priority')
-
-	this.out = opts.out || streams.pass()
+	this.onreset()
 
 	this.pipe(
 		sources.json(opts.json),
 		streams.log(),
 		streams.get('posts'),
-		streams.sort(sortFunc),
+		streams.sort(this.sortFunc),
+		streams.pass(function (chunk) {
+			this.latest = _.first(chunk)
+		}.bind(this)),
 		streams.each(_.partialRight(streams.setProps, propmap)),
 		streams.limit(9),
 		this.out,
@@ -143,15 +144,12 @@ function PostsStream(opts) {
 		socketio,
 		streams.unique('id'),
 		streams.set(propmap),
-		streams.filter(function (d) {
-			// check if newer
-			return sortFunc(d) < sortFunc(this.latest)
-		}.bind(this)),
-		streams.log(),
+		streams.filter(this.sortCmpFunc),
+		streams.log('new post'),
 		streams.filter(function (chunk) {
-			var filtered = isMatch(chunk, this.params)
-			if (filtered) this.broadcast('new_filtered', chunk)
-			return filtered
+			var matched = isMatch(chunk, this.params)
+			if (!matched) this.broadcast('new_filtered', chunk)
+			return matched
 		}.bind(this)),
 		streams.on('new_filtered', function (chunk) {
 			console.log('new filtered post', chunk)
@@ -164,22 +162,38 @@ function PostsStream(opts) {
 utils.inherits(PostsStream, Stream)
 
 PostsStream.prototype.onreset = function () {
+	this.params = this.opts.params || {}
 	this.latest = null
+	this.sort()
+	this.out = this.opts.out || streams.pass()
 }
 
 PostsStream.prototype.filter = function (params) {
-	this.pause()
-	this.reset()
 	this.broadcast('filter', params)
-	this.resume()
 }
 
+PostsStream.prototype.sort = function (property, reverse) {
+	if (!property)
+		property = this.opts.sort || 'seconds_ago'
+	this.sortFunc = streams.sortFunc(property)
+	if (reverse)
+		this.sortCmpFunc = function (d) {
+			return this.sortFunc(d) > this.sortFunc(this.latest)
+		}.bind(this)
+	else
+		this.sortCmpFunc = function (d) {
+			return this.sortFunc(d) < this.sortFunc(this.latest)
+		}.bind(this)
+}
+
+module.exports = PostsStream
+module.exports.Post = Post
+module.exports.post = Post
+module.exports.isMatch = isMatch
+
+var tiles = require('./tiles')
 PostsStream.prototype.tiles = function (opts) {
 	this.out.pipe(tiles(opts))
 	return this
 }
-
-module.exports = PostsStream
 module.exports.tiles = tiles
-module.exports.Post = Post
-module.exports.post = Post

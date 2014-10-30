@@ -26,17 +26,10 @@ function applyParams(uri, params) {
 JSONStream.prototype.oninit = function () { this.onresume() }
 
 JSONStream.prototype.onresume = function () {
-	this.onreset()
 	var uri = applyParams(this.uri, this.params)
 	this.xhr = d3.json(uri, function (error, json) {
 		this.push(json)
 	}.bind(this))
-	return this
-}
-
-JSONStream.prototype.onpause = function () {
-	this.onreset()
-	return this
 }
 
 JSONStream.prototype.onreset = function () {
@@ -45,7 +38,10 @@ JSONStream.prototype.onreset = function () {
 }
 
 JSONStream.prototype.onfilter = function (params) {
+	console.log('json got params', params)
+	this.reset(false)
 	this.params = params
+	this.resume(false)
 }
 
 function SocketIOStream(opts) {
@@ -82,7 +78,7 @@ SocketIOStream.prototype.oninit = function () {
 		console.error('connection error')
 	})
 	this.ws.on('recvData', function (data) {
-		if (this.state === Stream.STATES.PAUSE) return
+		//if (this.state === Stream.STATES.PAUSE) return
 		this.push(JSON.parse(data))
 	}.bind(this))
 	return this
@@ -94,8 +90,10 @@ SocketIOStream.prototype.onresume = function () {
 }
 
 SocketIOStream.prototype.onreset = function () {
-	if (this.ws && this.ws.socket.connected)
+	if (this.ws && this.ws.socket.connected) {
 		this.ws.disconnect()
+		this.ws = null
+	}
 }
 
 function GeneratorStream(msg, rate) {

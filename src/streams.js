@@ -247,7 +247,7 @@ exports.collect = function (opts) {
 		data = []
 	}
 
-	s.flush()
+	s.onreset()
 
 	return s
 }

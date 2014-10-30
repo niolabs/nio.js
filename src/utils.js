@@ -58,13 +58,12 @@ exports.choose = function (values) {
 	return values[chosen]
 }
 
-exports.script = function (url, defined) {
+exports.script = function (url) {
 	var script = document.createElement('script')
 	script.src = url
 	document.body.appendChild(script)
 	return script
 }
-
 
 exports.argsOrArray = function (fn) {
 	return function () {
@@ -72,6 +71,25 @@ exports.argsOrArray = function (fn) {
 			return fn.apply(fn, arguments[0])
 		return fn.apply(fn, arguments)
 	}
+}
+
+/**
+ * utc creates/converts a date to UTC
+ *
+ * @param date
+ * @return {undefined}
+ */
+exports.utc = function (date) {
+	if (_.isUndefined(date) || _.isString(date))
+		date = new Date(date)
+    return new Date(Date.UTC(
+		date.getFullYear(),
+		date.getMonth(),
+		date.getDate(),
+		date.getHours(),
+		date.getMinutes(),
+		date.getSeconds()
+	))
 }
 
 module.exports = _.assign(require('util'), _, exports)

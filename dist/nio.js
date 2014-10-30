@@ -18794,7 +18794,6 @@ var Stream = require('../stream')
 var streams = require('../streams')
 var sources = require('../sources')
 var Model = require('../model')
-var tiles = require('./tiles')
 
 /**
  * Post is a entry on Twitter, Instagram, Facebook, Google+, etc.
@@ -18896,8 +18895,9 @@ var propmap = {
 	time: function (d) { return new Date(d.time) },
 	seconds_ago: function (d) {
 		if (d.seconds_ago) return d.seconds_ago
-		var now = new Date()
-		var ms = now.getTime() - d.time.getTime()
+		var utc = utils.utc()
+		var time = utils.utc(d.time)
+		var ms = utc.getTime() - time.getTime()
 		return ms / 1000
 	}
 }
@@ -18906,22 +18906,23 @@ function PostsStream(opts) {
 	if (!(this instanceof PostsStream))
 		return new PostsStream(opts)
 	Stream.call(this)
+	this.opts = opts
 
 	var socketio = sources.socketio({
 		host: opts.socketio,
 		rooms: ['default']
 	})
 
-	//var sortFunc = streams.sortFunc('seconds_ago')
-	var sortFunc = streams.sortFunc('priority')
-
-	this.out = opts.out || streams.pass()
+	this.onreset()
 
 	this.pipe(
 		sources.json(opts.json),
 		streams.log(),
 		streams.get('posts'),
-		streams.sort(sortFunc),
+		streams.sort(this.sortFunc),
+		streams.pass(function (chunk) {
+			this.latest = _.first(chunk)
+		}.bind(this)),
 		streams.each(_.partialRight(streams.setProps, propmap)),
 		streams.limit(9),
 		this.out,
@@ -18933,15 +18934,12 @@ function PostsStream(opts) {
 		socketio,
 		streams.unique('id'),
 		streams.set(propmap),
-		streams.filter(function (d) {
-			// check if newer
-			return sortFunc(d) < sortFunc(this.latest)
-		}.bind(this)),
-		streams.log(),
+		streams.filter(this.sortCmpFunc),
+		streams.log('new post'),
 		streams.filter(function (chunk) {
-			var filtered = isMatch(chunk, this.params)
-			if (filtered) this.broadcast('new_filtered', chunk)
-			return filtered
+			var matched = isMatch(chunk, this.params)
+			if (!matched) this.broadcast('new_filtered', chunk)
+			return matched
 		}.bind(this)),
 		streams.on('new_filtered', function (chunk) {
 			console.log('new filtered post', chunk)
@@ -18954,32 +18952,48 @@ function PostsStream(opts) {
 utils.inherits(PostsStream, Stream)
 
 PostsStream.prototype.onreset = function () {
+	this.params = this.opts.params || {}
 	this.latest = null
+	this.sort()
+	this.out = this.opts.out || streams.pass()
 }
 
 PostsStream.prototype.filter = function (params) {
-	this.pause()
-	this.reset()
 	this.broadcast('filter', params)
-	this.resume()
 }
 
+PostsStream.prototype.sort = function (property, reverse) {
+	if (!property)
+		property = this.opts.sort || 'seconds_ago'
+	this.sortFunc = streams.sortFunc(property)
+	if (reverse)
+		this.sortCmpFunc = function (d) {
+			return this.sortFunc(d) > this.sortFunc(this.latest)
+		}.bind(this)
+	else
+		this.sortCmpFunc = function (d) {
+			return this.sortFunc(d) < this.sortFunc(this.latest)
+		}.bind(this)
+}
+
+module.exports = PostsStream
+module.exports.Post = Post
+module.exports.post = Post
+module.exports.isMatch = isMatch
+
+var tiles = require('./tiles')
 PostsStream.prototype.tiles = function (opts) {
 	this.out.pipe(tiles(opts))
 	return this
 }
-
-module.exports = PostsStream
 module.exports.tiles = tiles
-module.exports.Post = Post
-module.exports.post = Post
 
 },{"../model":19,"../sources":22,"../stream":23,"../streams":24,"../utils":25,"./tiles":21,"lodash":12}],21:[function(require,module,exports){
 var _ = require('lodash')
 var d3 = require('d3')
 var utils = require('../utils')
 var streams = require('../streams')
-var posts = require('./index')
+var posts = require('../posts')
 
 var html = "<div id=\"tile-<%=id%>\" layout vertical class=\"tile -transition -<%=type%><% if (avatar) { %> -avatar<% } %><% if (media) { %> -media<% } %><% if (expanded) { %> -expanded<% } %>\">\n\t<header class=\"-transition\" center layout horizontal full-width>\n\t\t<% if (avatar) { %>\n\t\t\t<a href=\"<%=authorLink%>\" class=\"tile-avatar poster tile-author-link\"\n\t\t\t\tdata-author=\"<%=author%>\">\n\t\t\t\t<img src=\"<%=avatar%>\">\n\t\t\t</a>\n\t\t<% } %>\n\t\t<div class=\"tile-title\" flex center pad-height pad-width-double>\n\t\t\t<h3 class=\"tile-author ellipsis\" space-zero>\n\t\t\t\t<a href=\"<%=authorLink%>\" class=\"tile-author-link\" data-author=\"<%=author%>\">\n\t\t\t\t\t<%=author%>\n\t\t\t\t</a>\n\t\t\t</h3>\n\t\t\t<time is=\"relative-time\" datetime=\"<%=time%>\" class=\"muted-inverse\">\n\t\t\t\t<%=time%>\n\t\t\t</time>\n\t\t</div>\n\t\t<span pad-width-double class=muted-inverse>\n\t\t\t<svg class=\"icon icon-larger\"><use xlink:href=\"#<%=type%>-square\"></use></svg>\n\t\t</span>\n\t</header>\n\t<div class=\"tile-bottom\" flex vertical layout>\n\t\t<div class=\"tile-content\" flex pad-double>\n\t\t\t<% if (media) { %>\n\t\t\t\t<div class=\"tile-media poster\" fit>\n\t\t\t\t\t<% if (type === 'youtube' || type === 'vimeo') { %>\n\t\t\t\t\t\t<svg class=\"icon icon-largest play-arrow muted-inverse\">\n\t\t\t\t\t\t\t<use xlink:href=\"#play-arrow\"></use>\n\t\t\t\t\t\t</svg>\n\t\t\t\t\t<% } %>\n\t\t\t\t\t<img src=\"<%=media%>\" alt=\"<%=text%>\">\n\t\t\t\t</div>\n\t\t\t<% } %>\n\t\t\t<span class=\"tile-text -transition<% if (media) { %> marquee -paused<% } %>\" block>\n\t\t\t\t<%=linkify(text)%>\n\t\t\t</span>\n\t\t</div>\n\n\t\t<footer class=\"-transition type-small height-larger\"\n\t\t\t<% if (media) { %>pad-width-double<% } else { %>space-width-double<% } %>\n\t\t\tlayout horizontal justified pad-height-half>\n\t\t\t<a href=\"<%=link%>\" target=\"_blank\">\n\t\t\t\tView on <%=typeDisplay%>\n\t\t\t\t<svg class=\"icon icon-small muted\"><use xlink:href=\"#open-in-new\"></use></svg>\n\t\t\t</a>\n\t\t\t<a href=\"#\" target=\"_blank\">\n\t\t\t\tShare\n\t\t\t\t<svg class=\"icon icon-small muted\"><use xlink:href=\"#share\"></use></svg>\n\t\t\t</a>\n\t\t</footer>\n\t</div>\n</div>\n"
 var template = _.template(html, null, {imports: utils})
@@ -19007,8 +19021,7 @@ module.exports = function (opts) {
 		if (_.isArray(chunk)) {
 			_.forEach(chunk, handleChunk)
 		} else {
-			console.log('posts', posts, posts.Post)
-			var post = posts.Post(chunk)
+			var post = posts.post(chunk)
 			var col = getCol()
 			data[col].unshift(post)
 		}
@@ -19027,11 +19040,14 @@ module.exports = function (opts) {
 		render()
 	})
 
+
 	stream.onreset = function () {
 		elMain.selectAll('.col').remove()
 		data = d3.range(numCols).map(function () { return [] })
 		isInitialized = false
 	}
+
+	stream.onfilter = stream.onreset
 
 	// var elCols = []
 	// for (var i=numCols; i--;)
@@ -19109,7 +19125,7 @@ module.exports = function (opts) {
 
 module.exports.template = template
 
-},{"../streams":24,"../utils":25,"./index":20,"d3":1,"lodash":12}],22:[function(require,module,exports){
+},{"../posts":20,"../streams":24,"../utils":25,"d3":1,"lodash":12}],22:[function(require,module,exports){
 var _ = require('lodash')
 var url = require('url')
 var d3 = require('d3')
@@ -19138,17 +19154,10 @@ function applyParams(uri, params) {
 JSONStream.prototype.oninit = function () { this.onresume() }
 
 JSONStream.prototype.onresume = function () {
-	this.onreset()
 	var uri = applyParams(this.uri, this.params)
 	this.xhr = d3.json(uri, function (error, json) {
 		this.push(json)
 	}.bind(this))
-	return this
-}
-
-JSONStream.prototype.onpause = function () {
-	this.onreset()
-	return this
 }
 
 JSONStream.prototype.onreset = function () {
@@ -19157,7 +19166,10 @@ JSONStream.prototype.onreset = function () {
 }
 
 JSONStream.prototype.onfilter = function (params) {
+	console.log('json got params', params)
+	this.reset(false)
 	this.params = params
+	this.resume(false)
 }
 
 function SocketIOStream(opts) {
@@ -19194,7 +19206,7 @@ SocketIOStream.prototype.oninit = function () {
 		console.error('connection error')
 	})
 	this.ws.on('recvData', function (data) {
-		if (this.state === Stream.STATES.PAUSE) return
+		//if (this.state === Stream.STATES.PAUSE) return
 		this.push(JSON.parse(data))
 	}.bind(this))
 	return this
@@ -19206,8 +19218,10 @@ SocketIOStream.prototype.onresume = function () {
 }
 
 SocketIOStream.prototype.onreset = function () {
-	if (this.ws && this.ws.socket.connected)
+	if (this.ws && this.ws.socket.connected) {
 		this.ws.disconnect()
+		this.ws = null
+	}
 }
 
 function GeneratorStream(msg, rate) {
@@ -19310,6 +19324,7 @@ Stream.prototype.emit = function () {
 Stream.prototype.push = function (chunk) {
 	if (this.state === Stream.STATES.PAUSE) return
 	if (_.isUndefined(chunk) || _.isNull(chunk)) return
+	if (_.isEmpty(chunk) && (_.isArray(chunk) || _.isPlainObject(chunk))) return
 	this.emit('data', chunk)
 }
 
@@ -19393,12 +19408,24 @@ Stream.prototype.onbroadcast = function () {
 }
 
 /**
+ * _broadcastOrEmit
+ *
+ * @param {Boolean} broadcast wether or not to broadcast
+ * @return {Function}
+ */
+Stream.prototype._broadcastOrEmit = function (broadcast) {
+	if (broadcast === false)
+		return this.emit.bind(this)
+	return this.broadcast.bind(this)
+}
+
+/**
  * reset tells a stream to flush their stored values, if any.
  *
  * @return {Stream} this
  */
-Stream.prototype.reset = function () {
-	this.broadcast('reset')
+Stream.prototype.reset = function (broadcast) {
+	this._broadcastOrEmit(broadcast)('reset')
 	return this
 }
 
@@ -19423,8 +19450,7 @@ _.each(Stream.STATES, function (value, name) {
 	name = name.toLowerCase()
 	Stream.prototype[name] = function (broadcast) {
 		this.state = value
-		if (_.isUndefined(broadcast) || broadcast)
-			this.broadcast(name)
+		this._broadcastOrEmit(broadcast)(name)
 		return this
 	}
 })
@@ -19681,7 +19707,7 @@ exports.collect = function (opts) {
 		data = []
 	}
 
-	s.flush()
+	s.onreset()
 
 	return s
 }
@@ -19970,13 +19996,12 @@ exports.choose = function (values) {
 	return values[chosen]
 }
 
-exports.script = function (url, defined) {
+exports.script = function (url) {
 	var script = document.createElement('script')
 	script.src = url
 	document.body.appendChild(script)
 	return script
 }
-
 
 exports.argsOrArray = function (fn) {
 	return function () {
@@ -19984,6 +20009,25 @@ exports.argsOrArray = function (fn) {
 			return fn.apply(fn, arguments[0])
 		return fn.apply(fn, arguments)
 	}
+}
+
+/**
+ * utc creates/converts a date to UTC
+ *
+ * @param date
+ * @return {undefined}
+ */
+exports.utc = function (date) {
+	if (_.isUndefined(date) || _.isString(date))
+		date = new Date(date)
+    return new Date(Date.UTC(
+		date.getFullYear(),
+		date.getMonth(),
+		date.getDate(),
+		date.getHours(),
+		date.getMinutes(),
+		date.getSeconds()
+	))
 }
 
 module.exports = _.assign(require('util'), _, exports)

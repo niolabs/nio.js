@@ -60,6 +60,7 @@ Stream.prototype.emit = function () {
 Stream.prototype.push = function (chunk) {
 	if (this.state === Stream.STATES.PAUSE) return
 	if (_.isUndefined(chunk) || _.isNull(chunk)) return
+	if (_.isEmpty(chunk) && (_.isArray(chunk) || _.isPlainObject(chunk))) return
 	this.emit('data', chunk)
 }
 
@@ -143,12 +144,24 @@ Stream.prototype.onbroadcast = function () {
 }
 
 /**
+ * _broadcastOrEmit
+ *
+ * @param {Boolean} broadcast wether or not to broadcast
+ * @return {Function}
+ */
+Stream.prototype._broadcastOrEmit = function (broadcast) {
+	if (broadcast === false)
+		return this.emit.bind(this)
+	return this.broadcast.bind(this)
+}
+
+/**
  * reset tells a stream to flush their stored values, if any.
  *
  * @return {Stream} this
  */
-Stream.prototype.reset = function () {
-	this.broadcast('reset')
+Stream.prototype.reset = function (broadcast) {
+	this._broadcastOrEmit(broadcast)('reset')
 	return this
 }
 
@@ -173,8 +186,7 @@ _.each(Stream.STATES, function (value, name) {
 	name = name.toLowerCase()
 	Stream.prototype[name] = function (broadcast) {
 		this.state = value
-		if (_.isUndefined(broadcast) || broadcast)
-			this.broadcast(name)
+		this._broadcastOrEmit(broadcast)(name)
 		return this
 	}
 })
