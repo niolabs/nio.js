@@ -151,9 +151,6 @@ function PostsStream(opts) {
 			if (!matched) this.broadcast('new_filtered', chunk)
 			return matched
 		}.bind(this)),
-		streams.on('new_filtered', function (chunk) {
-			console.log('new filtered post', chunk)
-		}),
 		this.out
 	)
 
