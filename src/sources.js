@@ -5,11 +5,14 @@ var util = require('util')
 var Stream = require('./stream')
 var utils = require('./utils')
 
-function JSONStream(uri) {
+function JSONStream(uri, autostart) {
 	if (!(this instanceof JSONStream))
 		return new JSONStream(uri)
 	this.uri = uri
 	Stream.call(this)
+
+	if (autostart)
+		this.resume(false)
 }
 
 util.inherits(JSONStream, Stream)
@@ -21,9 +24,6 @@ function applyParams(uri, params) {
 	u.query = params
 	return u.format()
 }
-
-// auto-initialize
-JSONStream.prototype.oninit = function () { this.onresume() }
 
 JSONStream.prototype.onresume = function () {
 	var uri = applyParams(this.uri, this.params)

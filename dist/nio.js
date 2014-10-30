@@ -18921,10 +18921,12 @@ function PostsStream(opts) {
 		rooms: ['default']
 	})
 
-	this.onreset()
+	var json = sources.json(opts.json)
+
+	this.reset(false)
 
 	this.pipe(
-		sources.json(opts.json),
+		json,
 		streams.log(),
 		streams.pass(function (chunk) {
 			if (!chunk.total) this.broadcast('noresults')
@@ -18946,16 +18948,18 @@ function PostsStream(opts) {
 		streams.unique('id'),
 		streams.set(propmap),
 		streams.filter(this.sortCmpFunc),
-		streams.log('new post'),
 		streams.filter(function (chunk) {
 			var matched = isMatch(chunk, this.params)
-			console.log('new post match?', matched, chunk, this.params)
 			if (!matched) this.broadcast('new_filtered', chunk)
 			return matched
 		}.bind(this)),
 		this.out
 	)
 
+	if (!_.isEmpty(this.params))
+		this.filter(this.params)
+
+	json.resume()
 }
 
 utils.inherits(PostsStream, Stream)
@@ -19149,11 +19153,14 @@ var util = require('util')
 var Stream = require('./stream')
 var utils = require('./utils')
 
-function JSONStream(uri) {
+function JSONStream(uri, autostart) {
 	if (!(this instanceof JSONStream))
 		return new JSONStream(uri)
 	this.uri = uri
 	Stream.call(this)
+
+	if (autostart)
+		this.resume(false)
 }
 
 util.inherits(JSONStream, Stream)
@@ -19165,9 +19172,6 @@ function applyParams(uri, params) {
 	u.query = params
 	return u.format()
 }
-
-// auto-initialize
-JSONStream.prototype.oninit = function () { this.onresume() }
 
 JSONStream.prototype.onresume = function () {
 	var uri = applyParams(this.uri, this.params)
