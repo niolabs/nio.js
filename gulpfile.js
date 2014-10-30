@@ -17,16 +17,20 @@ gulp.task('lint', function () {
 		.pipe($.jscs('.jscsrc'))
 })
 
-gulp.task('browserify', function () {
-	return gulp.src('src/nio.js')
+gulp.task('compile', function () {
+	return gulp.src('src/index.js')
 		.pipe(handleErrors())
-		.pipe($.browserify({debug: true}))
+		.pipe($.browserify())
+		//.pipe($.closureCompiler({
+			//fileName: 'build.js',
+			//compilerPath: 'components/closure-compiler/lib/vendor/compiler.jar'
+		//}))
 		.pipe($.rename('bundle.js'))
 		.pipe(gulp.dest('build'))
 })
 
 // combines html templates and javascript
-gulp.task('concat', ['browserify'], function() {
+gulp.task('concat', ['compile'], function() {
 	return gulp.src([
 			//'vendor/CustomElements.js',
 			//'vendor/time-elements.js',
@@ -46,14 +50,21 @@ gulp.task('minify', ['concat'], function() {
 		.pipe(gulp.dest('dist'))
 })
 
-gulp.task('test', function () {
-	return gulp.src('test/runner.html')
+gulp.task('test', ['build'], function () {
+	return gulp.src('runner.html')
 		.pipe(handleErrors())
-		.pipe($.mochaPhantomjs({mocha: {ui: 'tdd'}}))
+		.pipe($.mochaPhantomjs({
+			mocha: {
+				ui: 'tdd',
+				asyncOnly: true,
+				bail: true,
+				timeout: 1000
+			}
+		}))
 })
 
 gulp.task('build', ['minify'])
-gulp.task('default', ['build', 'test'])
-gulp.task('watch', ['default'], function() {
-	gulp.watch('**/*.{html,js}', ['default'])
+gulp.task('default', ['test'])
+gulp.task('watch', function() {
+	gulp.watch('src/**/*.{html,js}', ['default'])
 })

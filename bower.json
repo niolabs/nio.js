@@ -21,6 +21,7 @@
   "devDependencies": {
     "nio.css": "neutralio/nio.css",
     "mocha": "~2.0.1",
-    "chai": "~1.9.2"
+    "chai": "~1.9.2",
+    "closure-compiler": "~0.2.6"
   }
 }

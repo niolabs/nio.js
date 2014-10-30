@@ -1,7 +1,10 @@
 'use strict';
 
+var util = require('util')
 var _ = require('lodash')
 var d3 = require('d3')
+
+exports.inherits = util.inherits
 
 // turns urls and twitter handles/hashtags into links
 exports.linkify = function (text) {
@@ -66,3 +69,4 @@ exports.loadScript = function (url) {
 	document.body.appendChild(script)
 	return script
 }
+

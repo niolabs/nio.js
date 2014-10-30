@@ -1,42 +1,73 @@
 /* global suite,test,assert,nio */
 'use strict';
 
-suite('stream()', function () {
-})
+suite('func()', function () {
 
-suite('generate()', function () {
-
-	[
-		{
-			name: 'should push a default message',
-			expected: 'Hello world'
-		}, {
-			name: 'should be able to customize messages',
-			msg: 'Testing',
-			expected: 'Testing'
-		}, {
-			name: 'should send arbitrary objects',
-			msg: {hello: 'world'},
-			expected: {hello: 'world'}
-		}, {
-			name: 'should run functions',
-			msg: function () { return 'Excellent' },
-			expected: 'Excellent'
-		}
-	].forEach(function (opts) {
-		test(opts.name, function (done) {
-			nio.generate(opts.msg, 1)
-				.pipe(nio.once())
-				.pipe(nio.stream(function (chunk) {
-					assert.deepEqual(chunk, opts.expected)
-					done()
-				}))
-		})
+	test('should push whatever is returned', function (done) {
+		var fn = function (chunk) { return chunk.toUpperCase() }
+		var stream = nio.stream()
+		stream
+			.pipe(nio.func(fn))
+			.pipe(nio.stream(function (chunk) {
+				assert.equal(chunk, 'HELLO')
+				done()
+			}))
+		stream.push('hello')
 	})
 
 })
 
-suite('props()', function () {
+suite('pass()', function () {
+
+	test('should let chunks pass through it', function (done) {
+		var stream = nio.stream()
+		stream
+			.pipe(nio.pass(function (chunk) {
+				assert.equal(chunk, 'hello')
+			}))
+			.pipe(nio.pass(function (chunk) {
+				assert.equal(chunk, 'hello')
+				done()
+			}))
+		stream.push('hello')
+	})
+
+})
+
+suite('times()', function () {
+
+	test('should block stream after max is reached', function (done) {
+		var count = 0
+		var max = 5
+		var stream = nio.stream()
+		stream
+			.pipe(nio.times(max))
+			.pipe(nio.pass(function () { count++ }))
+		for (var i = max * 3; i--;)
+			stream.push('hello')
+		assert.equal(count, max)
+		done()
+	})
+
+})
+
+suite('once()', function () {
+
+	test('should block stream after one chunk', function (done) {
+		var count = 0
+		var stream = nio.stream()
+		stream
+			.pipe(nio.once())
+			.pipe(nio.pass(function () { count++ }))
+		for (var i = 5; i--;)
+			stream.push('hello')
+		assert.equal(count, 1)
+		done()
+	})
+
+})
+
+suite('set()', function () {
 
 	[
 		{
@@ -52,7 +83,7 @@ suite('props()', function () {
 		test(opts.name, function (done) {
 			nio.generate({hello: 'world'}, 1)
 				.pipe(nio.once())
-				.pipe(nio.props({foo: opts.value}))
+				.pipe(nio.set({foo: opts.value}))
 				.pipe(nio.stream(function (data) {
 					assert.propertyVal(data, 'foo', opts.expected)
 					done()

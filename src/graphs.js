@@ -2,7 +2,7 @@
 
 var _ = require('lodash')
 var d3 = require('d3')
-var core = require('../core')
+var Stream = require('./stream')
 
 function property(name) {
 	var privname = '_' + name
@@ -13,7 +13,7 @@ function property(name) {
 }
 
 function Graph(opts) {
-	core.Stream.call(this)
+	Stream.call(this)
 	if (_.isString(opts)) {
 		this.selector = opts
 	} else {
@@ -23,15 +23,15 @@ function Graph(opts) {
 		_.defaults(this, this.defaults)
 }
 var _graphDef = {
-	render: {value: core.mustImplement},
-	update: {value: core.mustImplement}
+	render: function () {}, //{value: core.mustImplement},
+	update: function () {} //{value: core.mustImplement}
 }
 var _graphProps = [
 	'width', 'height', 'domains', 'tickFormat',
 	'title', 'labels', 'points', 'margin', 'autoScaleY'
 ]
 _graphProps.forEach(function (name) { _graphDef[name] = property(name) })
-Graph.prototype = Object.create(core.Stream.prototype, _graphDef)
+Graph.prototype = Object.create(Stream.prototype, _graphDef)
 
 function LineGraph(opts) {
 	Graph.call(this, opts)
@@ -39,7 +39,7 @@ function LineGraph(opts) {
 }
 LineGraph.prototype = Object.create(Graph.prototype, {
 	defaults: {
-		static: true,
+		'static': true,
 		value: {
 			margin: {top: 6, right: 40, bottom: 20, left: 0},
 			height: 200,

@@ -2,7 +2,7 @@
 
 var _ = require('lodash')
 var util = require('util')
-var core = require('./core')
+var Stream = require('./stream')
 var sources = require('./sources')
 var tiles = require('./tiles')
 var streams = require('./streams')
@@ -41,7 +41,7 @@ var propmap = {
 function TilesShortcut(opts) {
 	if (!(this instanceof TilesShortcut))
 		return new TilesShortcut(opts)
-	core.Stream.call(this)
+	Stream.call(this)
 	if (_.isString(opts))
 		opts = {el: opts}
 	this.json = sources.json('http://54.85.159.254/posts')
@@ -65,24 +65,24 @@ function TilesShortcut(opts) {
 	this
 		.pipe(this.json)
 		.pipe(streams.log())
-		.pipe(streams.pick('posts'))
+		.pipe(streams.get('posts'))
 		.pipe(streams.sort(sortFunc))
 		.pipe(streams.each(_.partialRight(streams.setProps, propmap)))
 		.pipe(streams.limit(9))
 		.pipe(this.tilesDisplay)
 		.on('init', function () {
 			console.log('init')
-			this.socketio.start('default')
+			this.socketio.resume()
 		}.bind(this))
 
 	this
 		.pipe(this.socketio)
 		.pipe(streams.unique('id'))
-		.pipe(streams.props(propmap))
+		.pipe(streams.set(propmap))
 		// check if newer
 		.pipe(streams.filter(function (d) {
 			return sortFunc(d) < sortFunc(this.latest)
-		}))
+		}.bind(this)))
 		.pipe(streams.pass(function (chunk) {
 			this.propogate('new post', chunk)
 		}))
@@ -96,7 +96,7 @@ function TilesShortcut(opts) {
 		.pipe(this.tilesDisplay)
 }
 
-util.inherits(TilesShortcut, core.Stream)
+util.inherits(TilesShortcut, Stream)
 
 TilesShortcut.prototype._flush = function () {
 	this.isPaused = false
@@ -104,11 +104,10 @@ TilesShortcut.prototype._flush = function () {
 }
 
 TilesShortcut.prototype.filter = function (params) {
-	this.controller.flush()
-	if (params && _.keys(params).length)
-		this.json.start(params)
-	else
-		this.json.start()
+	this.flush()
+	if (params)
+		this.json.params = params
+	this.start()
 }
 
 exports.tiles = TilesShortcut

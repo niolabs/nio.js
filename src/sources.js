@@ -2,17 +2,18 @@ var _ = require('lodash')
 var url = require('url')
 var d3 = require('d3')
 var util = require('util')
-var core = require('./core')
+var Stream = require('./stream')
 var utils = require('./utils')
 
 function JSONStream(uri) {
 	if (!(this instanceof JSONStream))
 		return new JSONStream(uri)
 	this.uri = uri
-	core.Stream.call(this)
+	this.params = {}
+	Stream.call(this)
 }
 
-util.inherits(JSONStream, core.Stream)
+util.inherits(JSONStream, Stream)
 
 // applys query parameters to a uri
 function applyParams(uri, params) {
@@ -22,10 +23,11 @@ function applyParams(uri, params) {
 	return u.format()
 }
 
-JSONStream.prototype._init = function () {this._resume()}
-JSONStream.prototype._resume = function (params) {
+JSONStream.prototype._init = function () { this._resume() }
+
+JSONStream.prototype._resume = function () {
 	this._flush()
-	var uri = applyParams(this.uri, params)
+	var uri = applyParams(this.uri, this.params)
 	this.xhr = d3.json(uri, function (error, json) {
 		this.push(json)
 	}.bind(this))
@@ -38,36 +40,37 @@ JSONStream.prototype._pause = function () {
 }
 
 JSONStream.prototype._flush = function () {
+	this.params = {}
 	if (this.xhr) this.xhr.abort()
 }
 
 function SocketIOStream(opts) {
 	if (!(this instanceof SocketIOStream))
 		return new SocketIOStream(opts)
-	core.Stream.call(this)
+	Stream.call(this)
 	this.ws = null
 	this.host = opts.host
 	this.rooms = opts.rooms
+}
 
+util.inherits(SocketIOStream, Stream)
+
+SocketIOStream.prototype._resume = function () {
 	/* global io */
 	if (!window.io) {
 		var s = utils.loadScript(this.host + '/socket.io/socket.io.js')
-		s.onload = function () {this.resume()}.bind(this)
+		s.onload = function () { this._resume() }.bind(this)
 		return this
 	}
 
-	this._resume()
-}
-
-util.inherits(SocketIOStream, core.Stream)
-
-SocketIOStream.prototype._resume = function () {
 	this._flush()
 	this.ws = io.connect(this.host)
 
 	var sock = this.ws.socket
 	sock.on('connect', function () {
-		return this.ws.emit('ready', this.path)
+		_.each(this.rooms, function (room) {
+			this.ws.emit('ready', room)
+		}, this)
 	}.bind(this))
 	sock.on('connect_failed', function () {
 		console.error('connection failed')
@@ -76,7 +79,7 @@ SocketIOStream.prototype._resume = function () {
 		console.error('connection error')
 	})
 	this.ws.on('recvData', function (data) {
-		return this.push(JSON.parse(data))
+		this.push(JSON.parse(data))
 	}.bind(this))
 	return this
 }
@@ -94,13 +97,14 @@ SocketIOStream.prototype._flush = function () {
 function GeneratorStream(msg, rate) {
 	if (!(this instanceof GeneratorStream))
 		return new GeneratorStream(msg, rate)
-	core.Stream.call(this)
+	Stream.call(this)
 	this.msg = msg || 'Hello world'
 	this.rate = rate || 1000
-	this._resume()
 }
 
-util.inherits(GeneratorStream, core.Stream)
+util.inherits(GeneratorStream, Stream)
+
+GeneratorStream.prototype._init = function () { this._resume() }
 
 GeneratorStream.prototype._resume = function () {
 	this.interval = setInterval(function () {

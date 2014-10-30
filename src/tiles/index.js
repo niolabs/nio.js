@@ -3,13 +3,16 @@
 //require('../vendor/CustomElements')
 //require('../vendor/time-elements')
 
-var fs = require('fs')
+
+//var fs = require('fs')
 var _ = require('lodash')
 var d3 = require('d3')
 var utils = require('../utils')
 var streams = require('../streams')
 
-var html = fs.readFileSync(__dirname + '/tiles.html', 'utf8')
+// TODO: this is causing `gulp watch` to throw errors about too many files open
+//var html = fs.readFileSync(__dirname + '/tiles.html', 'utf8')
+var html = ''
 var template = _.template(html, null, {imports: utils})
 
 var defaults = {

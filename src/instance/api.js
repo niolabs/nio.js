@@ -1,11 +1,11 @@
 'use strict'
 
-var core = require('../core')
+var Stream = require('../stream')
 
 function nioAPI() {
-    core.Stream.call(this)
+    Stream.call(this)
 }
-nioAPI.prototype = Object.create(core.Stream.prototype, {
+nioAPI.prototype = Object.create(Stream.prototype, {
     makeRequest : {
 	value: function(endpoint, method, postData) {
 		var xhr = d3.json('http://' + this.ip + '/' + endpoint)
