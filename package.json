@@ -2,12 +2,10 @@
   "name": "nio",
   "version": "1.0.0",
   "description": "nio",
-  "main": "src/nio.js",
+  "main": "src/index.js",
   "dependencies": {
     "brfs": "^1.2.0",
     "d3": "^3.4.13",
-    "eventemitter2": "^0.4.14",
-    "eventemitter3": "^0.1.5",
     "lodash": "^2.4.1"
   },
   "devDependencies": {
@@ -51,6 +49,8 @@
   },
   "homepage": "https://github.com/neutralio/nio.js",
   "browserify": {
-    "transform": []
+    "transform": [
+      "brfs"
+    ]
   }
 }

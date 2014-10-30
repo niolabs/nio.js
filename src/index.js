@@ -1,5 +1,3 @@
-'use strict';
-
 var _ = require('lodash')
 
 module.exports = window.nio = _.assign(
@@ -11,10 +9,10 @@ module.exports = window.nio = _.assign(
 		// our modules
 		stream: require('./stream'),
 		utils: require('./utils'),
-		tiles: require('./tiles'),
+		posts: require('./posts'),
 		graphs: require('./graphs'),
 		instance: require('./instance'),
-		shortcuts: require('./shortcuts')
+		model: require('./model')
 	},
 	require('./sources'),
 	require('./streams')

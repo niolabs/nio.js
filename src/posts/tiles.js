@@ -1,19 +1,16 @@
-'use strict';
-
-//require('../vendor/CustomElements')
-//require('../vendor/time-elements')
-
-
-//var fs = require('fs')
+var fs = require('fs')
 var _ = require('lodash')
 var d3 = require('d3')
-var utils = require('./utils')
-var streams = require('./streams')
+var utils = require('../utils')
+var streams = require('../streams')
+var posts = require('./index')
 
-// TODO: this is causing `gulp watch` to throw errors about too many files open
-//var html = fs.readFileSync(__dirname + '/tiles.html', 'utf8')
-var html = ''
+var html = fs.readFileSync(__dirname + '/tiles.html', 'utf8')
 var template = _.template(html, null, {imports: utils})
+
+// TODO
+//require('../vendor/CustomElements')
+//require('../vendor/time-elements')
 
 module.exports = function (opts) {
 	if (_.isString(opts))
@@ -26,7 +23,7 @@ module.exports = function (opts) {
 		.attr('layout', true)
 		.attr('horizontal', true)
 
-	var getCol = utils.cycle(numCols)
+	var getCol = utils.cycle(_.range(numCols))
 
 	var isInitialized = false
 
@@ -34,7 +31,8 @@ module.exports = function (opts) {
 		if (_.isArray(chunk)) {
 			_.forEach(chunk, handleChunk)
 		} else {
-			var post = _.defaults(chunk, defaults)
+			console.log('posts', posts, posts.Post)
+			var post = posts.Post(chunk)
 			var col = getCol()
 			data[col].unshift(post)
 		}
@@ -53,7 +51,7 @@ module.exports = function (opts) {
 		render()
 	})
 
-	stream._flush = function () {
+	stream.onreset = function () {
 		elMain.selectAll('.col').remove()
 		data = d3.range(numCols).map(function () { return [] })
 		isInitialized = false
@@ -125,7 +123,7 @@ module.exports = function (opts) {
 			tileEnter.classed('slide-down', true)
 		} else {
 			isInitialized = true
-			stream.propogate('init')
+			stream.broadcast('init')
 		}
 		tile.exit().remove()
 	}

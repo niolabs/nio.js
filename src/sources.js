@@ -9,7 +9,6 @@ function JSONStream(uri) {
 	if (!(this instanceof JSONStream))
 		return new JSONStream(uri)
 	this.uri = uri
-	this.params = {}
 	Stream.call(this)
 }
 
@@ -23,6 +22,7 @@ function applyParams(uri, params) {
 	return u.format()
 }
 
+// auto-initialize
 JSONStream.prototype.oninit = function () { this.onresume() }
 
 JSONStream.prototype.onresume = function () {
@@ -44,26 +44,29 @@ JSONStream.prototype.onreset = function () {
 	if (this.xhr) this.xhr.abort()
 }
 
+JSONStream.prototype.onfilter = function (params) {
+	this.params = params
+}
+
 function SocketIOStream(opts) {
 	if (!(this instanceof SocketIOStream))
 		return new SocketIOStream(opts)
-	Stream.call(this)
 	this.ws = null
 	this.host = opts.host
 	this.rooms = opts.rooms
+	Stream.call(this)
 }
 
 util.inherits(SocketIOStream, Stream)
 
-SocketIOStream.prototype.onresume = function () {
+SocketIOStream.prototype.oninit = function () {
 	/* global io */
 	if (!window.io) {
-		var s = utils.loadScript(this.host + '/socket.io/socket.io.js')
+		var s = utils.script(this.host + '/socket.io/socket.io.js')
 		s.onload = function () { this.onresume() }.bind(this)
 		return this
 	}
 
-	this.onreset()
 	this.ws = io.connect(this.host)
 
 	var sock = this.ws.socket
@@ -79,14 +82,15 @@ SocketIOStream.prototype.onresume = function () {
 		console.error('connection error')
 	})
 	this.ws.on('recvData', function (data) {
+		if (this.state === Stream.STATES.PAUSE) return
 		this.push(JSON.parse(data))
 	}.bind(this))
 	return this
 }
 
-SocketIOStream.prototype.onpause = function () {
-	this.onreset()
-	return this
+SocketIOStream.prototype.onresume = function () {
+	if (!this.ws || !this.ws.socket.connected)
+		this.oninit()
 }
 
 SocketIOStream.prototype.onreset = function () {
@@ -97,9 +101,9 @@ SocketIOStream.prototype.onreset = function () {
 function GeneratorStream(msg, rate) {
 	if (!(this instanceof GeneratorStream))
 		return new GeneratorStream(msg, rate)
-	Stream.call(this)
 	this.msg = msg || 'Hello world'
 	this.rate = rate || 1000
+	Stream.call(this)
 }
 
 util.inherits(GeneratorStream, Stream)

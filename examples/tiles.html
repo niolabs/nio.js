@@ -9,7 +9,10 @@
 <script src=../vendor/time-elements.js></script>
 <script src=../dist/nio.js></script>
 <script>
-	nio.shortcuts.tiles({
+	nio.posts({
+		json: 'http://54.85.159.254/posts',
+		socketio: 'http://54.85.159.254:443'
+	}).tiles({
 		el: '.tiles'
 	})
 </script>

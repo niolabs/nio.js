@@ -18296,8 +18296,6 @@ function hasOwnProperty(obj, prop) {
 
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}],13:[function(require,module,exports){
-'use strict';
-
 var _ = require('lodash')
 
 module.exports = window.nio = _.assign(
@@ -18309,16 +18307,16 @@ module.exports = window.nio = _.assign(
 		// our modules
 		stream: require('./stream'),
 		utils: require('./utils'),
-		tiles: require('./tiles'),
+		posts: require('./posts'),
 		graphs: require('./graphs'),
 		instance: require('./instance'),
-		shortcuts: require('./shortcuts')
+		model: require('./model')
 	},
 	require('./sources'),
 	require('./streams')
 )
 
-},{"./graphs":14,"./instance":17,"./shortcuts":19,"./sources":20,"./stream":21,"./streams":22,"./tiles":23,"./utils":24,"d3":1,"lodash":12}],14:[function(require,module,exports){
+},{"./graphs":14,"./instance":17,"./model":19,"./posts":20,"./sources":22,"./stream":23,"./streams":24,"./utils":25,"d3":1,"lodash":12}],14:[function(require,module,exports){
 'use strict';
 
 var _ = require('lodash')
@@ -18595,7 +18593,7 @@ exports.line = function (opts) {
 	return new LineGraph(opts)
 }
 
-},{"./stream":21,"d3":1,"lodash":12}],15:[function(require,module,exports){
+},{"./stream":23,"d3":1,"lodash":12}],15:[function(require,module,exports){
 'use strict'
 
 var Stream = require('../stream')
@@ -18637,7 +18635,7 @@ nioAPI.prototype = Object.create(Stream.prototype, {
 })
 exports.API = nioAPI
 
-},{"../stream":21}],16:[function(require,module,exports){
+},{"../stream":23}],16:[function(require,module,exports){
 'use strict'
 
 var nio = require('./api')
@@ -18749,11 +18747,129 @@ ServiceStatus.prototype = Object.create(nio.API.prototype, {})
 
 },{"./api":15}],19:[function(require,module,exports){
 var _ = require('lodash')
-var util = require('util')
-var Stream = require('./stream')
-var sources = require('./sources')
+
+/**
+ * Model reperesents an object that could theoretically be persisted to a DB.
+ *
+ * @constructor
+ * @param {object} opts properties to set on the model.
+ */
+function Model(opts) {
+	if (!(this instanceof Model))
+		return new Model(opts)
+	if (!opts)
+		opts = {}
+	if (this.DEFAULTS)
+		_.defaults(opts, this.DEFAULTS)
+	_.assign(this, opts)
+}
+
+// TODO
+Model.prototype.validate = function () {}
+
+/**
+ * generate creates a mock object based on a classes CHOICES definition.
+ * Useful for testing/debugging.
+ *
+ * @param {function} Cls
+ * @param {object} opts
+ * @return {Model}
+ */
+exports.generate = function (Cls, opts) {
+	if (!Cls.CHOICES)
+		console.warn('generate() called on a model without CHOICES')
+	_.each(Cls.CHOICES, function (key, values) {
+		if (key in opts) return
+		opts[key] = exports.choose(values)
+	})
+	return new (Cls)(opts)
+}
+
+module.exports = Model
+
+},{"lodash":12}],20:[function(require,module,exports){
+var _ = require('lodash')
+var utils = require('../utils')
+var Stream = require('../stream')
+var streams = require('../streams')
+var sources = require('../sources')
+var Model = require('../model')
 var tiles = require('./tiles')
-var streams = require('./streams')
+
+/**
+ * Post is a entry on Twitter, Instagram, Facebook, Google+, etc.
+ *
+ * @constructor
+ * @extends {Model}
+ * @param {object} opts
+ */
+function Post(opts) {
+	if (!(this instanceof Post))
+		return new Post(opts)
+	Model.call(this, opts)
+	this.typeDisplay = Post.TYPE_DISPLAYS[this.type] || this.type
+}
+
+utils.inherits(Post, Model)
+
+Post.TYPE_DISPLAYS = {
+	'twitter': 'Twitter',
+	'twitter-photo': 'Twitter',
+	'facebook': 'Facebook',
+	'gplus': 'Google+',
+	'linkedin': 'LinkedIn',
+	'rss': 'RSS'
+}
+
+/**
+ * Default properties for posts.
+ */
+Post.prototype.DEFAULTS = {
+	type: '',
+	author: '',
+	authorLink: '',
+	link: '',
+	media: '',
+	source: '',
+	text: '',
+	time: '',
+	secondsAgo: '',
+	wide: false,
+	expanded: false,
+	avatar: false
+}
+
+/**
+ * Choices for the model factory to choose from
+ */
+Post.CHOICES = {
+	author: ['John', 'Jane', 'Jill'],
+	authorLink: [
+		'http://www.twitter.com/john',
+		'http://www.twitter.com/jane',
+		'http://www.twitter.com/jill'
+	],
+	avatar: [
+		null,
+		'http://www.twitter.com/john.jpg',
+		'http://www.twitter.com/jane.jpg',
+		'http://www.twitter.com/jill.jpg'
+	],
+	media: [
+		null,
+		'http://www.twitter.com/media1.jpg',
+		'http://www.twitter.com/media2.jpg',
+		'http://www.twitter.com/media3.jpg'
+	],
+	type: [
+		'facebook',
+		'gplus',
+		'instagram',
+		'rss',
+		'twitter',
+		'twitter-photo'
+	]
+}
 
 // tests if a post matches params
 function isMatch(post, params) {
@@ -18786,80 +18902,214 @@ var propmap = {
 	}
 }
 
-function TilesShortcut(opts) {
-	if (!(this instanceof TilesShortcut))
-		return new TilesShortcut(opts)
+function PostsStream(opts) {
+	if (!(this instanceof PostsStream))
+		return new PostsStream(opts)
 	Stream.call(this)
-	if (_.isString(opts))
-		opts = {el: opts}
-	this.json = sources.json('http://54.85.159.254/posts')
-	this.socketio = sources.socketio({
-		host: 'http://54.85.159.254:443',
+
+	var socketio = sources.socketio({
+		host: opts.socketio,
 		rooms: ['default']
 	})
 
-	this.tilesDisplay = tiles(opts)
-	this.tilesDisplay
-		.pipe(streams.pass(function (chunk) {
-			if (_.isArray(chunk))
-				this.latest = chunk[0]
-			else
-				this.latest = chunk
-		}.bind(this)))
+	//var sortFunc = streams.sortFunc('seconds_ago')
+	var sortFunc = streams.sortFunc('priority')
 
-	var sortFunc = streams.sortFunc('seconds_ago')
+	this.out = opts.out || streams.pass()
 
-	this
-		.pipe(this.json)
-		.pipe(streams.log())
-		.pipe(streams.get('posts'))
-		.pipe(streams.sort(sortFunc))
-		.pipe(streams.each(_.partialRight(streams.setProps, propmap)))
-		.pipe(streams.limit(9))
-		.pipe(this.tilesDisplay)
-		.on('init', function () {
-			console.log('init')
-			this.socketio.resume()
-		}.bind(this))
+	this.pipe(
+		sources.json(opts.json),
+		streams.log(),
+		streams.get('posts'),
+		streams.sort(sortFunc),
+		streams.each(_.partialRight(streams.setProps, propmap)),
+		streams.limit(9),
+		this.out,
+		streams.once(),
+		streams.on('init', socketio.resume())
+	)
 
-	this
-		.pipe(this.socketio)
-		.pipe(streams.unique('id'))
-		.pipe(streams.set(propmap))
-		// check if newer
-		.pipe(streams.filter(function (d) {
+	this.pipe(
+		socketio,
+		streams.unique('id'),
+		streams.set(propmap),
+		streams.filter(function (d) {
+			// check if newer
 			return sortFunc(d) < sortFunc(this.latest)
-		}.bind(this)))
-		.pipe(streams.pass(function (chunk) {
-			this.propogate('new post', chunk)
-		}))
-		.pipe(streams.filter(function (d) {
-			if (this.isPaused) return false
-			return isMatch(d, this.params)
-		}.bind(this)))
-		.pipe(streams.on('new post', function (chunk) {
-			console.log('new post', chunk)
-		}))
-		.pipe(this.tilesDisplay)
+		}.bind(this)),
+		streams.log(),
+		streams.filter(function (chunk) {
+			var filtered = isMatch(chunk, this.params)
+			if (filtered) this.broadcast('new_filtered', chunk)
+			return filtered
+		}.bind(this)),
+		streams.on('new_filtered', function (chunk) {
+			console.log('new filtered post', chunk)
+		}),
+		this.out
+	)
+
 }
 
-util.inherits(TilesShortcut, Stream)
+utils.inherits(PostsStream, Stream)
 
-TilesShortcut.prototype._flush = function () {
-	this.isPaused = false
+PostsStream.prototype.onreset = function () {
 	this.latest = null
 }
 
-TilesShortcut.prototype.filter = function (params) {
-	this.flush()
-	if (params)
-		this.json.params = params
-	this.start()
+PostsStream.prototype.filter = function (params) {
+	this.pause()
+	this.reset()
+	this.broadcast('filter', params)
+	this.resume()
 }
 
-exports.tiles = TilesShortcut
+PostsStream.prototype.tiles = function (opts) {
+	this.out.pipe(tiles(opts))
+	return this
+}
 
-},{"./sources":20,"./stream":21,"./streams":22,"./tiles":23,"lodash":12,"util":11}],20:[function(require,module,exports){
+module.exports = PostsStream
+module.exports.tiles = tiles
+module.exports.Post = Post
+module.exports.post = Post
+
+},{"../model":19,"../sources":22,"../stream":23,"../streams":24,"../utils":25,"./tiles":21,"lodash":12}],21:[function(require,module,exports){
+var _ = require('lodash')
+var d3 = require('d3')
+var utils = require('../utils')
+var streams = require('../streams')
+var posts = require('./index')
+
+var html = "<div id=\"tile-<%=id%>\" layout vertical class=\"tile -transition -<%=type%><% if (avatar) { %> -avatar<% } %><% if (media) { %> -media<% } %><% if (expanded) { %> -expanded<% } %>\">\n\t<header class=\"-transition\" center layout horizontal full-width>\n\t\t<% if (avatar) { %>\n\t\t\t<a href=\"<%=authorLink%>\" class=\"tile-avatar poster tile-author-link\"\n\t\t\t\tdata-author=\"<%=author%>\">\n\t\t\t\t<img src=\"<%=avatar%>\">\n\t\t\t</a>\n\t\t<% } %>\n\t\t<div class=\"tile-title\" flex center pad-height pad-width-double>\n\t\t\t<h3 class=\"tile-author ellipsis\" space-zero>\n\t\t\t\t<a href=\"<%=authorLink%>\" class=\"tile-author-link\" data-author=\"<%=author%>\">\n\t\t\t\t\t<%=author%>\n\t\t\t\t</a>\n\t\t\t</h3>\n\t\t\t<time is=\"relative-time\" datetime=\"<%=time%>\" class=\"muted-inverse\">\n\t\t\t\t<%=time%>\n\t\t\t</time>\n\t\t</div>\n\t\t<span pad-width-double class=muted-inverse>\n\t\t\t<svg class=\"icon icon-larger\"><use xlink:href=\"#<%=type%>-square\"></use></svg>\n\t\t</span>\n\t</header>\n\t<div class=\"tile-bottom\" flex vertical layout>\n\t\t<div class=\"tile-content\" flex pad-double>\n\t\t\t<% if (media) { %>\n\t\t\t\t<div class=\"tile-media poster\" fit>\n\t\t\t\t\t<% if (type === 'youtube' || type === 'vimeo') { %>\n\t\t\t\t\t\t<svg class=\"icon icon-largest play-arrow muted-inverse\">\n\t\t\t\t\t\t\t<use xlink:href=\"#play-arrow\"></use>\n\t\t\t\t\t\t</svg>\n\t\t\t\t\t<% } %>\n\t\t\t\t\t<img src=\"<%=media%>\" alt=\"<%=text%>\">\n\t\t\t\t</div>\n\t\t\t<% } %>\n\t\t\t<span class=\"tile-text -transition<% if (media) { %> marquee -paused<% } %>\" block>\n\t\t\t\t<%=linkify(text)%>\n\t\t\t</span>\n\t\t</div>\n\n\t\t<footer class=\"-transition type-small height-larger\"\n\t\t\t<% if (media) { %>pad-width-double<% } else { %>space-width-double<% } %>\n\t\t\tlayout horizontal justified pad-height-half>\n\t\t\t<a href=\"<%=link%>\" target=\"_blank\">\n\t\t\t\tView on <%=typeDisplay%>\n\t\t\t\t<svg class=\"icon icon-small muted\"><use xlink:href=\"#open-in-new\"></use></svg>\n\t\t\t</a>\n\t\t\t<a href=\"#\" target=\"_blank\">\n\t\t\t\tShare\n\t\t\t\t<svg class=\"icon icon-small muted\"><use xlink:href=\"#share\"></use></svg>\n\t\t\t</a>\n\t\t</footer>\n\t</div>\n</div>\n"
+var template = _.template(html, null, {imports: utils})
+
+// TODO
+//require('../vendor/CustomElements')
+//require('../vendor/time-elements')
+
+module.exports = function (opts) {
+	if (_.isString(opts))
+		opts = {el: opts}
+	var numRows = opts.rows || 3
+	var numCols = opts.cols || 3
+	var data = d3.range(numCols).map(function () { return [] })
+
+	var elMain = d3.select(opts.el)
+		.attr('layout', true)
+		.attr('horizontal', true)
+
+	var getCol = utils.cycle(_.range(numCols))
+
+	var isInitialized = false
+
+	function handleChunk(chunk) {
+		if (_.isArray(chunk)) {
+			_.forEach(chunk, handleChunk)
+		} else {
+			console.log('posts', posts, posts.Post)
+			var post = posts.Post(chunk)
+			var col = getCol()
+			data[col].unshift(post)
+		}
+	}
+
+	function trimColumns() {
+		for (var x = data.length; x--;)
+			if (data[x].length >= numRows)
+				data[x] = data[x].slice(0, numRows)
+	}
+
+	// IDs of posts we've seen already
+	var stream = streams.pass(function (chunk) {
+		handleChunk(chunk)
+		trimColumns()
+		render()
+	})
+
+	stream.onreset = function () {
+		elMain.selectAll('.col').remove()
+		data = d3.range(numCols).map(function () { return [] })
+		isInitialized = false
+	}
+
+	// var elCols = []
+	// for (var i=numCols; i--;)
+	// elCols[i] = elMain.append('div').style('float', 'left')
+
+	// caching these functions for performance
+	function getNested(d) { return d }
+	function getHTML(d) { return template(d) }
+	function getID(d) { return d.id }
+	function getColID(d, i) { return d.length ? d[0].id : i }
+	function tileClicked(d) {
+		var el = d3.select(this).select('.tile')
+		var isExpanded = el.classed('-expanded')
+		if (!isExpanded) {
+			elMain.selectAll('.tile').classed('-expanded', false)
+			elMain.selectAll('iframe').remove()
+			// embed youtube player on expand
+			if (d.type === 'youtube') {
+				el.select('.tile-media')
+					.append('iframe')
+					.attr({
+						src: 'https://www.youtube.com/embed/' + d.id + '?autoplay=1',
+						frameborder: 0,
+						allowfullscreen: true,
+						fit: true,
+						full: true,
+						block: true
+					})
+			}
+		} else if (d.type === 'youtube') {
+			el.select('iframe').remove()
+		}
+		el.classed('-expanded', !isExpanded)
+	}
+
+	function render() {
+		var cols = elMain.selectAll('.col')
+			.data(data, getColID)
+
+		cols.enter().append('div')
+			.classed('col', true)
+			.attr('layout', true)
+			.attr('vertical', true)
+
+		var tile = cols
+			.selectAll('.tile-wrapper')
+			.data(getNested, getID)
+
+		// tile.order()
+
+		var tileEnter = tile.enter().insert('div', ':first-child')
+			.classed('tile-wrapper', true)
+			.attr('relative', true)
+			.attr('space-half', true)
+			.classed('-wide', function (d) { return d.wide })
+			.html(getHTML)
+			.on('click', tileClicked)
+
+		tileEnter
+			.select('.tile')
+			//.classed('flip-in', true)
+
+		// only start sliding tiles down after the initial load
+		if (isInitialized) {
+			tileEnter.classed('slide-down', true)
+		} else {
+			isInitialized = true
+			stream.broadcast('init')
+		}
+		tile.exit().remove()
+	}
+
+	return stream
+}
+
+module.exports.template = template
+
+},{"../streams":24,"../utils":25,"./index":20,"d3":1,"lodash":12}],22:[function(require,module,exports){
 var _ = require('lodash')
 var url = require('url')
 var d3 = require('d3')
@@ -18871,7 +19121,6 @@ function JSONStream(uri) {
 	if (!(this instanceof JSONStream))
 		return new JSONStream(uri)
 	this.uri = uri
-	this.params = {}
 	Stream.call(this)
 }
 
@@ -18885,6 +19134,7 @@ function applyParams(uri, params) {
 	return u.format()
 }
 
+// auto-initialize
 JSONStream.prototype.oninit = function () { this.onresume() }
 
 JSONStream.prototype.onresume = function () {
@@ -18906,26 +19156,29 @@ JSONStream.prototype.onreset = function () {
 	if (this.xhr) this.xhr.abort()
 }
 
+JSONStream.prototype.onfilter = function (params) {
+	this.params = params
+}
+
 function SocketIOStream(opts) {
 	if (!(this instanceof SocketIOStream))
 		return new SocketIOStream(opts)
-	Stream.call(this)
 	this.ws = null
 	this.host = opts.host
 	this.rooms = opts.rooms
+	Stream.call(this)
 }
 
 util.inherits(SocketIOStream, Stream)
 
-SocketIOStream.prototype.onresume = function () {
+SocketIOStream.prototype.oninit = function () {
 	/* global io */
 	if (!window.io) {
-		var s = utils.loadScript(this.host + '/socket.io/socket.io.js')
+		var s = utils.script(this.host + '/socket.io/socket.io.js')
 		s.onload = function () { this.onresume() }.bind(this)
 		return this
 	}
 
-	this.onreset()
 	this.ws = io.connect(this.host)
 
 	var sock = this.ws.socket
@@ -18941,14 +19194,15 @@ SocketIOStream.prototype.onresume = function () {
 		console.error('connection error')
 	})
 	this.ws.on('recvData', function (data) {
+		if (this.state === Stream.STATES.PAUSE) return
 		this.push(JSON.parse(data))
 	}.bind(this))
 	return this
 }
 
-SocketIOStream.prototype.onpause = function () {
-	this.onreset()
-	return this
+SocketIOStream.prototype.onresume = function () {
+	if (!this.ws || !this.ws.socket.connected)
+		this.oninit()
 }
 
 SocketIOStream.prototype.onreset = function () {
@@ -18959,9 +19213,9 @@ SocketIOStream.prototype.onreset = function () {
 function GeneratorStream(msg, rate) {
 	if (!(this instanceof GeneratorStream))
 		return new GeneratorStream(msg, rate)
-	Stream.call(this)
 	this.msg = msg || 'Hello world'
 	this.rate = rate || 1000
+	Stream.call(this)
 }
 
 util.inherits(GeneratorStream, Stream)
@@ -18993,7 +19247,7 @@ module.exports = {
 	generate: GeneratorStream
 }
 
-},{"./stream":21,"./utils":24,"d3":1,"lodash":12,"url":9,"util":11}],21:[function(require,module,exports){
+},{"./stream":23,"./utils":25,"d3":1,"lodash":12,"url":9,"util":11}],23:[function(require,module,exports){
 /**
  * @name Stream
  * @author Liam Curry <lcurry@n.io>
@@ -19177,7 +19431,7 @@ _.each(Stream.STATES, function (value, name) {
 
 module.exports = Stream
 
-},{"./utils":24,"lodash":12}],22:[function(require,module,exports){
+},{"./utils":25,"lodash":12}],24:[function(require,module,exports){
 'use strict';
 
 var _ = require('lodash')
@@ -19655,145 +19909,7 @@ exports.each = function (fn) {
 	return exports.func(_.partialRight(_.each, function (chunk) { fn(chunk) }))
 }
 
-},{"./stream":21,"d3":1,"lodash":12}],23:[function(require,module,exports){
-'use strict';
-
-//require('../vendor/CustomElements')
-//require('../vendor/time-elements')
-
-
-//var fs = require('fs')
-var _ = require('lodash')
-var d3 = require('d3')
-var utils = require('./utils')
-var streams = require('./streams')
-
-// TODO: this is causing `gulp watch` to throw errors about too many files open
-//var html = fs.readFileSync(__dirname + '/tiles.html', 'utf8')
-var html = ''
-var template = _.template(html, null, {imports: utils})
-
-module.exports = function (opts) {
-	if (_.isString(opts))
-		opts = {el: opts}
-	var numRows = opts.rows || 3
-	var numCols = opts.cols || 3
-	var data = d3.range(numCols).map(function () { return [] })
-
-	var elMain = d3.select(opts.el)
-		.attr('layout', true)
-		.attr('horizontal', true)
-
-	var getCol = utils.cycle(numCols)
-
-	var isInitialized = false
-
-	function handleChunk(chunk) {
-		if (_.isArray(chunk)) {
-			_.forEach(chunk, handleChunk)
-		} else {
-			var post = _.defaults(chunk, defaults)
-			var col = getCol()
-			data[col].unshift(post)
-		}
-	}
-
-	function trimColumns() {
-		for (var x = data.length; x--;)
-			if (data[x].length >= numRows)
-				data[x] = data[x].slice(0, numRows)
-	}
-
-	// IDs of posts we've seen already
-	var stream = streams.pass(function (chunk) {
-		handleChunk(chunk)
-		trimColumns()
-		render()
-	})
-
-	stream._flush = function () {
-		elMain.selectAll('.col').remove()
-		data = d3.range(numCols).map(function () { return [] })
-		isInitialized = false
-	}
-
-	// var elCols = []
-	// for (var i=numCols; i--;)
-	// elCols[i] = elMain.append('div').style('float', 'left')
-
-	// caching these functions for performance
-	function getNested(d) { return d }
-	function getHTML(d) { return template(d) }
-	function getID(d) { return d.id }
-	function getColID(d, i) { return d.length ? d[0].id : i }
-	function tileClicked(d) {
-		var el = d3.select(this).select('.tile')
-		var isExpanded = el.classed('-expanded')
-		if (!isExpanded) {
-			elMain.selectAll('.tile').classed('-expanded', false)
-			elMain.selectAll('iframe').remove()
-			// embed youtube player on expand
-			if (d.type === 'youtube') {
-				el.select('.tile-media')
-					.append('iframe')
-					.attr({
-						src: 'https://www.youtube.com/embed/' + d.id + '?autoplay=1',
-						frameborder: 0,
-						allowfullscreen: true,
-						fit: true,
-						full: true,
-						block: true
-					})
-			}
-		} else if (d.type === 'youtube') {
-			el.select('iframe').remove()
-		}
-		el.classed('-expanded', !isExpanded)
-	}
-
-	function render() {
-		var cols = elMain.selectAll('.col')
-			.data(data, getColID)
-
-		cols.enter().append('div')
-			.classed('col', true)
-			.attr('layout', true)
-			.attr('vertical', true)
-
-		var tile = cols
-			.selectAll('.tile-wrapper')
-			.data(getNested, getID)
-
-		// tile.order()
-
-		var tileEnter = tile.enter().insert('div', ':first-child')
-			.classed('tile-wrapper', true)
-			.attr('relative', true)
-			.attr('space-half', true)
-			.classed('-wide', function (d) { return d.wide })
-			.html(getHTML)
-			.on('click', tileClicked)
-
-		tileEnter
-			.select('.tile')
-			//.classed('flip-in', true)
-
-		// only start sliding tiles down after the initial load
-		if (isInitialized) {
-			tileEnter.classed('slide-down', true)
-		} else {
-			isInitialized = true
-			stream.propogate('init')
-		}
-		tile.exit().remove()
-	}
-
-	return stream
-}
-
-module.exports.template = template
-
-},{"./streams":22,"./utils":24,"d3":1,"lodash":12}],24:[function(require,module,exports){
+},{"./stream":23,"d3":1,"lodash":12}],25:[function(require,module,exports){
 var _ = require('lodash')
 var events = require('eventemitter3')
 
