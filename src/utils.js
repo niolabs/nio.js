@@ -80,7 +80,9 @@ exports.argsOrArray = function (fn) {
  * @return {undefined}
  */
 exports.utc = function (date) {
-	if (_.isUndefined(date) || _.isString(date))
+	if (!date)
+		date = new Date()
+	else if (_.isString(date))
 		date = new Date(date)
     return new Date(Date.UTC(
 		date.getFullYear(),

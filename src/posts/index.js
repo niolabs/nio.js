@@ -42,7 +42,7 @@ Post.prototype.DEFAULTS = {
 	source: '',
 	text: '',
 	time: '',
-	secondsAgo: '',
+	seconds_ago: '',
 	wide: false,
 	expanded: false,
 	avatar: false

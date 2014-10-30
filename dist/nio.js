@@ -18832,7 +18832,7 @@ Post.prototype.DEFAULTS = {
 	source: '',
 	text: '',
 	time: '',
-	secondsAgo: '',
+	seconds_ago: '',
 	wide: false,
 	expanded: false,
 	avatar: false
@@ -18941,9 +18941,6 @@ function PostsStream(opts) {
 			if (!matched) this.broadcast('new_filtered', chunk)
 			return matched
 		}.bind(this)),
-		streams.on('new_filtered', function (chunk) {
-			console.log('new filtered post', chunk)
-		}),
 		this.out
 	)
 
@@ -20018,7 +20015,9 @@ exports.argsOrArray = function (fn) {
  * @return {undefined}
  */
 exports.utc = function (date) {
-	if (_.isUndefined(date) || _.isString(date))
+	if (!date)
+		date = new Date()
+	else if (_.isString(date))
 		date = new Date(date)
     return new Date(Date.UTC(
 		date.getFullYear(),
