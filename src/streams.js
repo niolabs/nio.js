@@ -29,7 +29,8 @@ function getPropertyFunc(value) {
  */
 exports.func = function (fn) {
 	return stream(function (chunk) {
-		this.push(fn(chunk))
+		var results = fn.call(this, chunk)
+		this.push(results)
 	})
 }
 
@@ -42,7 +43,7 @@ exports.func = function (fn) {
 exports.pass = function (fn) {
 	return stream(function (chunk) {
 		this.push(chunk)
-		if (fn) fn(chunk)
+		if (fn) fn.call(this, chunk)
 	})
 }
 

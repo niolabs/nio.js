@@ -58,7 +58,10 @@ Stream.prototype.emit = function () {
  * @param {*} chunk Arbitrary write sent down the pipeline.
  */
 Stream.prototype.push = function (chunk) {
-	if (this.state === Stream.STATES.PAUSE) return
+	if (this.state === Stream.STATES.PAUSE) {
+		//this.broadcast('pauseddata', chunk)
+		return
+	}
 	if (_.isUndefined(chunk) || _.isNull(chunk)) return
 	if (_.isEmpty(chunk) && (_.isArray(chunk) || _.isPlainObject(chunk))) return
 	this.emit('data', chunk)

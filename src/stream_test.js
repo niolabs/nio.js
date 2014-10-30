@@ -245,7 +245,7 @@ suite('stream.js', function () {
 
 		})
 
-		suite('#flush()', function () {
+		suite('#reset()', function () {
 
 		})
 

@@ -73,16 +73,4 @@ suite('utils.js', function () {
 
 	})
 
-	suite('choose()', function () {
-
-		test('should pick a random item in an array', function (done) {
-			var values = ['one', 'two', 'three', 'four']
-			assert.include(values, nio.utils.choose(values))
-			assert.include(values, nio.utils.choose(values))
-			assert.include(values, nio.utils.choose(values))
-			done()
-		})
-
-	})
-
 })

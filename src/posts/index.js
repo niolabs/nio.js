@@ -83,15 +83,23 @@ Post.CHOICES = {
 // tests if a post matches params
 function isMatch(post, params) {
 	// They specified types and it didnt match
-	if (params.types && !_.contains(params.types, post.type))
-		return false
+	if (params.types) {
+		if (_.isString(params.types))
+			params.types = params.types.split(',')
+		if (!_.contains(params.types, post.type))
+			return false
+	}
+
+	// They specified usernames and it didn't match
+	if (params.names) {
+		if (_.isString(params.names))
+			params.names = params.names.split(',')
+		if (!_.contains(params.names, post.name))
+			return false
+	}
 
 	// They specified search keywords and they didnt match
 	if (params.search && !post.text.match(new RegExp(params.search, 'ig')))
-		return false
-
-	// They specified usernames and it didn't match
-	if (params.names && !_.contains(params.names, post.name))
 		return false
 
 	return true
@@ -128,6 +136,9 @@ function PostsStream(opts) {
 	this.pipe(
 		sources.json(opts.json),
 		streams.log(),
+		streams.pass(function (chunk) {
+			if (!chunk.total) this.broadcast('noresults')
+		}),
 		streams.get('posts'),
 		streams.sort(this.sortFunc),
 		streams.pass(function (chunk) {
@@ -137,7 +148,7 @@ function PostsStream(opts) {
 		streams.limit(9),
 		this.out,
 		streams.once(),
-		streams.on('init', socketio.resume())
+		streams.on('init', socketio.resume)
 	)
 
 	this.pipe(
@@ -148,6 +159,7 @@ function PostsStream(opts) {
 		streams.log('new post'),
 		streams.filter(function (chunk) {
 			var matched = isMatch(chunk, this.params)
+			console.log('new post match?', matched, chunk, this.params)
 			if (!matched) this.broadcast('new_filtered', chunk)
 			return matched
 		}.bind(this)),

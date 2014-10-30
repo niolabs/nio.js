@@ -50,12 +50,19 @@ module.exports = function (opts) {
 		render()
 	})
 
-
 	stream.onreset = function () {
-		elMain.selectAll('.col').remove()
+		elMain.html('')
 		data = d3.range(numCols).map(function () { return [] })
 		isInitialized = false
 	}
+
+	stream.onnoresults = function () {
+		// TODO: new posts may come in that match the filter. we should handle
+		// that scenario
+		elMain.append('div').text('No results found')
+	}
+
+
 
 	stream.onfilter = stream.onreset
 

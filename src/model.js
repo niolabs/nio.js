@@ -19,6 +19,8 @@ function Model(opts) {
 // TODO
 Model.prototype.validate = function () {}
 
+module.exports = Model
+
 /**
  * generate creates a mock object based on a classes CHOICES definition.
  * Useful for testing/debugging.
@@ -27,14 +29,12 @@ Model.prototype.validate = function () {}
  * @param {object} opts
  * @return {Model}
  */
-exports.generate = function (Cls, opts) {
+module.exports.generate = function (Cls, opts) {
 	if (!Cls.CHOICES)
 		console.warn('generate() called on a model without CHOICES')
 	_.each(Cls.CHOICES, function (key, values) {
 		if (key in opts) return
-		opts[key] = exports.choose(values)
+		opts[key] = _.sample(values)
 	})
 	return new (Cls)(opts)
 }
-
-module.exports = Model

@@ -46,18 +46,6 @@ exports.cycle = function (value) {
 	}
 }
 
-/**
- * choose picks out a random value in an array
- *
- * @param {array} values
- * @return {*}
- */
-exports.choose = function (values) {
-	if (!values.length) return
-	var chosen = _.random(0, values.length - 1)
-	return values[chosen]
-}
-
 exports.script = function (url) {
 	var script = document.createElement('script')
 	script.src = url

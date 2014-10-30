@@ -32,4 +32,36 @@ suite('posts/index.js', function () {
 
 	})
 
+	suite('isMatch()', function () {
+
+		test('should filter by types', function (done) {
+			var post = nio.model.generate(nio.posts.post, {type: 'testing'})
+			assert.isFalse(nio.posts.isMatch(post, {types: ['twitter']}))
+			assert.isTrue(nio.posts.isMatch(post, {types: ['testing']}))
+			done()
+		})
+
+		test('should filter by names', function (done) {
+			var post = nio.model.generate(nio.posts.post, {name: 'testing'})
+			assert.isFalse(nio.posts.isMatch(post, {names: ['twitter']}))
+			assert.isTrue(nio.posts.isMatch(post, {names: ['testing']}))
+			done()
+		})
+
+		test('should filter by search', function (done) {
+			var post = nio.model.generate(nio.posts.post, {text: 'testing'})
+			assert.isFalse(nio.posts.isMatch(post, {search: 'twitter'}))
+			assert.isTrue(nio.posts.isMatch(post, {search: 'testing'}))
+			done()
+		})
+
+		test('should convert some fields to arrays to avoid partial matches', function (done) {
+			var post = nio.model.generate(nio.posts.post, {type: 'twitter'})
+			assert.isFalse(nio.posts.isMatch(post, {types: 'twitter-photo,instagram'}))
+			assert.isTrue(nio.posts.isMatch(post, {types: 'twitter,rss'}))
+			done()
+		})
+
+	})
+
 })

@@ -18767,6 +18767,8 @@ function Model(opts) {
 // TODO
 Model.prototype.validate = function () {}
 
+module.exports = Model
+
 /**
  * generate creates a mock object based on a classes CHOICES definition.
  * Useful for testing/debugging.
@@ -18775,17 +18777,15 @@ Model.prototype.validate = function () {}
  * @param {object} opts
  * @return {Model}
  */
-exports.generate = function (Cls, opts) {
+module.exports.generate = function (Cls, opts) {
 	if (!Cls.CHOICES)
 		console.warn('generate() called on a model without CHOICES')
 	_.each(Cls.CHOICES, function (key, values) {
 		if (key in opts) return
-		opts[key] = exports.choose(values)
+		opts[key] = _.sample(values)
 	})
 	return new (Cls)(opts)
 }
-
-module.exports = Model
 
 },{"lodash":12}],20:[function(require,module,exports){
 var _ = require('lodash')
@@ -18873,15 +18873,23 @@ Post.CHOICES = {
 // tests if a post matches params
 function isMatch(post, params) {
 	// They specified types and it didnt match
-	if (params.types && !_.contains(params.types, post.type))
-		return false
+	if (params.types) {
+		if (_.isString(params.types))
+			params.types = params.types.split(',')
+		if (!_.contains(params.types, post.type))
+			return false
+	}
+
+	// They specified usernames and it didn't match
+	if (params.names) {
+		if (_.isString(params.names))
+			params.names = params.names.split(',')
+		if (!_.contains(params.names, post.name))
+			return false
+	}
 
 	// They specified search keywords and they didnt match
 	if (params.search && !post.text.match(new RegExp(params.search, 'ig')))
-		return false
-
-	// They specified usernames and it didn't match
-	if (params.names && !_.contains(params.names, post.name))
 		return false
 
 	return true
@@ -18918,6 +18926,9 @@ function PostsStream(opts) {
 	this.pipe(
 		sources.json(opts.json),
 		streams.log(),
+		streams.pass(function (chunk) {
+			if (!chunk.total) this.broadcast('noresults')
+		}),
 		streams.get('posts'),
 		streams.sort(this.sortFunc),
 		streams.pass(function (chunk) {
@@ -18927,7 +18938,7 @@ function PostsStream(opts) {
 		streams.limit(9),
 		this.out,
 		streams.once(),
-		streams.on('init', socketio.resume())
+		streams.on('init', socketio.resume)
 	)
 
 	this.pipe(
@@ -18938,6 +18949,7 @@ function PostsStream(opts) {
 		streams.log('new post'),
 		streams.filter(function (chunk) {
 			var matched = isMatch(chunk, this.params)
+			console.log('new post match?', matched, chunk, this.params)
 			if (!matched) this.broadcast('new_filtered', chunk)
 			return matched
 		}.bind(this)),
@@ -19037,12 +19049,19 @@ module.exports = function (opts) {
 		render()
 	})
 
-
 	stream.onreset = function () {
-		elMain.selectAll('.col').remove()
+		elMain.html('')
 		data = d3.range(numCols).map(function () { return [] })
 		isInitialized = false
 	}
+
+	stream.onnoresults = function () {
+		// TODO: new posts may come in that match the filter. we should handle
+		// that scenario
+		elMain.append('div').text('No results found')
+	}
+
+
 
 	stream.onfilter = stream.onreset
 
@@ -19319,7 +19338,10 @@ Stream.prototype.emit = function () {
  * @param {*} chunk Arbitrary write sent down the pipeline.
  */
 Stream.prototype.push = function (chunk) {
-	if (this.state === Stream.STATES.PAUSE) return
+	if (this.state === Stream.STATES.PAUSE) {
+		//this.broadcast('pauseddata', chunk)
+		return
+	}
 	if (_.isUndefined(chunk) || _.isNull(chunk)) return
 	if (_.isEmpty(chunk) && (_.isArray(chunk) || _.isPlainObject(chunk))) return
 	this.emit('data', chunk)
@@ -19486,7 +19508,8 @@ function getPropertyFunc(value) {
  */
 exports.func = function (fn) {
 	return stream(function (chunk) {
-		this.push(fn(chunk))
+		var results = fn.call(this, chunk)
+		this.push(results)
 	})
 }
 
@@ -19499,7 +19522,7 @@ exports.func = function (fn) {
 exports.pass = function (fn) {
 	return stream(function (chunk) {
 		this.push(chunk)
-		if (fn) fn(chunk)
+		if (fn) fn.call(this, chunk)
 	})
 }
 
@@ -19979,18 +20002,6 @@ exports.cycle = function (value) {
 		var target = value[current]
 		return _.isFunction(target) ? target() : target
 	}
-}
-
-/**
- * choose picks out a random value in an array
- *
- * @param {array} values
- * @return {*}
- */
-exports.choose = function (values) {
-	if (!values.length) return
-	var chosen = _.random(0, values.length - 1)
-	return values[chosen]
 }
 
 exports.script = function (url) {
