@@ -322,4 +322,20 @@ suite('streams.js', function () {
 
 	})
 
+	suite('on()', function () {
+
+		test('should only call the callback once per event', function (done) {
+			var counter = 0
+			var stream1 = nio.stream()
+			var stream2 = nio.on('testing', function () { counter++ })
+			stream1.pipe(stream2)
+			stream1.broadcast('testing', 'hello', 'world')
+			setTimeout(function () {
+				assert.equal(counter, 1)
+				done()
+			}, 30)
+		})
+
+	})
+
 })

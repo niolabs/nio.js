@@ -122,10 +122,7 @@ exports.join = function () {
 // will only push a chunk if the function it's passed to returns true
 exports.filter = function (fn) {
 	return stream(function (chunk) {
-		if (fn(chunk))
-			this.push(chunk)
-		else
-			this.broadcast('filtered', chunk)
+		if (fn.call(this, chunk)) this.push(chunk)
 	})
 }
 

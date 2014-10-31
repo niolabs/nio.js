@@ -243,6 +243,17 @@ suite('stream.js', function () {
 				done()
 			})
 
+			test('should call event handler once on directly connected listeners', function (done) {
+				var counter = 0
+				var stream1 = nio.stream()
+				var stream2 = nio.stream()
+				stream1.pipe(stream2)
+				stream2.ontesting = function () { counter++ }
+				stream1.broadcast('testing')
+				assert.equal(counter, 1)
+				done()
+			})
+
 		})
 
 		suite('#reset()', function () {

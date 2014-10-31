@@ -142,7 +142,6 @@ Stream.prototype.onbroadcast = function () {
 	var event = arguments[0].toUpperCase()
 	if (event in Stream.STATES)
 		this.state = Stream.STATES[event]
-
 	this.emit.apply(this, arguments)
 }
 

@@ -18925,6 +18925,9 @@ function PostsStream(opts) {
 
 	this.reset(false)
 
+	var self = this
+
+	// get the historical data
 	this.pipe(
 		json,
 		streams.log(),
@@ -18934,8 +18937,8 @@ function PostsStream(opts) {
 		streams.get('posts'),
 		streams.sort(this.sortFunc),
 		streams.pass(function (chunk) {
-			this.latest = _.first(chunk)
-		}.bind(this)),
+			self.latest = _.first(chunk)
+		}),
 		streams.each(_.partialRight(streams.setProps, propmap)),
 		streams.limit(9),
 		this.out,
@@ -18943,16 +18946,18 @@ function PostsStream(opts) {
 		streams.on('init', socketio.resume)
 	)
 
+
+	// listen for new posts
 	this.pipe(
 		socketio,
 		streams.unique('id'),
 		streams.set(propmap),
 		streams.filter(this.sortCmpFunc),
 		streams.filter(function (chunk) {
-			var matched = isMatch(chunk, this.params)
+			var matched = isMatch(chunk, self.params)
 			if (!matched) this.broadcast('new_filtered', chunk)
 			return matched
-		}.bind(this)),
+		}),
 		this.out
 	)
 
@@ -19426,7 +19431,6 @@ Stream.prototype.onbroadcast = function () {
 	var event = arguments[0].toUpperCase()
 	if (event in Stream.STATES)
 		this.state = Stream.STATES[event]
-
 	this.emit.apply(this, arguments)
 }
 
@@ -19605,10 +19609,7 @@ exports.join = function () {
 // will only push a chunk if the function it's passed to returns true
 exports.filter = function (fn) {
 	return stream(function (chunk) {
-		if (fn(chunk))
-			this.push(chunk)
-		else
-			this.broadcast('filtered', chunk)
+		if (fn.call(this, chunk)) this.push(chunk)
 	})
 }
 

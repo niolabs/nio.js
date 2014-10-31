@@ -135,6 +135,9 @@ function PostsStream(opts) {
 
 	this.reset(false)
 
+	var self = this
+
+	// get the historical data
 	this.pipe(
 		json,
 		streams.log(),
@@ -144,8 +147,8 @@ function PostsStream(opts) {
 		streams.get('posts'),
 		streams.sort(this.sortFunc),
 		streams.pass(function (chunk) {
-			this.latest = _.first(chunk)
-		}.bind(this)),
+			self.latest = _.first(chunk)
+		}),
 		streams.each(_.partialRight(streams.setProps, propmap)),
 		streams.limit(9),
 		this.out,
@@ -153,16 +156,18 @@ function PostsStream(opts) {
 		streams.on('init', socketio.resume)
 	)
 
+
+	// listen for new posts
 	this.pipe(
 		socketio,
 		streams.unique('id'),
 		streams.set(propmap),
 		streams.filter(this.sortCmpFunc),
 		streams.filter(function (chunk) {
-			var matched = isMatch(chunk, this.params)
+			var matched = isMatch(chunk, self.params)
 			if (!matched) this.broadcast('new_filtered', chunk)
 			return matched
-		}.bind(this)),
+		}),
 		this.out
 	)
 
