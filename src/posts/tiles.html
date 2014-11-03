@@ -44,10 +44,38 @@
 				View on <%=typeDisplay%>
 				<svg class="icon icon-small muted"><use xlink:href="#open-in-new"></use></svg>
 			</a>
-			<a href="#" target="_blank">
-				Share
-				<svg class="icon icon-small muted"><use xlink:href="#share"></use></svg>
-			</a>
+			<span class="dropdown tile-share">
+				<a href="#" target="_blank" class=dropdown-toggle>
+					Share
+					<svg class="icon icon-small muted"><use xlink:href="#share"></use></svg>
+				</a>
+				<span class=dropdown-content horizontal layout center center-justified pad-half>
+					<a target=_blank pad-half title="Share on Twitter"
+						href="https://twitter.com/intent/tweet?url=<%- link %>&amp;text=<%- text %> - via @gobuffsio">
+						<svg class="icon">
+							<use xlink:href="#twitter-square"></use>
+						</svg>
+					</a>
+					<a target=_blank pad-half title="Share on Facebook"
+						href="http://www.facebook.com/sharer/sharer.php?s=100&amp;p[url]=<%- link %>&amp;p[images][0]={{HERE}}&amp;p[title]={{HERE}}">
+						<svg class="icon">
+							<use xlink:href="#facebook-square"></use>
+						</svg>
+					</a>
+					<a target=_blank pad-half title="Pin It"
+						href="https://www.pinterest.com/pin/create/button/?url=<%- link %>&amp;media={{HERE}}&amp;description=<%- text %>">
+						<svg class="icon">
+							<use xlink:href="#pinterest-square"></use>
+						</svg>
+					</a>
+					<a target=_blank pad-half title="Email It"
+						href="mailto:?subject=Check out this post from gobuffs.io&amp;body=<%- text %> -- <%- link %> -- via http://gobuffs.io">
+						<svg class="icon">
+							<use xlink:href="#envelope-square"></use>
+						</svg>
+					</a>
+				</span>
+			</span>
 		</footer>
 	</div>
 </div>
