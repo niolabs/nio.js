@@ -93,6 +93,10 @@ module.exports = function (opts) {
 						full: true,
 						block: true
 					})
+			} else if (d.type === 'original') {
+				// redirect to the original post
+				window.location.href = d.link
+				return
 			}
 		} else if (d.type === 'youtube') {
 			el.select('iframe').remove()
