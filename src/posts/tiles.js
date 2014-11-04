@@ -83,25 +83,31 @@ module.exports = function (opts) {
 			elMain.selectAll('iframe').remove()
 			// embed youtube player on expand
 			if (d.type === 'youtube') {
-				el.select('.tile-media')
-					.append('iframe')
-					.attr({
-						src: 'https://www.youtube.com/embed/' + d.id + '?autoplay=1',
-						frameborder: 0,
-						allowfullscreen: true,
-						fit: true,
-						full: true,
-						block: true
-					})
+				replaceVideo(el, 'https://www.youtube.com/embed/' + d.id + '?autoplay=1')
 			} else if (d.type === 'original') {
 				// redirect to the original post
 				window.location.href = d.link
 				return
+			} else if (d.type === 'original-video') {
+				replaceVideo(el, d.video_url + '?autoplay=1')
 			}
-		} else if (d.type === 'youtube') {
+		} else if (d.type === 'youtube' || d.type === 'original-video') {
 			el.select('iframe').remove()
 		}
 		el.classed('-expanded', !isExpanded)
+	}
+
+	function replaceVideo(el, video_url) {
+		el.select('.tile-media')
+			.append('iframe')
+			.attr({
+				src: video_url,
+				frameborder: 0,
+				allowfullscreen: true,
+				fit: true,
+				full: true,
+				block: true
+			})
 	}
 
 	function render() {
