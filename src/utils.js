@@ -82,4 +82,13 @@ exports.utc = function (date) {
 	))
 }
 
+exports.windowSize = function () {
+	var w = window
+	var e = document.documentElement
+	var g = document.getElementsByTagName('body')[0]
+	var width = w.innerWidth || e.clientWidth || g.clientWidth
+	var height = w.innerHeight || e.clientHeight || g.clientHeight
+	return {width: width, height: height}
+}
+
 module.exports = _.assign(require('util'), _, exports)

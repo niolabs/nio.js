@@ -92,7 +92,12 @@ module.exports = function (opts) {
 		} else if (d.type === 'youtube' || d.type === 'original-video') {
 			el.select('iframe').remove()
 		}
-		el.classed('-expanded', !isExpanded)
+		var tileWidth = el.style('width')
+		var windowSize = utils.windowSize()
+		// only expand if we have enough room
+		if (windowSize.width > tileWidth * 2) {
+			el.classed('-expanded', !isExpanded)
+		}
 	}
 
 	function replaceVideo(el, video_url) {
@@ -130,10 +135,6 @@ module.exports = function (opts) {
 			.classed('-wide', function (d) { return d.wide })
 			.html(getHTML)
 			.on('click', tileClicked)
-
-		tileEnter
-			.select('.tile')
-			//.classed('flip-in', true)
 
 		// only start sliding tiles down after the initial load
 		if (isInitialized) {
