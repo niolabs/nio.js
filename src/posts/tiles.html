@@ -23,13 +23,14 @@
 	<div class="tile-bottom" flex vertical layout>
 		<div class="tile-content" flex pad-double>
 			<% if (media) { %>
-				<div class="tile-media poster" fit>
+				<div class="tile-media poster" fit
+					style="background-image:url(<%=media%>)">
 					<% if (type === 'youtube' || type === 'vimeo') { %>
 						<svg class="icon icon-largest play-arrow muted-inverse">
 							<use xlink:href="#play-arrow"></use>
 						</svg>
 					<% } %>
-					<img src="<%=media%>" alt="<%=text%>">
+					<!--<img src="<%=media%>" alt="<%=text%>">-->
 				</div>
 			<% } %>
 			<span class="tile-text -transition<% if (media) { %> marquee -paused<% } %>" block>
