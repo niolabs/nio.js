@@ -81,30 +81,34 @@ module.exports = function (opts) {
 	function tileClicked(d) {
 		var elThis = d3.select(this).select('.tile')
 		var isExpanded = elThis.classed('-expanded')
+		console.log('clicked', elThis, isExpanded)
 		if (!isExpanded) {
+			// close any other expanded tiles
 			elMain.selectAll('.tile').classed('-expanded', false)
 			elMain.selectAll('iframe').remove()
+
 			// embed youtube player on expand
 			if (d.type === 'youtube') {
-				replaceVideo(el, 'https://www.youtube.com/embed/' + d.id + '?autoplay=1')
+				replaceVideo(elThis, 'https://www.youtube.com/embed/' + d.id + '?autoplay=1')
 			} else if (d.type === 'original') {
 				// redirect to the original post
 				window.location.href = d.link
 				return
 			} else if (d.type === 'original-video') {
-				replaceVideo(el, d.video_url + '?autoplay=1')
+				replaceVideo(elThis, d.video_url + '?autoplay=1')
 			}
 
+			// only expand if we have enough room
 			var tileWidth = parseInt(elThis.style('width'))
 			var mainWidth = parseInt(elMain.style('width'))
-			// only expand if we have enough room
 			if (mainWidth > tileWidth * 2) {
-				elThis.classed('-expanded', !isExpanded)
+				elThis.classed('-expanded', true)
 			}
-		} else if (isExpanded) {
+		} else {
 			elThis.classed('-expanded', false)
-		} else if (d.type === 'youtube' || d.type === 'original-video') {
-			elThis.select('iframe').remove()
+			if (d.type === 'youtube' || d.type === 'original-video') {
+				elThis.select('iframe').remove()
+			}
 		}
 	}
 
