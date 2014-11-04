@@ -49,7 +49,7 @@ Post.prototype.DEFAULTS = {
 }
 
 /**
- * Choices for the model factory to choose from
+ * Choices for the model factory to choose from. Used for tests.
  */
 Post.CHOICES = {
 	author: ['John', 'Jane', 'Jill'],
@@ -167,6 +167,10 @@ function PostsStream(opts) {
 			var matched = isMatch(chunk, self.params)
 			if (!matched) this.broadcast('new_filtered', chunk)
 			return matched
+		}),
+		streams.on('pauseddata', function (chunk) {
+			var matched = isMatch(chunk, self.params)
+			if (matched) this.broadcast('new_filtered', chunk)
 		}),
 		this.out
 	)

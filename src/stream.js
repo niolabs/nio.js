@@ -59,7 +59,7 @@ Stream.prototype.emit = function () {
  */
 Stream.prototype.push = function (chunk) {
 	if (this.state === Stream.STATES.PAUSE) {
-		//this.broadcast('pauseddata', chunk)
+		this.broadcast('pauseddata', chunk)
 		return
 	}
 	if (_.isUndefined(chunk) || _.isNull(chunk)) return

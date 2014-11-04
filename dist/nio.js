@@ -18839,7 +18839,7 @@ Post.prototype.DEFAULTS = {
 }
 
 /**
- * Choices for the model factory to choose from
+ * Choices for the model factory to choose from. Used for tests.
  */
 Post.CHOICES = {
 	author: ['John', 'Jane', 'Jill'],
@@ -18957,6 +18957,10 @@ function PostsStream(opts) {
 			var matched = isMatch(chunk, self.params)
 			if (!matched) this.broadcast('new_filtered', chunk)
 			return matched
+		}),
+		streams.on('pauseddata', function (chunk) {
+			var matched = isMatch(chunk, self.params)
+			if (matched) this.broadcast('new_filtered', chunk)
 		}),
 		this.out
 	)
@@ -19356,7 +19360,7 @@ Stream.prototype.emit = function () {
  */
 Stream.prototype.push = function (chunk) {
 	if (this.state === Stream.STATES.PAUSE) {
-		//this.broadcast('pauseddata', chunk)
+		this.broadcast('pauseddata', chunk)
 		return
 	}
 	if (_.isUndefined(chunk) || _.isNull(chunk)) return
