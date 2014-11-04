@@ -19068,6 +19068,11 @@ module.exports = function (opts) {
 
 	stream.reset(false)
 
+	stream.columns = function (value) {
+		if (!value) return numCols
+		numCols = value
+	}
+
 	stream.onnoresults = function () {
 		// TODO: new posts may come in that match the filter. we should handle
 		// that scenario
@@ -19086,8 +19091,8 @@ module.exports = function (opts) {
 	function getID(d) { return d.id }
 	function getColID(d, i) { return d.length ? d[0].id : i }
 	function tileClicked(d) {
-		var el = d3.select(this).select('.tile')
-		var isExpanded = el.classed('-expanded')
+		var elThis = d3.select(this).select('.tile')
+		var isExpanded = elThis.classed('-expanded')
 		if (!isExpanded) {
 			elMain.selectAll('.tile').classed('-expanded', false)
 			elMain.selectAll('iframe').remove()
@@ -19101,14 +19106,17 @@ module.exports = function (opts) {
 			} else if (d.type === 'original-video') {
 				replaceVideo(el, d.video_url + '?autoplay=1')
 			}
+
+			var tileWidth = parseInt(elThis.style('width'))
+			var mainWidth = parseInt(elMain.style('width'))
+			// only expand if we have enough room
+			if (mainWidth > tileWidth * 2) {
+				elThis.classed('-expanded', !isExpanded)
+			}
+		} else if (isExpanded) {
+			elThis.classed('-expanded', false)
 		} else if (d.type === 'youtube' || d.type === 'original-video') {
-			el.select('iframe').remove()
-		}
-		var tileWidth = el.style('width')
-		var windowSize = utils.windowSize()
-		// only expand if we have enough room
-		if (windowSize.width > tileWidth * 2) {
-			el.classed('-expanded', !isExpanded)
+			elThis.select('iframe').remove()
 		}
 	}
 
