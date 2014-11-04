@@ -17,15 +17,10 @@ module.exports = function (opts) {
 		opts = {el: opts}
 	var numRows = opts.rows || 3
 	var numCols = opts.cols || 3
-	var data = d3.range(numCols).map(function () { return [] })
 
 	var elMain = d3.select(opts.el)
 		.attr('layout', true)
 		.attr('horizontal', true)
-
-	var getCol = utils.cycle(_.range(numCols))
-
-	var isInitialized = false
 
 	function handleChunk(chunk) {
 		if (_.isArray(chunk)) {
@@ -50,19 +45,22 @@ module.exports = function (opts) {
 		render()
 	})
 
+	var getCol, isInitialized, data
+
 	stream.onreset = function () {
 		elMain.html('')
 		data = d3.range(numCols).map(function () { return [] })
 		isInitialized = false
+		getCol = utils.cycle(_.range(numCols))
 	}
+
+	stream.reset(false)
 
 	stream.onnoresults = function () {
 		// TODO: new posts may come in that match the filter. we should handle
 		// that scenario
 		elMain.append('div').text('No results found')
 	}
-
-
 
 	stream.onfilter = stream.onreset
 
