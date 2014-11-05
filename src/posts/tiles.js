@@ -85,7 +85,6 @@ module.exports = function (opts) {
 		if (!isExpanded) {
 			// close any other expanded tiles
 			elMain.selectAll('.tile').classed('-expanded', false)
-			elMain.selectAll('iframe').remove()
 
 			// embed youtube player on expand
 			if (d.type === 'youtube') {
@@ -95,7 +94,11 @@ module.exports = function (opts) {
 				window.location.href = d.link
 				return
 			} else if (d.type === 'original-video') {
-				replaceVideo(elThis, d.video_url + '?autoplay=1')
+				if (! elThis.classed('-playing')) {
+					replaceVideo(elThis, d.video_url + '?autoplay=1')
+				}
+				// don't expand
+				return;
 			}
 
 			// only expand if we have enough room
@@ -106,7 +109,7 @@ module.exports = function (opts) {
 			}
 		} else {
 			elThis.classed('-expanded', false)
-			if (d.type === 'youtube' || d.type === 'original-video') {
+			if (d.type === 'youtube') {
 				elThis.select('iframe').remove()
 			}
 		}
@@ -123,6 +126,7 @@ module.exports = function (opts) {
 				full: true,
 				block: true
 			})
+		el.classed('-playing', true);
 	}
 
 	function render() {
