@@ -127,58 +127,69 @@ function PostsStream(opts) {
 	Stream.call(this)
 	this.opts = opts
 
-	var socketio = sources.socketio({
-		host: opts.socketio,
-		rooms: ['default']
-	})
-
-	var json = sources.json(opts.json)
-
 	this.reset(false)
+
+	var json, socketio
 
 	var self = this
 
-	// get the historical data
-	this.pipe(
-		json,
-		streams.pass(function (chunk) {
-			if (!chunk.total) this.broadcast('noresults')
-		}),
-		streams.get('posts'),
-		streams.sort(this.sortFunc),
-		streams.pass(function (chunk) {
-			self.latest = _.first(chunk)
-		}),
-		streams.each(_.partialRight(streams.setProps, propmap)),
-		streams.limit(9),
-		this.out,
-		streams.once(),
-		streams.on('init', socketio.resume)
-	)
+	if (opts.socketio) {
+		// listen for new posts
+		socketio = sources.socketio({
+			host: opts.socketio,
+			rooms: ['default']
+		})
+		this.pipe(
+			socketio,
+			streams.unique('id'),
+			streams.set(propmap),
+			streams.filter(this.sortCmpFunc),
+			streams.filter(function (chunk) {
+				var matched = isMatch(chunk, self.params)
+				if (!matched) this.broadcast('new_filtered', chunk)
+				return matched
+			}),
+			streams.on('pauseddata', function (chunk) {
+				var matched = isMatch(chunk, self.params)
+				if (matched) this.broadcast('new_filtered', chunk)
+			}),
+			this.out
+		)
+	}
 
-
-	// listen for new posts
-	this.pipe(
-		socketio,
-		streams.unique('id'),
-		streams.set(propmap),
-		streams.filter(this.sortCmpFunc),
-		streams.filter(function (chunk) {
-			var matched = isMatch(chunk, self.params)
-			if (!matched) this.broadcast('new_filtered', chunk)
-			return matched
-		}),
-		streams.on('pauseddata', function (chunk) {
-			var matched = isMatch(chunk, self.params)
-			if (matched) this.broadcast('new_filtered', chunk)
-		}),
-		this.out
-	)
+	if (opts.json) {
+		// get the historical data
+		json = sources.json(opts.json)
+		var jsonStream = this.pipe(
+			json,
+			streams.pass(function (chunk) {
+				if (!chunk.total) this.broadcast('noresults')
+			}),
+			streams.get('posts'),
+			streams.sort(this.sortFunc),
+			streams.pass(function (chunk) {
+				self.latest = _.first(chunk)
+			}),
+			streams.each(_.partialRight(streams.setProps, propmap)),
+			streams.limit(9),
+			this.out
+		)
+		if (opts.socketio) {
+			jsonStream.pipe(
+				streams.once(),
+				streams.on('init', socketio.resume)
+			)
+		}
+	}
 
 	if (!_.isEmpty(this.params))
 		this.filter(this.params)
 
-	json.resume()
+	if (opts.json) {
+		json.resume()
+	} else {
+		socketio.resume()
+	}
 }
 
 utils.inherits(PostsStream, Stream)
