@@ -45,7 +45,8 @@ Post.prototype.DEFAULTS = {
 	seconds_ago: '',
 	wide: false,
 	expanded: false,
-	avatar: false
+	avatar: false,
+	favorited: false
 }
 
 /**
@@ -140,7 +141,6 @@ function PostsStream(opts) {
 	// get the historical data
 	this.pipe(
 		json,
-		streams.log(),
 		streams.pass(function (chunk) {
 			if (!chunk.total) this.broadcast('noresults')
 		}),

@@ -1,4 +1,4 @@
-<div id="tile-<%=id%>" layout vertical class="tile -transition -<%=type%><% if (avatar) { %> -avatar<% } %><% if (media) { %> -media<% } %><% if (expanded) { %> -expanded<% } %>">
+<div id="tile-<%=id%>" layout vertical class="tile -transition -<%=type%><% if (avatar) { %> -avatar<% } %><% if (media) { %> -media<% } %><% if (expanded) { %> -expanded<% } %><% if (favorited) { %> -favorited<% } %>">
 	<header class="-transition" center layout horizontal full-width>
 		<% if (avatar) { %>
 			<a href="<%=authorLink%>" class="tile-avatar poster tile-author-link"
@@ -42,8 +42,17 @@
 			<% if (media) { %>pad-width-double<% } else { %>space-width-double<% } %>
 			layout horizontal justified pad-height-half>
 			<a href="<%=link%>" target="_blank">
-				View on <%=typeDisplay%>
+				View post
 				<svg class="icon icon-small muted"><use xlink:href="#open-in-new"></use></svg>
+			</a>
+			<a href=# class=favorite>
+				Favorite
+				<svg class="icon icon-small muted is-favorited">
+					<use xlink:href="#star"></use>
+				</svg>
+				<svg class="icon icon-small muted is-not-favorited">
+					<use xlink:href="#star-outline"></use>
+				</svg>
 			</a>
 			<span class="dropdown tile-share">
 				<a href="#" class=dropdown-toggle>

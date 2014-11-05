@@ -70,10 +70,6 @@ module.exports = function (opts) {
 
 	stream.onfilter = stream.onreset
 
-	// var elCols = []
-	// for (var i=numCols; i--;)
-	// elCols[i] = elMain.append('div').style('float', 'left')
-
 	// caching these functions for performance
 	function getNested(d) { return d }
 	function getHTML(d) { return template(d) }
@@ -81,9 +77,24 @@ module.exports = function (opts) {
 	function getColID(d, i) { return d.length ? d[0].id : i }
 	function tileClicked(d) {
 		var elThis = d3.select(this).select('.tile')
+		var target = d3.select(event.target)
+
+		if (target.classed('dropdown-toggle')) {
+			d3.event.preventDefault()
+			target.classed('toggled', !target.classed('toggled'))
+		} else if (target.classed('favorite')) {
+			d3.event.preventDefault()
+			stream.broadcast('toggle-favorited', d)
+			elThis.classed('-favorited', !elThis.classed('-favorited'))
+		} else {
+			elMain.selectAll('.toggled').classed('toggled', false)
+		}
+
+		// don't expand when we click links
+		if (target.node().tagName === 'A') return
+
 		var isExpanded = elThis.classed('-expanded')
 		var isExpandable = elThis.classed('-expandable')
-		console.log('clicked', elThis, isExpanded)
 		if (!isExpanded) {
 			// close any other expanded tiles
 			elMain.selectAll('.tile').classed('-expanded', false)
@@ -174,7 +185,7 @@ module.exports = function (opts) {
 				scrollHeight = tileContentEl.scrollHeight,
 				isMedia = tile.classed('-media')
 
-			// expandable if it is media or if the 
+			// expandable if it is media or if the
 			// content overflows the containter
 			return isMedia || scrollHeight > clientHeight
 		})
