@@ -19002,13 +19002,7 @@ module.exports = PostsStream
 module.exports.Post = Post
 module.exports.post = Post
 module.exports.isMatch = isMatch
-
-var tiles = require('./tiles')
-PostsStream.prototype.tiles = function (opts) {
-	this.out.pipe(tiles(opts))
-	return this
-}
-module.exports.tiles = tiles
+module.exports.tiles = require('./tiles')
 
 },{"../model":19,"../sources":22,"../stream":23,"../streams":24,"../utils":25,"./tiles":21,"lodash":12}],21:[function(require,module,exports){
 var _ = require('lodash')
