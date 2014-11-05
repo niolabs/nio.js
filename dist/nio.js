@@ -19055,6 +19055,7 @@ module.exports = function (opts) {
 		handleChunk(chunk)
 		trimColumns()
 		render()
+		checkExpandable()
 	})
 
 	var getCol, isInitialized, data
@@ -19093,6 +19094,7 @@ module.exports = function (opts) {
 	function tileClicked(d) {
 		var elThis = d3.select(this).select('.tile')
 		var isExpanded = elThis.classed('-expanded')
+		var isExpandable = elThis.classed('-expandable')
 		console.log('clicked', elThis, isExpanded)
 		if (!isExpanded) {
 			// close any other expanded tiles
@@ -19113,10 +19115,10 @@ module.exports = function (opts) {
 				return;
 			}
 
-			// only expand if we have enough room
+			// only expand if we have enough room and it is expandable
 			var tileWidth = parseInt(elThis.style('width'))
 			var mainWidth = parseInt(elMain.style('width'))
-			if (mainWidth > tileWidth * 2) {
+			if (isExpandable && mainWidth > tileWidth * 2) {
 				elThis.classed('-expanded', true)
 			}
 		} else {
@@ -19172,6 +19174,22 @@ module.exports = function (opts) {
 			stream.broadcast('init')
 		}
 		tile.exit().remove()
+	}
+
+	function checkExpandable() {
+		// determine which tiles are expandable
+		var tiles = elMain.selectAll('.tile-wrapper .tile')
+		tiles.classed('-expandable', function() {
+			var tile = d3.select(this),
+				tileContentEl = tile.select('.tile-content')[0][0],
+				clientHeight = tileContentEl.clientHeight,
+				scrollHeight = tileContentEl.scrollHeight,
+				isMedia = tile.classed('-media')
+
+			// expandable if it is media or if the 
+			// content overflows the containter
+			return isMedia || scrollHeight > clientHeight
+		})
 	}
 
 	return stream
