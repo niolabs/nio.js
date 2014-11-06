@@ -18874,18 +18874,20 @@ Post.CHOICES = {
 // tests if a post matches params
 function isMatch(post, params) {
 	// They specified types and it didnt match
-	if (params.types) {
-		if (_.isString(params.types))
-			params.types = params.types.split(',')
-		if (!_.contains(params.types, post.type))
+	var types = params.types
+	if (types) {
+		if (_.isString(types))
+			types = types.split(',')
+		if (!_.contains(types, post.type))
 			return false
 	}
 
 	// They specified usernames and it didn't match
-	if (params.names) {
-		if (_.isString(params.names))
-			params.names = params.names.split(',')
-		if (!_.contains(params.names, post.name))
+	var names = params.names
+	if (names) {
+		if (_.isString(names))
+			names = names.split(',')
+		if (!_.contains(names, post.name))
 			return false
 	}
 
@@ -19022,7 +19024,7 @@ var utils = require('../utils')
 var streams = require('../streams')
 var posts = require('../posts')
 
-var html = "<div id=\"tile-<%=id%>\" layout vertical class=\"tile -transition -<%=type%><% if (avatar) { %> -avatar<% } %><% if (media) { %> -media<% } %><% if (expanded) { %> -expanded<% } %><% if (favorited) { %> -favorited<% } %>\">\n\t<header class=\"-transition\" center layout horizontal full-width>\n\t\t<% if (avatar) { %>\n\t\t\t<a href=\"<%=authorLink%>\" class=\"tile-avatar poster tile-author-link\"\n\t\t\t\tdata-author=\"<%=author%>\">\n\t\t\t\t<img src=\"<%=avatar%>\">\n\t\t\t</a>\n\t\t<% } %>\n\t\t<div class=\"tile-title\" flex center pad-height pad-width>\n\t\t\t<h3 class=\"tile-author ellipsis\" space-zero>\n\t\t\t\t<a href=\"<%=authorLink%>\" class=\"tile-author-link\" data-author=\"<%=author%>\">\n\t\t\t\t\t<%=author%>\n\t\t\t\t</a>\n\t\t\t</h3>\n\t\t\t<time is=\"relative-time\" datetime=\"<%=time%>\" class=\"\">\n\t\t\t\t<%=time%>\n\t\t\t</time>\n\t\t</div>\n\t\t<span pad-width-double class=muted-inverse>\n\t\t\t<svg class=\"icon icon-larger\"><use xlink:href=\"#<%=type%>-square\"></use></svg>\n\t\t</span>\n\t</header>\n\t<div class=\"tile-bottom\" flex vertical layout>\n\t\t<div class=\"tile-content\" flex pad-double>\n\t\t\t<% if (media) { %>\n\t\t\t\t<div class=\"tile-media poster\" fit\n\t\t\t\t\tstyle=\"background-image:url(<%=media%>)\">\n\t\t\t\t\t<% if (type === 'youtube' || type === 'vimeo') { %>\n\t\t\t\t\t\t<svg class=\"icon icon-largest play-arrow muted-inverse\">\n\t\t\t\t\t\t\t<use xlink:href=\"#play-arrow\"></use>\n\t\t\t\t\t\t</svg>\n\t\t\t\t\t<% } %>\n\t\t\t\t\t<!--<img src=\"<%=media%>\" alt=\"<%=text%>\">-->\n\t\t\t\t</div>\n\t\t\t<% } %>\n\t\t\t<span class=\"tile-text -transition<% if (media) { %> marquee -paused<% } %>\" block>\n\t\t\t\t<%=linkify(text)%>\n\t\t\t</span>\n\t\t</div>\n\n\t\t<footer class=\"-transition type-small height-larger\"\n\t\t\t<% if (media) { %>pad-width-double<% } else { %>space-width-double<% } %>\n\t\t\tlayout horizontal justified pad-height-half>\n\t\t\t<a href=\"<%=link%>\" target=\"_blank\">\n\t\t\t\tView post\n\t\t\t\t<svg class=\"icon icon-small muted\"><use xlink:href=\"#open-in-new\"></use></svg>\n\t\t\t</a>\n\t\t\t<a href=# class=favorite>\n\t\t\t\tFavorite\n\t\t\t\t<svg class=\"icon icon-small muted is-favorited\">\n\t\t\t\t\t<use xlink:href=\"#star\"></use>\n\t\t\t\t</svg>\n\t\t\t\t<svg class=\"icon icon-small muted is-not-favorited\">\n\t\t\t\t\t<use xlink:href=\"#star-outline\"></use>\n\t\t\t\t</svg>\n\t\t\t</a>\n\t\t\t<span class=\"dropdown tile-share\">\n\t\t\t\t<a href=\"#\" class=dropdown-toggle>\n\t\t\t\t\tShare\n\t\t\t\t\t<svg class=\"icon icon-small muted\"><use xlink:href=\"#share\"></use></svg>\n\t\t\t\t</a>\n\t\t\t\t<span class=dropdown-content horizontal layout center center-justified pad-half>\n\t\t\t\t\t<a target=_blank pad-half title=\"Share on Twitter\"\n\t\t\t\t\t\thref=\"https://twitter.com/intent/tweet?url=<%- link %>&amp;text=<%- text %> - via @gobuffsio\">\n\t\t\t\t\t\t<svg class=\"icon\">\n\t\t\t\t\t\t\t<use xlink:href=\"#twitter-square\"></use>\n\t\t\t\t\t\t</svg>\n\t\t\t\t\t</a>\n\t\t\t\t\t<a target=_blank pad-half title=\"Share on Facebook\"\n\t\t\t\t\t\thref=\"http://www.facebook.com/sharer/sharer.php?s=100&amp;p[url]=<%- link %>&amp;p[images][0]={{HERE}}&amp;p[title]={{HERE}}\">\n\t\t\t\t\t\t<svg class=\"icon\">\n\t\t\t\t\t\t\t<use xlink:href=\"#facebook-square\"></use>\n\t\t\t\t\t\t</svg>\n\t\t\t\t\t</a>\n\t\t\t\t\t<a target=_blank pad-half title=\"Pin It\"\n\t\t\t\t\t\thref=\"https://www.pinterest.com/pin/create/button/?url=<%- link %>&amp;media={{HERE}}&amp;description=<%- text %>\">\n\t\t\t\t\t\t<svg class=\"icon\">\n\t\t\t\t\t\t\t<use xlink:href=\"#pinterest-square\"></use>\n\t\t\t\t\t\t</svg>\n\t\t\t\t\t</a>\n\t\t\t\t\t<a target=_blank pad-half title=\"Email It\"\n\t\t\t\t\t\thref=\"mailto:?subject=Check out this post from gobuffs.io&amp;body=<%- text %> -- <%- link %> -- via http://gobuffs.io\">\n\t\t\t\t\t\t<svg class=\"icon\">\n\t\t\t\t\t\t\t<use xlink:href=\"#envelope-square\"></use>\n\t\t\t\t\t\t</svg>\n\t\t\t\t\t</a>\n\t\t\t\t</span>\n\t\t\t</span>\n\t\t</footer>\n\t</div>\n</div>\n"
+var html = "<div id=\"tile-<%=id%>\" class=\"tile -transition -<%=type%><% if (avatar) { %> -avatar<% } %><% if (media) { %> -media<% } %><% if (expanded) { %> -expanded<% } %><% if (favorited) { %> -favorited<% } %>\">\n\t<header class=\"tile-header -transition full-width clear\">\n\t\t<% if (avatar) { %>\n\t\t\t<a href=\"<%=authorLink%>\" class=\"tile-avatar poster tile-author-link\"\n\t\t\t\tdata-author=\"<%=author%>\">\n\t\t\t\t<img src=\"<%=avatar%>\">\n\t\t\t</a>\n\t\t<% } %>\n\t\t<div class=\"tile-title pad-height pad-width\">\n\t\t\t<h3 class=\"tile-author ellipsis space-zero\">\n\t\t\t\t<a href=\"<%=authorLink%>\" class=\"tile-author-link\" data-author=\"<%=author%>\">\n\t\t\t\t\t<%=author%>\n\t\t\t\t</a>\n\t\t\t</h3>\n\t\t\t<time is=\"relative-time\" datetime=\"<%=time%>\">\n\t\t\t\t<%=time%>\n\t\t\t</time>\n\t\t</div>\n\t\t<span class=\"tile-icon muted-inverse pad-width-double\">\n\t\t\t<svg class=\"icon icon-larger\"><use xlink:href=\"#<%=type%>-square\"></use></svg>\n\t\t</span>\n\t</header>\n\t<div class=\"tile-bottom\">\n\t\t<div class=\"tile-content pad-double\">\n\t\t\t<% if (media) { %>\n\t\t\t\t<div class=\"tile-media poster fit\"\n\t\t\t\t\tstyle=\"background-image:url(<%=media%>)\">\n\t\t\t\t\t<% if (type === 'youtube' || type === 'vimeo') { %>\n\t\t\t\t\t\t<svg class=\"icon icon-largest play-arrow muted-inverse\">\n\t\t\t\t\t\t\t<use xlink:href=\"#play-arrow\"></use>\n\t\t\t\t\t\t</svg>\n\t\t\t\t\t<% } %>\n\t\t\t\t\t<!--<img src=\"<%=media%>\" alt=\"<%=text%>\">-->\n\t\t\t\t</div>\n\t\t\t<% } %>\n\t\t\t<span class=\"tile-text block -transition<% if (media) { %> marquee -paused<% } %>\">\n\t\t\t\t<%=linkify(text)%>\n\t\t\t</span>\n\t\t</div>\n\n\t\t<footer class=\"tile-footer -transition type-small height-larger pad-height-half <% if (media) { %>pad-width-double<% } else { %>space-width-double<% } %>\">\n\t\t\t<div class=\"full-width table\">\n\t\t\t\t<a href=\"<%=link%>\" target=\"_blank\" class=\"table-cell\">\n\t\t\t\t\tView post\n\t\t\t\t\t<svg class=\"icon icon-small muted\"><use xlink:href=\"#open-in-new\"></use></svg>\n\t\t\t\t</a>\n\t\t\t\t<a href=# class=\"favorite center-text table-cell\">\n\t\t\t\t\tFavorite\n\t\t\t\t\t<svg class=\"icon icon-small muted is-favorited\">\n\t\t\t\t\t\t<use xlink:href=\"#star\"></use>\n\t\t\t\t\t</svg>\n\t\t\t\t\t<svg class=\"icon icon-small muted is-not-favorited\">\n\t\t\t\t\t\t<use xlink:href=\"#star-outline\"></use>\n\t\t\t\t\t</svg>\n\t\t\t\t</a>\n\t\t\t\t<span class=\"dropdown tile-share right-text table-cell\">\n\t\t\t\t\t<a href=\"#\" class=dropdown-toggle>\n\t\t\t\t\t\tShare\n\t\t\t\t\t\t<svg class=\"icon icon-small muted\"><use xlink:href=\"#share\"></use></svg>\n\t\t\t\t\t</a>\n\t\t\t\t\t<span class=\"dropdown-content pad-half\">\n\t\t\t\t\t\t<a target=_blank class=\"pad-half\" title=\"Share on Twitter\"\n\t\t\t\t\t\t\thref=\"https://twitter.com/intent/tweet?url=<%- link %>&amp;text=<%- text %> - via @gobuffsio\">\n\t\t\t\t\t\t\t<svg class=\"icon\">\n\t\t\t\t\t\t\t\t<use xlink:href=\"#twitter-square\"></use>\n\t\t\t\t\t\t\t</svg>\n\t\t\t\t\t\t</a>\n\t\t\t\t\t\t<a target=_blank class=\"pad-half\" title=\"Share on Facebook\"\n\t\t\t\t\t\t\thref=\"http://www.facebook.com/sharer/sharer.php?s=100&amp;p[url]=<%- link %>&amp;p[images][0]={{HERE}}&amp;p[title]={{HERE}}\">\n\t\t\t\t\t\t\t<svg class=\"icon\">\n\t\t\t\t\t\t\t\t<use xlink:href=\"#facebook-square\"></use>\n\t\t\t\t\t\t\t</svg>\n\t\t\t\t\t\t</a>\n\t\t\t\t\t\t<a target=_blank class=\"pad-half\" title=\"Pin It\"\n\t\t\t\t\t\t\thref=\"https://www.pinterest.com/pin/create/button/?url=<%- link %>&amp;media={{HERE}}&amp;description=<%- text %>\">\n\t\t\t\t\t\t\t<svg class=\"icon\">\n\t\t\t\t\t\t\t\t<use xlink:href=\"#pinterest-square\"></use>\n\t\t\t\t\t\t\t</svg>\n\t\t\t\t\t\t</a>\n\t\t\t\t\t\t<a target=_blank class=\"pad-half\" title=\"Email It\"\n\t\t\t\t\t\t\thref=\"mailto:?subject=Check out this post from gobuffs.io&amp;body=<%- text %> -- <%- link %> -- via http://gobuffs.io\">\n\t\t\t\t\t\t\t<svg class=\"icon\">\n\t\t\t\t\t\t\t\t<use xlink:href=\"#envelope-square\"></use>\n\t\t\t\t\t\t\t</svg>\n\t\t\t\t\t\t</a>\n\t\t\t\t\t</span>\n\t\t\t\t</span>\n\t\t\t</div>\n\t\t</footer>\n\t</div>\n</div>\n"
 var template = _.template(html, null, {imports: utils})
 
 // TODO
@@ -19036,8 +19038,6 @@ module.exports = function (opts) {
 	var numCols = opts.cols || 3
 
 	var elMain = d3.select(opts.el)
-		.attr('layout', true)
-		.attr('horizontal', true)
 
 	function handleChunk(chunk) {
 		if (_.isArray(chunk)) {
@@ -19151,11 +19151,9 @@ module.exports = function (opts) {
 			.attr({
 				src: video_url,
 				frameborder: 0,
-				allowfullscreen: true,
-				fit: true,
-				full: true,
-				block: true
+				allowfullscreen: true
 			})
+			.classed('fit full block', true)
 		el.classed('-playing', true);
 	}
 
@@ -19163,10 +19161,7 @@ module.exports = function (opts) {
 		var cols = elMain.selectAll('.col')
 			.data(data, getColID)
 
-		cols.enter().append('div')
-			.classed('col', true)
-			.attr('layout', true)
-			.attr('vertical', true)
+		cols.enter().append('div').classed('col', true)
 
 		var tile = cols
 			.selectAll('.tile-wrapper')
@@ -19176,8 +19171,6 @@ module.exports = function (opts) {
 
 		var tileEnter = tile.enter().insert('div', ':first-child')
 			.classed('tile-wrapper', true)
-			.attr('relative', true)
-			.attr('space-half', true)
 			.classed('-wide', function (d) { return d.wide })
 			.html(getHTML)
 			.on('click', tileClicked)

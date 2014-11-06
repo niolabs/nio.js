@@ -1,29 +1,29 @@
-<div id="tile-<%=id%>" layout vertical class="tile -transition -<%=type%><% if (avatar) { %> -avatar<% } %><% if (media) { %> -media<% } %><% if (expanded) { %> -expanded<% } %><% if (favorited) { %> -favorited<% } %>">
-	<header class="-transition" center layout horizontal full-width>
+<div id="tile-<%=id%>" class="tile -transition -<%=type%><% if (avatar) { %> -avatar<% } %><% if (media) { %> -media<% } %><% if (expanded) { %> -expanded<% } %><% if (favorited) { %> -favorited<% } %>">
+	<header class="tile-header -transition full-width clear">
 		<% if (avatar) { %>
 			<a href="<%=authorLink%>" class="tile-avatar poster tile-author-link"
 				data-author="<%=author%>">
 				<img src="<%=avatar%>">
 			</a>
 		<% } %>
-		<div class="tile-title" flex center pad-height pad-width>
-			<h3 class="tile-author ellipsis" space-zero>
+		<div class="tile-title pad-height pad-width">
+			<h3 class="tile-author ellipsis space-zero">
 				<a href="<%=authorLink%>" class="tile-author-link" data-author="<%=author%>">
 					<%=author%>
 				</a>
 			</h3>
-			<time is="relative-time" datetime="<%=time%>" class="">
+			<time is="relative-time" datetime="<%=time%>">
 				<%=time%>
 			</time>
 		</div>
-		<span pad-width-double class=muted-inverse>
+		<span class="tile-icon muted-inverse pad-width-double">
 			<svg class="icon icon-larger"><use xlink:href="#<%=type%>-square"></use></svg>
 		</span>
 	</header>
-	<div class="tile-bottom" flex vertical layout>
-		<div class="tile-content" flex pad-double>
+	<div class="tile-bottom">
+		<div class="tile-content pad-double">
 			<% if (media) { %>
-				<div class="tile-media poster" fit
+				<div class="tile-media poster fit"
 					style="background-image:url(<%=media%>)">
 					<% if (type === 'youtube' || type === 'vimeo') { %>
 						<svg class="icon icon-largest play-arrow muted-inverse">
@@ -33,59 +33,59 @@
 					<!--<img src="<%=media%>" alt="<%=text%>">-->
 				</div>
 			<% } %>
-			<span class="tile-text -transition<% if (media) { %> marquee -paused<% } %>" block>
+			<span class="tile-text block -transition<% if (media) { %> marquee -paused<% } %>">
 				<%=linkify(text)%>
 			</span>
 		</div>
 
-		<footer class="-transition type-small height-larger"
-			<% if (media) { %>pad-width-double<% } else { %>space-width-double<% } %>
-			layout horizontal justified pad-height-half>
-			<a href="<%=link%>" target="_blank">
-				View post
-				<svg class="icon icon-small muted"><use xlink:href="#open-in-new"></use></svg>
-			</a>
-			<a href=# class=favorite>
-				Favorite
-				<svg class="icon icon-small muted is-favorited">
-					<use xlink:href="#star"></use>
-				</svg>
-				<svg class="icon icon-small muted is-not-favorited">
-					<use xlink:href="#star-outline"></use>
-				</svg>
-			</a>
-			<span class="dropdown tile-share">
-				<a href="#" class=dropdown-toggle>
-					Share
-					<svg class="icon icon-small muted"><use xlink:href="#share"></use></svg>
+		<footer class="tile-footer -transition type-small height-larger pad-height-half <% if (media) { %>pad-width-double<% } else { %>space-width-double<% } %>">
+			<div class="full-width table">
+				<a href="<%=link%>" target="_blank" class="table-cell">
+					View post
+					<svg class="icon icon-small muted"><use xlink:href="#open-in-new"></use></svg>
 				</a>
-				<span class=dropdown-content horizontal layout center center-justified pad-half>
-					<a target=_blank pad-half title="Share on Twitter"
-						href="https://twitter.com/intent/tweet?url=<%- link %>&amp;text=<%- text %> - via @gobuffsio">
-						<svg class="icon">
-							<use xlink:href="#twitter-square"></use>
-						</svg>
+				<a href=# class="favorite center-text table-cell">
+					Favorite
+					<svg class="icon icon-small muted is-favorited">
+						<use xlink:href="#star"></use>
+					</svg>
+					<svg class="icon icon-small muted is-not-favorited">
+						<use xlink:href="#star-outline"></use>
+					</svg>
+				</a>
+				<span class="dropdown tile-share right-text table-cell">
+					<a href="#" class=dropdown-toggle>
+						Share
+						<svg class="icon icon-small muted"><use xlink:href="#share"></use></svg>
 					</a>
-					<a target=_blank pad-half title="Share on Facebook"
-						href="http://www.facebook.com/sharer/sharer.php?s=100&amp;p[url]=<%- link %>&amp;p[images][0]={{HERE}}&amp;p[title]={{HERE}}">
-						<svg class="icon">
-							<use xlink:href="#facebook-square"></use>
-						</svg>
-					</a>
-					<a target=_blank pad-half title="Pin It"
-						href="https://www.pinterest.com/pin/create/button/?url=<%- link %>&amp;media={{HERE}}&amp;description=<%- text %>">
-						<svg class="icon">
-							<use xlink:href="#pinterest-square"></use>
-						</svg>
-					</a>
-					<a target=_blank pad-half title="Email It"
-						href="mailto:?subject=Check out this post from gobuffs.io&amp;body=<%- text %> -- <%- link %> -- via http://gobuffs.io">
-						<svg class="icon">
-							<use xlink:href="#envelope-square"></use>
-						</svg>
-					</a>
+					<span class="dropdown-content pad-half">
+						<a target=_blank class="pad-half" title="Share on Twitter"
+							href="https://twitter.com/intent/tweet?url=<%- link %>&amp;text=<%- text %> - via @gobuffsio">
+							<svg class="icon">
+								<use xlink:href="#twitter-square"></use>
+							</svg>
+						</a>
+						<a target=_blank class="pad-half" title="Share on Facebook"
+							href="http://www.facebook.com/sharer/sharer.php?s=100&amp;p[url]=<%- link %>&amp;p[images][0]={{HERE}}&amp;p[title]={{HERE}}">
+							<svg class="icon">
+								<use xlink:href="#facebook-square"></use>
+							</svg>
+						</a>
+						<a target=_blank class="pad-half" title="Pin It"
+							href="https://www.pinterest.com/pin/create/button/?url=<%- link %>&amp;media={{HERE}}&amp;description=<%- text %>">
+							<svg class="icon">
+								<use xlink:href="#pinterest-square"></use>
+							</svg>
+						</a>
+						<a target=_blank class="pad-half" title="Email It"
+							href="mailto:?subject=Check out this post from gobuffs.io&amp;body=<%- text %> -- <%- link %> -- via http://gobuffs.io">
+							<svg class="icon">
+								<use xlink:href="#envelope-square"></use>
+							</svg>
+						</a>
+					</span>
 				</span>
-			</span>
+			</div>
 		</footer>
 	</div>
 </div>

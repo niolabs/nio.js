@@ -19,8 +19,6 @@ module.exports = function (opts) {
 	var numCols = opts.cols || 3
 
 	var elMain = d3.select(opts.el)
-		.attr('layout', true)
-		.attr('horizontal', true)
 
 	function handleChunk(chunk) {
 		if (_.isArray(chunk)) {
@@ -134,11 +132,9 @@ module.exports = function (opts) {
 			.attr({
 				src: video_url,
 				frameborder: 0,
-				allowfullscreen: true,
-				fit: true,
-				full: true,
-				block: true
+				allowfullscreen: true
 			})
+			.classed('fit full block', true)
 		el.classed('-playing', true);
 	}
 
@@ -146,10 +142,7 @@ module.exports = function (opts) {
 		var cols = elMain.selectAll('.col')
 			.data(data, getColID)
 
-		cols.enter().append('div')
-			.classed('col', true)
-			.attr('layout', true)
-			.attr('vertical', true)
+		cols.enter().append('div').classed('col', true)
 
 		var tile = cols
 			.selectAll('.tile-wrapper')
@@ -159,8 +152,6 @@ module.exports = function (opts) {
 
 		var tileEnter = tile.enter().insert('div', ':first-child')
 			.classed('tile-wrapper', true)
-			.attr('relative', true)
-			.attr('space-half', true)
 			.classed('-wide', function (d) { return d.wide })
 			.html(getHTML)
 			.on('click', tileClicked)

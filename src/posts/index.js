@@ -84,18 +84,20 @@ Post.CHOICES = {
 // tests if a post matches params
 function isMatch(post, params) {
 	// They specified types and it didnt match
-	if (params.types) {
-		if (_.isString(params.types))
-			params.types = params.types.split(',')
-		if (!_.contains(params.types, post.type))
+	var types = params.types
+	if (types) {
+		if (_.isString(types))
+			types = types.split(',')
+		if (!_.contains(types, post.type))
 			return false
 	}
 
 	// They specified usernames and it didn't match
-	if (params.names) {
-		if (_.isString(params.names))
-			params.names = params.names.split(',')
-		if (!_.contains(params.names, post.name))
+	var names = params.names
+	if (names) {
+		if (_.isString(names))
+			names = names.split(',')
+		if (!_.contains(names, post.name))
 			return false
 	}
 
