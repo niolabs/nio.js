@@ -113,7 +113,7 @@ var propmap = {
 	authorLink: '#',
 	avatar: function (d) { return d.profile_image_url },
 	media: function (d) { return d.media_url },
-	time: function (d) { return new Date(d.time) },
+	time: function (d) { return new Date(d.timestamp * 1000) },
 	seconds_ago: function (d) {
 		if (d.seconds_ago) return d.seconds_ago
 		var utc = utils.utc()
@@ -131,18 +131,16 @@ function PostsStream(opts) {
 
 	this.reset(false)
 
-	var json, socketio
-
 	var self = this
 
 	if (opts.socketio) {
 		// listen for new posts
-		socketio = sources.socketio({
+		this.socketio = sources.socketio({
 			host: opts.socketio,
 			rooms: ['default']
 		})
 		this.pipe(
-			socketio,
+			this.socketio,
 			streams.unique('id'),
 			streams.set(propmap),
 			streams.filter(this.sortCmpFunc),
@@ -161,9 +159,9 @@ function PostsStream(opts) {
 
 	if (opts.json) {
 		// get the historical data
-		json = sources.json(opts.json)
+		this.json = sources.json(opts.json)
 		var jsonStream = this.pipe(
-			json,
+			this.json,
 			streams.pass(function (chunk) {
 				if (!chunk.total) this.broadcast('noresults')
 			}),
@@ -179,7 +177,7 @@ function PostsStream(opts) {
 		if (opts.socketio) {
 			jsonStream.pipe(
 				streams.once(),
-				streams.on('init', socketio.resume)
+				streams.on('init', this.socketio.resume)
 			)
 		}
 	}
@@ -187,14 +185,17 @@ function PostsStream(opts) {
 	if (!_.isEmpty(this.params))
 		this.filter(this.params)
 
-	if (opts.json) {
-		json.resume()
-	} else {
-		socketio.resume()
-	}
 }
 
 utils.inherits(PostsStream, Stream)
+
+PostsStream.prototype.start = function () {
+	if (this.json) {
+		this.json.resume()
+	} else if (this.socketio) {
+		this.socketio.resume()
+	}
+}
 
 PostsStream.prototype.onreset = function () {
 	this.params = this.opts.params || {}

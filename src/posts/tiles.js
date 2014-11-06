@@ -75,7 +75,7 @@ module.exports = function (opts) {
 	function getColID(d, i) { return d.length ? d[0].id : i }
 	function tileClicked(d) {
 		var elThis = d3.select(this).select('.tile')
-		var target = d3.select(event.target)
+		var target = d3.select(d3.event.target)
 
 		if (target.classed('dropdown-toggle')) {
 			d3.event.preventDefault()
@@ -128,14 +128,14 @@ module.exports = function (opts) {
 
 	function replaceVideo(el, video_url) {
 		el.select('.tile-media')
+			.classed('-playing', true)
 			.append('iframe')
 			.attr({
 				src: video_url,
 				frameborder: 0,
-				allowfullscreen: true
+				allowfullscreen: true,
+				class: 'fit full block'
 			})
-			.classed('fit full block', true)
-		el.classed('-playing', true);
 	}
 
 	function render() {
