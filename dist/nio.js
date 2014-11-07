@@ -19148,7 +19148,6 @@ module.exports = function (opts) {
 
 	function replaceVideo(el, video_url) {
 		el.select('.tile-media')
-			.classed('-playing', true)
 			.append('iframe')
 			.attr({
 				src: video_url,
@@ -19156,6 +19155,7 @@ module.exports = function (opts) {
 				allowfullscreen: true,
 				class: 'fit full block'
 			})
+		el.classed('-playing', true)
 	}
 
 	function render() {
