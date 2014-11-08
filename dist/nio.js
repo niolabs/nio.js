@@ -19120,6 +19120,8 @@ module.exports = function (opts) {
 			// embed youtube player on expand
 			if (d.type === 'youtube') {
 				replaceVideo(elThis, 'https://www.youtube.com/embed/' + d.id + '?autoplay=1')
+				// don't expand
+				return;
 			} else if (d.type === 'original') {
 				// redirect to the original post
 				window.location.href = d.link
