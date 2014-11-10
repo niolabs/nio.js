@@ -18922,6 +18922,7 @@ function PostsStream(opts) {
 	this.reset(false)
 
 	var self = this
+	var postsLimit = opts.limit || 9
 
 	if (opts.socketio) {
 		// listen for new posts
@@ -18961,7 +18962,7 @@ function PostsStream(opts) {
 				self.latest = _.first(chunk)
 			}),
 			streams.each(_.partialRight(streams.setProps, propmap)),
-			streams.limit(9),
+			streams.limit(postsLimit),
 			this.out
 		)
 		if (opts.socketio) {
