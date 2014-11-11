@@ -18990,7 +18990,7 @@ PostsStream.prototype.start = function () {
 
 PostsStream.prototype.onreset = function () {
 	this.params = this.opts.params || {}
-	this.latest = null
+	this.latest = {seconds_ago: Number.MAX_VALUE}
 	this.sort()
 	this.out = this.opts.out || streams.pass()
 }
