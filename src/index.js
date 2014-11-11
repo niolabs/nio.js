@@ -9,7 +9,6 @@ module.exports = window.nio = _.assign(
 		// our modules
 		stream: require('./stream'),
 		utils: require('./utils'),
-		posts: require('./posts'),
 		graphs: require('./graphs'),
 		instance: require('./instance'),
 		model: require('./model')

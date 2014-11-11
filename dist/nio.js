@@ -18307,7 +18307,6 @@ module.exports = window.nio = _.assign(
 		// our modules
 		stream: require('./stream'),
 		utils: require('./utils'),
-		posts: require('./posts'),
 		graphs: require('./graphs'),
 		instance: require('./instance'),
 		model: require('./model')
@@ -18316,7 +18315,7 @@ module.exports = window.nio = _.assign(
 	require('./streams')
 )
 
-},{"./graphs":14,"./instance":17,"./model":19,"./posts":20,"./sources":22,"./stream":23,"./streams":24,"./utils":25,"d3":1,"lodash":12}],14:[function(require,module,exports){
+},{"./graphs":14,"./instance":17,"./model":19,"./sources":20,"./stream":21,"./streams":22,"./utils":23,"d3":1,"lodash":12}],14:[function(require,module,exports){
 'use strict';
 
 var _ = require('lodash')
@@ -18593,7 +18592,7 @@ exports.line = function (opts) {
 	return new LineGraph(opts)
 }
 
-},{"./stream":23,"d3":1,"lodash":12}],15:[function(require,module,exports){
+},{"./stream":21,"d3":1,"lodash":12}],15:[function(require,module,exports){
 'use strict'
 
 var Stream = require('../stream')
@@ -18635,7 +18634,7 @@ nioAPI.prototype = Object.create(Stream.prototype, {
 })
 exports.API = nioAPI
 
-},{"../stream":23}],16:[function(require,module,exports){
+},{"../stream":21}],16:[function(require,module,exports){
 'use strict'
 
 var nio = require('./api')
@@ -18789,429 +18788,6 @@ module.exports.generate = function (Cls, opts) {
 
 },{"lodash":12}],20:[function(require,module,exports){
 var _ = require('lodash')
-var utils = require('../utils')
-var Stream = require('../stream')
-var streams = require('../streams')
-var sources = require('../sources')
-var Model = require('../model')
-
-/**
- * Post is a entry on Twitter, Instagram, Facebook, Google+, etc.
- *
- * @constructor
- * @extends {Model}
- * @param {object} opts
- */
-function Post(opts) {
-	if (!(this instanceof Post))
-		return new Post(opts)
-	Model.call(this, opts)
-	this.typeDisplay = Post.TYPE_DISPLAYS[this.type] || this.type
-}
-
-utils.inherits(Post, Model)
-
-Post.TYPE_DISPLAYS = {
-	'twitter': 'Twitter',
-	'twitter-photo': 'Twitter',
-	'facebook': 'Facebook',
-	'gplus': 'Google+',
-	'linkedin': 'LinkedIn',
-	'rss': 'RSS'
-}
-
-/**
- * Default properties for posts.
- */
-Post.prototype.DEFAULTS = {
-	type: '',
-	author: '',
-	authorLink: '',
-	link: '',
-	media: '',
-	source: '',
-	text: '',
-	time: '',
-	seconds_ago: '',
-	wide: false,
-	expanded: false,
-	avatar: false,
-	favorited: false
-}
-
-/**
- * Choices for the model factory to choose from. Used for tests.
- */
-Post.CHOICES = {
-	author: ['John', 'Jane', 'Jill'],
-	authorLink: [
-		'http://www.twitter.com/john',
-		'http://www.twitter.com/jane',
-		'http://www.twitter.com/jill'
-	],
-	avatar: [
-		null,
-		'http://www.twitter.com/john.jpg',
-		'http://www.twitter.com/jane.jpg',
-		'http://www.twitter.com/jill.jpg'
-	],
-	media: [
-		null,
-		'http://www.twitter.com/media1.jpg',
-		'http://www.twitter.com/media2.jpg',
-		'http://www.twitter.com/media3.jpg'
-	],
-	type: [
-		'facebook',
-		'gplus',
-		'instagram',
-		'rss',
-		'twitter',
-		'twitter-photo'
-	]
-}
-
-// tests if a post matches params
-function isMatch(post, params) {
-	// They specified types and it didnt match
-	var types = params.types
-	if (types) {
-		if (_.isString(types))
-			types = types.split(',')
-		if (!_.contains(types, post.type))
-			return false
-	}
-
-	// They specified usernames and it didn't match
-	var names = params.names
-	if (names) {
-		if (_.isString(names))
-			names = names.split(',')
-		if (!_.contains(names, post.name))
-			return false
-	}
-
-	// They specified search keywords and they didnt match
-	if (params.search && !post.text.match(new RegExp(params.search, 'ig')))
-		return false
-
-	return true
-}
-
-var propmap = {
-	author: function (d) { return d.name },
-	authorLink: '#',
-	avatar: function (d) { return d.profile_image_url },
-	media: function (d) { return d.media_url },
-	time: function (d) { return new Date(d.timestamp * 1000) },
-	seconds_ago: function (d) {
-		if (d.seconds_ago) return d.seconds_ago
-		var utc = utils.utc()
-		var time = utils.utc(d.time)
-		var ms = utc.getTime() - time.getTime()
-		return ms / 1000
-	}
-}
-
-function PostsStream(opts) {
-	if (!(this instanceof PostsStream))
-		return new PostsStream(opts)
-	Stream.call(this)
-	this.opts = opts
-
-	this.reset(false)
-
-	var self = this
-	var postsLimit = opts.limit || 9
-
-	if (opts.socketio) {
-		// listen for new posts
-		this.socketio = sources.socketio({
-			host: opts.socketio,
-			rooms: ['default']
-		})
-		this.pipe(
-			this.socketio,
-			streams.unique('id'),
-			streams.set(propmap),
-			streams.filter(this.sortCmpFunc),
-			streams.filter(function (chunk) {
-				var matched = isMatch(chunk, self.params)
-				if (!matched) this.broadcast('new_filtered', chunk)
-				return matched
-			}),
-			streams.on('pauseddata', function (chunk) {
-				var matched = isMatch(chunk, self.params)
-				if (matched) this.broadcast('new_filtered', chunk)
-			}),
-			this.out
-		)
-	}
-
-	if (opts.json) {
-		// get the historical data
-		this.json = sources.json(opts.json)
-		var jsonStream = this.pipe(
-			this.json,
-			streams.pass(function (chunk) {
-				if (!chunk.total) this.broadcast('noresults')
-			}),
-			streams.get('posts'),
-			streams.sort(this.sortFunc),
-			streams.pass(function (chunk) {
-				self.latest = _.first(chunk)
-			}),
-			streams.each(_.partialRight(streams.setProps, propmap)),
-			streams.limit(postsLimit),
-			this.out
-		)
-		if (opts.socketio) {
-			jsonStream.pipe(
-				streams.once(),
-				streams.on('init', this.socketio.resume)
-			)
-		}
-	}
-
-	if (!_.isEmpty(this.params))
-		this.filter(this.params)
-
-}
-
-utils.inherits(PostsStream, Stream)
-
-PostsStream.prototype.start = function () {
-	if (this.json) {
-		this.json.resume()
-	} else if (this.socketio) {
-		this.socketio.resume()
-	}
-}
-
-PostsStream.prototype.onreset = function () {
-	this.params = this.opts.params || {}
-	this.latest = {seconds_ago: Number.MAX_VALUE}
-	this.sort()
-	this.out = this.opts.out || streams.pass()
-}
-
-PostsStream.prototype.filter = function (params) {
-	this.broadcast('filter', params)
-}
-
-PostsStream.prototype.sort = function (property, reverse) {
-	if (!property)
-		property = this.opts.sort || 'seconds_ago'
-	this.sortFunc = streams.sortFunc(property)
-	if (reverse)
-		this.sortCmpFunc = function (d) {
-			return this.sortFunc(d) > this.sortFunc(this.latest)
-		}.bind(this)
-	else
-		this.sortCmpFunc = function (d) {
-			return this.sortFunc(d) < this.sortFunc(this.latest)
-		}.bind(this)
-}
-
-module.exports = PostsStream
-module.exports.Post = Post
-module.exports.post = Post
-module.exports.isMatch = isMatch
-module.exports.tiles = require('./tiles')
-
-},{"../model":19,"../sources":22,"../stream":23,"../streams":24,"../utils":25,"./tiles":21,"lodash":12}],21:[function(require,module,exports){
-var _ = require('lodash')
-var d3 = require('d3')
-var utils = require('../utils')
-var streams = require('../streams')
-var posts = require('../posts')
-
-var html = "<div id=\"tile-<%=id%>\" class=\"tile -transition -<%=type%><% if (avatar) { %> -avatar<% } %><% if (media) { %> -media<% } %><% if (expanded) { %> -expanded<% } %><% if (favorited) { %> -favorited<% } %>\">\n\t<header class=\"tile-header -transition full-width clear\">\n\t\t<% if (avatar) { %>\n\t\t\t<a href=\"<%=authorLink%>\" class=\"tile-avatar poster tile-author-link\"\n\t\t\t\tdata-author=\"<%=author%>\">\n\t\t\t\t<img src=\"<%=avatar%>\">\n\t\t\t</a>\n\t\t<% } %>\n\t\t<div class=\"tile-title pad-height pad-width\">\n\t\t\t<h3 class=\"tile-author ellipsis space-zero\">\n\t\t\t\t<a href=\"<%=authorLink%>\" class=\"tile-author-link\" data-author=\"<%=author%>\">\n\t\t\t\t\t<%=author%>\n\t\t\t\t</a>\n\t\t\t</h3>\n\t\t\t<time is=\"relative-time\" datetime=\"<%=time%>\">\n\t\t\t\t<%=time%>\n\t\t\t</time>\n\t\t</div>\n\t\t<span class=\"tile-icon muted-inverse pad-width-double\">\n\t\t\t<svg class=\"icon\"><use xlink:href=\"#<%=type%>-square\"></use></svg>\n\t\t</span>\n\t</header>\n\t<div class=\"tile-bottom\">\n\t\t<div class=\"tile-content pad-double\">\n\t\t\t<% if (media) { %>\n\t\t\t\t<div class=\"tile-media poster fit\"\n\t\t\t\t\tstyle=\"background-image:url(<%=media%>)\">\n\t\t\t\t\t<% if (type === 'youtube' || type === 'vimeo') { %>\n\t\t\t\t\t\t<svg class=\"icon icon-largest play-arrow muted-inverse\">\n\t\t\t\t\t\t\t<use xlink:href=\"#play-arrow\"></use>\n\t\t\t\t\t\t</svg>\n\t\t\t\t\t<% } %>\n\t\t\t\t\t<!--<img src=\"<%=media%>\" alt=\"<%=text%>\">-->\n\t\t\t\t</div>\n\t\t\t<% } %>\n\t\t\t<span class=\"tile-text block -transition<% if (media) { %> marquee -paused<% } %>\">\n\t\t\t\t<%=linkify(text)%>\n\t\t\t</span>\n\t\t</div>\n\n\t\t<footer class=\"tile-footer -transition type-small height-larger pad-height-half <% if (media) { %>pad-width-double<% } else { %>space-width-double<% } %>\">\n\t\t\t<div class=\"full-width table\">\n\t\t\t\t<a href=\"<%=link%>\" target=\"_blank\" class=\"table-cell\">\n\t\t\t\t\tView post\n\t\t\t\t\t<svg class=\"icon icon-small muted\"><use xlink:href=\"#open-in-new\"></use></svg>\n\t\t\t\t</a>\n\t\t\t\t<a href=# class=\"favorite center-text table-cell\">\n\t\t\t\t\tFavorite\n\t\t\t\t\t<svg class=\"icon icon-small muted is-favorited\">\n\t\t\t\t\t\t<use xlink:href=\"#star\"></use>\n\t\t\t\t\t</svg>\n\t\t\t\t\t<svg class=\"icon icon-small muted is-not-favorited\">\n\t\t\t\t\t\t<use xlink:href=\"#star-outline\"></use>\n\t\t\t\t\t</svg>\n\t\t\t\t</a>\n\t\t\t\t<span class=\"dropdown tile-share right-text table-cell\">\n\t\t\t\t\t<a href=\"#\" class=dropdown-toggle>\n\t\t\t\t\t\tShare\n\t\t\t\t\t\t<svg class=\"icon icon-small muted\"><use xlink:href=\"#share\"></use></svg>\n\t\t\t\t\t</a>\n\t\t\t\t\t<span class=\"dropdown-content pad-half\">\n\t\t\t\t\t\t<a target=_blank class=\"pad-half\" title=\"Share on Twitter\"\n\t\t\t\t\t\t\thref=\"https://twitter.com/intent/tweet?url=<%- link %>&amp;text=<%- text %> - via @gobuffsio\">\n\t\t\t\t\t\t\t<svg class=\"icon\">\n\t\t\t\t\t\t\t\t<use xlink:href=\"#twitter-square\"></use>\n\t\t\t\t\t\t\t</svg>\n\t\t\t\t\t\t</a>\n\t\t\t\t\t\t<a target=_blank class=\"pad-half\" title=\"Share on Facebook\"\n\t\t\t\t\t\t\thref=\"http://www.facebook.com/sharer/sharer.php?s=100&amp;p[url]=<%- link %>&amp;p[images][0]={{HERE}}&amp;p[title]={{HERE}}\">\n\t\t\t\t\t\t\t<svg class=\"icon\">\n\t\t\t\t\t\t\t\t<use xlink:href=\"#facebook-square\"></use>\n\t\t\t\t\t\t\t</svg>\n\t\t\t\t\t\t</a>\n\t\t\t\t\t\t<a target=_blank class=\"pad-half\" title=\"Pin It\"\n\t\t\t\t\t\t\thref=\"https://www.pinterest.com/pin/create/button/?url=<%- link %>&amp;media={{HERE}}&amp;description=<%- text %>\">\n\t\t\t\t\t\t\t<svg class=\"icon\">\n\t\t\t\t\t\t\t\t<use xlink:href=\"#pinterest-square\"></use>\n\t\t\t\t\t\t\t</svg>\n\t\t\t\t\t\t</a>\n\t\t\t\t\t\t<a target=_blank class=\"pad-half\" title=\"Email It\"\n\t\t\t\t\t\t\thref=\"mailto:?subject=Check out this post from gobuffs.io&amp;body=<%- text %> -- <%- link %> -- via http://gobuffs.io\">\n\t\t\t\t\t\t\t<svg class=\"icon\">\n\t\t\t\t\t\t\t\t<use xlink:href=\"#envelope-square\"></use>\n\t\t\t\t\t\t\t</svg>\n\t\t\t\t\t\t</a>\n\t\t\t\t\t</span>\n\t\t\t\t</span>\n\t\t\t</div>\n\t\t</footer>\n\t</div>\n</div>\n"
-var template = _.template(html, null, {imports: utils})
-
-// TODO
-//require('../vendor/CustomElements')
-//require('../vendor/time-elements')
-
-module.exports = function (opts) {
-	if (_.isString(opts))
-		opts = {el: opts}
-	var numRows = opts.rows || 3
-	var numCols = opts.cols || 3
-
-	var elMain = d3.select(opts.el)
-
-	function handleChunk(chunk) {
-		if (_.isArray(chunk)) {
-			_.forEach(chunk, handleChunk)
-		} else {
-			var post = posts.post(chunk)
-			var col = getCol()
-			data[col].unshift(post)
-		}
-	}
-
-	function trimColumns() {
-		for (var x = data.length; x--;)
-			if (data[x].length >= numRows)
-				data[x] = data[x].slice(0, numRows)
-	}
-
-	// IDs of posts we've seen already
-	var stream = streams.pass(function (chunk) {
-		handleChunk(chunk)
-		trimColumns()
-		render()
-		checkExpandable()
-	})
-
-	var getCol, isInitialized, data
-
-	stream.onreset = function () {
-		elMain.html('')
-		data = d3.range(numCols).map(function () { return [] })
-		isInitialized = false
-		getCol = utils.cycle(_.range(numCols))
-	}
-
-	stream.reset(false)
-
-	stream.columns = function (value) {
-		if (!value) return numCols
-		numCols = value
-	}
-
-	stream.onnoresults = function () {
-		// TODO: new posts may come in that match the filter. we should handle
-		// that scenario
-		elMain.append('div').text('No results found')
-	}
-
-	stream.onfilter = stream.onreset
-
-	// caching these functions for performance
-	function getNested(d) { return d }
-	function getHTML(d) { return template(d) }
-	function getID(d) { return d.id }
-	function getColID(d, i) { return d.length ? d[0].id : i }
-	function tileClicked(d) {
-		var elThis = d3.select(this).select('.tile')
-		var target = d3.select(d3.event.target)
-
-		if (target.classed('dropdown-toggle')) {
-			d3.event.preventDefault()
-			target.classed('toggled', !target.classed('toggled'))
-		} else if (target.classed('favorite')) {
-			d3.event.preventDefault()
-			stream.broadcast('toggle-favorited', d)
-			elThis.classed('-favorited', !elThis.classed('-favorited'))
-		} else {
-			elMain.selectAll('.toggled').classed('toggled', false)
-		}
-
-		// don't expand when we click links
-		if (target.node().tagName === 'A') return
-
-		var isExpanded = elThis.classed('-expanded')
-		var isExpandable = elThis.classed('-expandable')
-		if (!isExpanded) {
-			// close any other expanded tiles
-			elMain.selectAll('.tile').classed('-expanded', false)
-
-			// embed youtube player on expand
-			if (d.type === 'youtube') {
-				replaceVideo(elThis, 'https://www.youtube.com/embed/' + d.id + '?autoplay=1')
-				// don't expand
-				return;
-			} else if (d.type === 'original') {
-				// redirect to the original post
-				window.location.href = d.link
-				return
-			} else if (d.type === 'original-video') {
-				if (! elThis.classed('-playing')) {
-					replaceVideo(elThis, d.video_url + '?autoplay=1')
-				}
-				// don't expand
-				return;
-			}
-
-			// only expand if we have enough room and it is expandable
-			var tileWidth = parseInt(elThis.style('width'))
-			var mainWidth = parseInt(elMain.style('width'))
-			if (isExpandable && mainWidth > tileWidth * 2) {
-				elThis.classed('-expanded', true)
-			}
-		} else {
-			elThis.classed('-expanded', false)
-			if (d.type === 'youtube') {
-				elThis.select('iframe').remove()
-			}
-		}
-	}
-
-	function replaceVideo(el, video_url) {
-		el.select('.tile-media')
-			.append('iframe')
-			.attr({
-				src: video_url,
-				frameborder: 0,
-				allowfullscreen: true,
-				class: 'fit full block'
-			})
-		el.classed('-playing', true)
-	}
-
-	function render() {
-		var cols = elMain.selectAll('.col')
-			.data(data, getColID)
-
-		cols.enter().append('div').classed('col', true)
-
-		var tile = cols
-			.selectAll('.tile-wrapper')
-			.data(getNested, getID)
-
-		// tile.order()
-
-		var tileEnter = tile.enter().insert('div', ':first-child')
-			.classed('tile-wrapper', true)
-			.classed('-wide', function (d) { return d.wide })
-			.html(getHTML)
-			.on('click', tileClicked)
-
-		// only start sliding tiles down after the initial load
-		if (isInitialized) {
-			tileEnter.classed('slide-down', true)
-		} else {
-			isInitialized = true
-			stream.broadcast('init')
-		}
-		tile.exit().remove()
-	}
-
-	function checkExpandable() {
-		// determine which tiles are expandable
-		var tiles = elMain.selectAll('.tile-wrapper .tile')
-		tiles.classed('-expandable', function() {
-			var tile = d3.select(this),
-				tileContentEl = tile.select('.tile-content')[0][0],
-				clientHeight = tileContentEl.clientHeight,
-				scrollHeight = tileContentEl.scrollHeight,
-				isMedia = tile.classed('-media')
-
-			// expandable if it is media or if the
-			// content overflows the containter
-			return isMedia || scrollHeight > clientHeight
-		})
-	}
-
-	return stream
-}
-
-module.exports.template = template
-
-},{"../posts":20,"../streams":24,"../utils":25,"d3":1,"lodash":12}],22:[function(require,module,exports){
-var _ = require('lodash')
 var url = require('url')
 var d3 = require('d3')
 var util = require('util')
@@ -19346,7 +18922,7 @@ module.exports = {
 	generate: GeneratorStream
 }
 
-},{"./stream":23,"./utils":25,"d3":1,"lodash":12,"url":9,"util":11}],23:[function(require,module,exports){
+},{"./stream":21,"./utils":23,"d3":1,"lodash":12,"url":9,"util":11}],21:[function(require,module,exports){
 /**
  * @name Stream
  * @author Liam Curry <lcurry@n.io>
@@ -19544,7 +19120,7 @@ _.each(Stream.STATES, function (value, name) {
 
 module.exports = Stream
 
-},{"./utils":25,"lodash":12}],24:[function(require,module,exports){
+},{"./utils":23,"lodash":12}],22:[function(require,module,exports){
 'use strict';
 
 var _ = require('lodash')
@@ -20020,7 +19596,7 @@ exports.each = function (fn) {
 	return exports.func(_.partialRight(_.each, function (chunk) { fn(chunk) }))
 }
 
-},{"./stream":23,"d3":1,"lodash":12}],25:[function(require,module,exports){
+},{"./stream":21,"d3":1,"lodash":12}],23:[function(require,module,exports){
 var _ = require('lodash')
 var events = require('eventemitter3')
 

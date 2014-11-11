@@ -7,7 +7,6 @@ suite('index.js', function () {
 			'_',
 			'stream',
 			'utils',
-			'posts',
 			'graphs',
 			'instance',
 			'model',
