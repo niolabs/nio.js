@@ -42,11 +42,11 @@ LineGraph.prototype = Object.create(Graph.prototype, {
 		'static': true,
 		value: {
 			margin: {top: 6, right: 40, bottom: 20, left: 0},
-			height: 200,
-			width: 600,
+			height: -1,
+			width: -1,
 			tickFormat: function (d) { return d },
-			points: 243,
-			duration: 750,
+			points: 50,
+			duration: 1000,
 			rendered: false,
 			autoScaleY: false
 		}
@@ -56,6 +56,17 @@ LineGraph.prototype = Object.create(Graph.prototype, {
 			this.rendered = true
 			var domains = this.domains
 			var now = new Date()
+
+			var el = d3.select(this.selector)
+
+			if (this.width < 0) {
+				// auto width
+				this.width = el.node().offsetWidth
+			}
+			if (this.height < 0) {
+				// auto height
+				this.height = el.node().offsetHeight
+			}
 
 			var margin = this.margin
 			var height = this.height - margin.top - margin.bottom
@@ -77,10 +88,10 @@ LineGraph.prototype = Object.create(Graph.prototype, {
 
 			var line = d3.svg.line()
 				.interpolate('basis')
-				.x(function (d, i) {return x(now - (points - 1 - i) * duration)})
+				.x(function (d) {return x(d.x)})
 				.y(function (d) {return y(d.y)})
 
-			var svg = d3.select(this.selector).append('svg')
+			var svg = el.append('svg')
 				.attr('width', width + margin.left + margin.right)
 				.attr('height', height + margin.top + margin.bottom)
 				//.style('margin-right', -margin.right + 'px')
@@ -163,32 +174,24 @@ LineGraph.prototype = Object.create(Graph.prototype, {
 				now = new Date()
 				x.domain([now - (points - 2) * duration, now - duration])
 
-				// push the accumulated count onto the back, and reset the count
-				self.data.forEach(function (d) {
-					d.values.push(d.latest)
-					d.values.shift()
-				})
-
 				if (autoScaleY && self.data.length) {
-					var minValExtent = Number.MAX_VALUE,
-						maxValExtent = Number.MIN_VALUE
+					var extents = []
 
-					for (var i=0; i<self.data.length; i++) {
-						var extents = d3.extent(self.data[i].values, function (d) { return d.y })
-						minValExtent = Math.min(extents[0], minValExtent)
-						maxValExtent = Math.max(extents[1], maxValExtent)
-					}
+					// build the extents array with the extents of each series
+					_.each(self.data, function(series) {
+						extents = extents.concat(d3.extent(series.values, function(d) { return d.y }))
+					})
 
-					if (!isNaN(minValExtent)) {
-						y.domain([minValExtent * (1 - autoScaleY), maxValExtent * (1 + autoScaleY)])
-					}
+					// use the extents of each series to compute the overall extents
+					extents = d3.extent(extents)
+					y.domain([extents[0] * (1 - autoScaleY), extents[1] * (1 + autoScaleY)])
 				}
 
 				var valueJoin = values.selectAll('.value').data(self.data)
 				var valueEnter = valueJoin.enter().append('g').attr('class', 'value')
 					.attr('class', 'value')
 					.attr('transform', function (d) {
-						return 'translate(0,' + y(d.latest.y) + ')'
+						return 'translate(0,' + y(_.last(d.values).y) + ')'
 					})
 				valueEnter.append('text')
 					.attr('x', 9)
@@ -202,13 +205,13 @@ LineGraph.prototype = Object.create(Graph.prototype, {
 
 				valueJoin.exit().remove()
 				valueJoin.select('text')
-					.text(function (d) { return tickFormat(d.latest.y) })
+					.text(function (d) { return tickFormat(_.last(d.values).y) })
 				valueJoin
 					.transition()
 					.duration(duration)
 					.ease('linear')
 					.attr('transform', function (d) {
-						return 'translate(0,' + y(d.latest.y) + ')'
+						return 'translate(0,' + y(_.last(d.values).y) + ')'
 					})
 
 				// redraw the line
@@ -251,21 +254,30 @@ LineGraph.prototype = Object.create(Graph.prototype, {
 				// slide the line left
 			}
 			tick()
-			return this
 		}
 	},
 	write: {
 		value: function (chunk) {
 			// detect if it's a new series
+			var me = this
 			if (!this.rendered)
 				this.render()
 			if (!_.any(this.data, function (d) { return d.id === chunk.id })) {
-				var values = d3.range(this.points).map(function () { return {x: 0, y: 0} })
-				this.data.push({id: chunk.id, values: values, latest: chunk})
+				var values = d3.range(me.points, 0, -1).map(function (i) { 
+					return {x: new Date(Date.now() - i * me.duration), y: 0} 
+				})
+				this.data.push({id: chunk.id, values: values})
 			}
-			for (var i = this.data.length; i--;)
-				if (this.data[i].id === chunk.id)
-					this.data[i].latest = chunk
+			if (! ('x' in chunk)) {
+				chunk['x'] = new Date()
+			}
+			_(this.data)
+				.where({id: chunk.id})
+				.each(function(series) {
+					series.values.push(chunk)
+					series.values.shift()
+				})
+
 		}
 	}
 })
