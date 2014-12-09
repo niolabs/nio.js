@@ -18487,24 +18487,8 @@ LineGraph.prototype = Object.create(Graph.prototype, {
 					.text(labels.x)
 
 			var self = this
-			function tick() {
-				// update the domains
-				now = new Date()
-				x.domain([now - (points - 2) * duration, now - duration])
 
-				if (autoScaleY && self.data.length) {
-					var extents = []
-
-					// build the extents array with the extents of each series
-					_.each(self.data, function(series) {
-						extents = extents.concat(d3.extent(series.values, function(d) { return d.y }))
-					})
-
-					// use the extents of each series to compute the overall extents
-					extents = d3.extent(extents)
-					y.domain([extents[0] * (1 - autoScaleY), extents[1] * (1 + autoScaleY)])
-				}
-
+			function drawValues() {
 				var valueJoin = values.selectAll('.value').data(self.data)
 				var valueEnter = valueJoin.enter().append('g').attr('class', 'value')
 					.attr('class', 'value')
@@ -18531,9 +18515,10 @@ LineGraph.prototype = Object.create(Graph.prototype, {
 					.attr('transform', function (d) {
 						return 'translate(0,' + y(_.last(d.values).y) + ')'
 					})
+			}
 
-				// redraw the line
-				var pathJoin = g.selectAll('.line').data(self.data)
+			function drawPaths() {
+				var pathJoin = g.selectAll('.line').data(self.data, function(d) { return d.id })
 
 				pathJoin.enter().append('path')
 					.attr('class', 'line')
@@ -18548,8 +18533,32 @@ LineGraph.prototype = Object.create(Graph.prototype, {
 
 				pathJoin.exit().remove()
 
-				pathJoin.attr('d', function (d) { return line(d.values) })
+				pathJoin.attr('d', function (d) { 
+					return line(d.values) 
+				})
+			}
+			function tick() {
+				// update the domains
+				now = new Date()
+				x.domain([now - (points - 2) * duration, now - duration])
 
+				if (autoScaleY && self.data.length) {
+					var extents = []
+
+					// build the extents array with the extents of each series
+					_.each(self.data, function(series) {
+						extents = extents.concat(d3.extent(series.values, function(d) { return d.y }))
+					})
+
+					// use the extents of each series to compute the overall extents
+					extents = d3.extent(extents)
+					y.domain([extents[0] * (1 - autoScaleY), extents[1] * (1 + autoScaleY)])
+				}
+				
+				drawPaths()
+				drawValues()
+
+				// slide all of the paths left
 				g.attr('transform', null)
 					.transition()
 					.duration(duration)
@@ -18557,6 +18566,7 @@ LineGraph.prototype = Object.create(Graph.prototype, {
 					.attr('transform', 'translate(' + x(now - (points - 1) * duration) + ')')
 					.each('end', tick)
 
+				// redraw the y-axis
 				yAxisTicksEl
 					.transition()
 					.duration(duration)
@@ -18569,7 +18579,7 @@ LineGraph.prototype = Object.create(Graph.prototype, {
 					.duration(duration)
 					.ease('linear')
 					.call(xAxisTicks)
-				// slide the line left
+
 			}
 			tick()
 		}
@@ -18595,7 +18605,6 @@ LineGraph.prototype = Object.create(Graph.prototype, {
 					series.values.push(chunk)
 					series.values.shift()
 				})
-
 		}
 	}
 })
