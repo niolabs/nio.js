@@ -8,6 +8,7 @@ module.exports = window.nio = _.assign(
 
 		// our modules
 		stream: require('./stream'),
+		highcharts: require('./highcharts'),
 		utils: require('./utils'),
 		graphs: require('./graphs'),
 		instance: require('./instance'),

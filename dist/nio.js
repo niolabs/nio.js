@@ -18306,6 +18306,7 @@ module.exports = window.nio = _.assign(
 
 		// our modules
 		stream: require('./stream'),
+		highcharts: require('./highcharts'),
 		utils: require('./utils'),
 		graphs: require('./graphs'),
 		instance: require('./instance'),
@@ -18315,7 +18316,7 @@ module.exports = window.nio = _.assign(
 	require('./streams')
 )
 
-},{"./graphs":14,"./instance":17,"./model":19,"./sources":20,"./stream":21,"./streams":22,"./utils":23,"d3":1,"lodash":12}],14:[function(require,module,exports){
+},{"./graphs":14,"./highcharts":15,"./instance":18,"./model":20,"./sources":21,"./stream":22,"./streams":23,"./utils":24,"d3":1,"lodash":12}],14:[function(require,module,exports){
 'use strict';
 
 var _ = require('lodash')
@@ -18613,7 +18614,76 @@ exports.line = function (opts) {
 	return new LineGraph(opts)
 }
 
-},{"./stream":21,"d3":1,"lodash":12}],15:[function(require,module,exports){
+},{"./stream":22,"d3":1,"lodash":12}],15:[function(require,module,exports){
+'use strict';
+
+var _ = require('lodash')
+var Stream = require('./stream')
+
+function HighChart(opts) {
+	Stream.call(this, opts)
+	var chartOptions = {
+		chart: {
+			type: 'spline',
+			backgroundColor: null,
+			renderTo: opts.selector
+		},
+		title: {
+			text: opts.title
+		},
+		credits: {
+			enabled: false
+		},
+		xAxis: {
+			type: 'datetime',
+			title: {
+				text: opts.xLabel
+			}
+		},
+		yAxis: {
+			title: {
+				text: opts.yLabel
+			}
+		}
+	}
+	_.merge(chartOptions, opts.options)
+	this.chart = new Highcharts.Chart(chartOptions)
+}
+HighChart.prototype = Object.create(Stream.prototype, {
+	defaults: {
+		selector: '',
+		title: '',
+		xLabel: '',
+		yLabel: '',
+		options: {}
+	},
+	write: {
+		value: function (chunk) {
+			var chunkId = chunk.id || 0
+			var existingSeries = _.find(this.chart.series, function(series) {
+				return series.name == chunkId
+			})
+			if (_.isUndefined(existingSeries)) {
+				existingSeries = this.chart.addSeries({
+					name: chunkId
+				}, false)
+			}
+
+			existingSeries.addPoint(
+				[Date.now(), chunk.y], 
+				true, 
+				existingSeries.data.length >= this.entries,
+				{duration: 1000, easing: 'linear'}
+			)
+		}
+	}
+})
+
+exports.line = function (opts) {
+	return new HighChart(opts)
+}
+
+},{"./stream":22,"lodash":12}],16:[function(require,module,exports){
 'use strict'
 
 var Stream = require('../stream')
@@ -18655,7 +18725,7 @@ nioAPI.prototype = Object.create(Stream.prototype, {
 })
 exports.API = nioAPI
 
-},{"../stream":21}],16:[function(require,module,exports){
+},{"../stream":22}],17:[function(require,module,exports){
 'use strict'
 
 var nio = require('./api')
@@ -18673,7 +18743,7 @@ function Updater() {
 }
 Updater.prototype = Object.create(nio.API.prototype, {})
 
-},{"./api":15}],17:[function(require,module,exports){
+},{"./api":16}],18:[function(require,module,exports){
 'use strict'
 
 var nio = require('./api'),
@@ -18741,7 +18811,7 @@ Instance.prototype = Object.create(nio.API.prototype, {
     }
 })
 
-},{"./api":15,"./block":16,"./service":18}],18:[function(require,module,exports){
+},{"./api":16,"./block":17,"./service":19}],19:[function(require,module,exports){
 'use strict'
 
 var nio = require('./api')
@@ -18765,7 +18835,7 @@ function ServiceStatus() {
 }
 ServiceStatus.prototype = Object.create(nio.API.prototype, {})
 
-},{"./api":15}],19:[function(require,module,exports){
+},{"./api":16}],20:[function(require,module,exports){
 var _ = require('lodash')
 
 /**
@@ -18807,7 +18877,7 @@ module.exports.generate = function (Cls, opts) {
 	return new (Cls)(opts)
 }
 
-},{"lodash":12}],20:[function(require,module,exports){
+},{"lodash":12}],21:[function(require,module,exports){
 var _ = require('lodash')
 var url = require('url')
 var d3 = require('d3')
@@ -18943,7 +19013,7 @@ module.exports = {
 	generate: GeneratorStream
 }
 
-},{"./stream":21,"./utils":23,"d3":1,"lodash":12,"url":9,"util":11}],21:[function(require,module,exports){
+},{"./stream":22,"./utils":24,"d3":1,"lodash":12,"url":9,"util":11}],22:[function(require,module,exports){
 /**
  * @name Stream
  * @author Liam Curry <lcurry@n.io>
@@ -19141,7 +19211,7 @@ _.each(Stream.STATES, function (value, name) {
 
 module.exports = Stream
 
-},{"./utils":23,"lodash":12}],22:[function(require,module,exports){
+},{"./utils":24,"lodash":12}],23:[function(require,module,exports){
 'use strict';
 
 var _ = require('lodash')
@@ -19617,7 +19687,7 @@ exports.each = function (fn) {
 	return exports.func(_.partialRight(_.each, function (chunk) { fn(chunk) }))
 }
 
-},{"./stream":21,"d3":1,"lodash":12}],23:[function(require,module,exports){
+},{"./stream":22,"d3":1,"lodash":12}],24:[function(require,module,exports){
 var _ = require('lodash')
 var events = require('eventemitter3')
 

@@ -1,0 +1,49 @@
+<!doctype html>
+<meta charset=utf-8>
+<title>nio.js examples</title>
+
+<script src=http://54.197.236.34:443/socket.io/socket.io.js></script>
+<script src=../components/lodash/dist/lodash.min.js></script>
+<script src=../components/d3/d3.js></script>
+<script src=../components/highcharts/adapters/standalone-framework.js></script>
+<script src=../components/highcharts/highcharts.js></script>
+<script src=../dist/nio.js></script>
+<h1><span class="icon icon-nio icon-large" title=nio.js></span></h1>
+<style>
+	.container {
+		background-color: #ccc;
+	}
+</style>
+<div class=container>
+	<h2>CPU Usage</h2>
+	<div id=graph class=epoch></div>
+</div>
+<script>
+	var stream = nio.socketio({
+			host: '54.197.236.34:443',
+			rooms: ['lab']
+		})
+		.pipe(nio.filter(function(d) {
+			return 'disk_usage_total' in d;
+		}))
+		.pipe(nio.func(function(d) { return {
+			y: d.cpu_percentage_overall,
+			id: 'cpu',
+			label: 'CPU'
+		}}))
+		.pipe(nio.throttle(1000))
+		.pipe(nio.highcharts.line({
+			selector: 'graph',
+			title: 'Monitoring Chart',
+			xLabel: 'Time',
+			yLabel: 'CPU Percentage',
+			options : {
+				yAxis : {
+					min: 0,
+					max: 100,
+					opposite: true
+				}
+			},
+			entries: 20
+		}))
+</script>
