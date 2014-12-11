@@ -18620,11 +18620,9 @@ exports.line = function (opts) {
 var _ = require('lodash')
 var Stream = require('./stream')
 
-function HighChart(opts) {
-	Stream.call(this, opts)
-	var chartOptions = {
+var getGlobalChartOptions = function(opts) {
+	return {
 		chart: {
-			type: 'spline',
 			backgroundColor: null,
 			renderTo: opts.selector
 		},
@@ -18635,7 +18633,6 @@ function HighChart(opts) {
 			enabled: false
 		},
 		xAxis: {
-			type: 'datetime',
 			title: {
 				text: opts.xLabel
 			}
@@ -18646,10 +18643,21 @@ function HighChart(opts) {
 			}
 		}
 	}
-	_.merge(chartOptions, opts.options)
+}
+
+function LineChart(opts) {
+	Stream.call(this, opts)
+	var chartOptions = _.merge({}, getGlobalChartOptions(opts), {
+		chart: {
+			type: 'spline'
+		},
+		xAxis: {
+			type: 'datetime'
+		}
+	}, opts.options)
 	this.chart = new Highcharts.Chart(chartOptions)
 }
-HighChart.prototype = Object.create(Stream.prototype, {
+LineChart.prototype = Object.create(Stream.prototype, {
 	defaults: {
 		selector: '',
 		title: '',
@@ -18679,8 +18687,75 @@ HighChart.prototype = Object.create(Stream.prototype, {
 	}
 })
 
+function BarChart(opts) {
+	Stream.call(this, opts)
+	var chartOptions = _.merge({}, getGlobalChartOptions(opts), {
+		chart: {
+			type: 'column'
+		}
+	}, opts.options)
+	this.chart = new Highcharts.Chart(chartOptions)
+}
+BarChart.prototype = Object.create(Stream.prototype, {
+	defaults: {
+		selector: '',
+		title: '',
+		xLabel: '',
+		yLabel: '',
+		options: {}
+	},
+	write: {
+		// One should write a chunk that looks like the following:
+		// {
+		//	 values: [1,2,3,10,20,30]
+		// }
+		value: function (chunk) {
+			if (this.chart.series.length == 0) 
+				return
+
+			this.chart.series[0].setData(chunk.values, true, {duration: 1000, easing: 'linear'})
+		}
+	}
+})
+
+function GaugeChart(opts) {
+	Stream.call(this, opts)
+	var chartOptions = _.merge({}, getGlobalChartOptions(opts), {
+		chart: {
+			type: 'solidgauge'
+		}
+	}, opts.options)
+	this.chart = new Highcharts.Chart(chartOptions)
+}
+GaugeChart.prototype = Object.create(Stream.prototype, {
+	defaults: {
+		selector: '',
+		title: '',
+		xLabel: '',
+		yLabel: '',
+		options: {}
+	},
+	write: {
+		// One should write a chunk that looks like the following:
+		// {
+		//	 values: [1]
+		// }
+		value: function (chunk) {
+			if (this.chart.series.length == 0) 
+				return
+
+			this.chart.series[0].points[0].update(chunk.values[0])
+		}
+	}
+})
 exports.line = function (opts) {
-	return new HighChart(opts)
+	return new LineChart(opts)
+}
+exports.bar = function (opts) {
+	return new BarChart(opts)
+}
+exports.gauge = function (opts) {
+	return new GaugeChart(opts)
 }
 
 },{"./stream":22,"lodash":12}],16:[function(require,module,exports){

@@ -7,11 +7,13 @@
 <script src=../components/d3/d3.js></script>
 <script src=../components/highcharts/adapters/standalone-framework.js></script>
 <script src=../components/highcharts/highcharts.js></script>
+<script src=../components/highcharts/highcharts-more.js></script>
+<script src=../components/highcharts/modules/solid-gauge.js></script>
 <script src=../dist/nio.js></script>
 <h1><span class="icon icon-nio icon-large" title=nio.js></span></h1>
 <style>
 	.container {
-		background-color: #ccc;
+		background-color: #fff;
 	}
 </style>
 <div class=container>
@@ -20,30 +22,70 @@
 </div>
 <script>
 	var stream = nio.socketio({
-			host: '54.197.236.34:443',
-			rooms: ['lab']
+			host: '54.174.202.4:443',
+			rooms: ['brand']
 		})
 		.pipe(nio.filter(function(d) {
-			return 'disk_usage_total' in d;
+			return d['type'] == 'bandwidth'
 		}))
-		.pipe(nio.func(function(d) { return {
-			y: d.cpu_percentage_overall,
-			id: 'cpu',
-			label: 'CPU'
-		}}))
-		.pipe(nio.throttle(1000))
-		.pipe(nio.highcharts.line({
+		.pipe(nio.highcharts.gauge({
 			selector: 'graph',
-			title: 'Monitoring Chart',
-			xLabel: 'Time',
-			yLabel: 'CPU Percentage',
 			options : {
-				yAxis : {
+				chart: {
+					type: 'solidgauge'
+				},
+
+				title: null,
+
+				pane: {
+					startAngle: 0,
+					endAngle: 360,
+					background: {
+						innerRadius: '50%',
+						outerRadius: '100%',
+						shape: 'solid'
+					}
+				},
+
+				tooltip: {
+					enabled: false
+				},
+
+				series: [{
+					name: 'Bandwidth',
+					data: [0]
+				}],
+
+				// the value axis
+				yAxis: {
+					stops: [
+						[0, '#CE232A'],
+						[1, '#CE232A']
+					],
+					lineWidth: 0,
+					minorTickInterval: null,
+					tickPixelInterval: 400,
+					tickWidth: 0,
+					labels: {
+						enabled: false
+					},
 					min: 0,
-					max: 100,
-					opposite: true
+					max: 100000
+				},
+
+				plotOptions: {
+					solidgauge: {
+						innerRadius: '50%',
+						wrap: false,
+						dataLabels: {
+							y: -25,
+							format: '<div style="text-align:center"><span style="font-size:25px;">{y}</span><br/>' +
+                       '<span style="font-size:12px;color:silver">kB/s</span></div>',
+							borderWidth: 0,
+							useHTML: true
+						}
+					}
 				}
-			},
-			entries: 20
+			}
 		}))
 </script>
