@@ -1,0 +1,44 @@
+<!doctype html>
+<meta charset=utf-8>
+<title>nio.js examples</title>
+
+<script src=http://54.197.236.34:443/socket.io/socket.io.js></script>
+<script src=../dist/nio.js></script>
+<script src="http://d3js.org/topojson.v1.min.js"></script>
+
+<style>
+
+.land {
+  fill: #ccc;
+}
+
+.state-boundary {
+  fill: none;
+  stroke: #fff;
+}
+
+.dots {
+  fill: rgba(255, 0, 0, 0.5)
+}
+
+</style>
+<div id="map"></div>
+<script>
+
+	var stream = nio.socketio({
+			host: '54.174.202.4:443',
+			rooms: ['brand']
+		})
+		.pipe(nio.filter(function(d) {
+			return d['type'] == 'analytics'
+		}))
+		.pipe(nio.get('data'))
+		.pipe(nio.map({
+			selector: '#map',
+			width: 300,
+			height: 100,
+			scale: 200,
+			radius: 5
+		}))
+
+</script>

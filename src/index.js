@@ -9,6 +9,7 @@ module.exports = window.nio = _.assign(
 		// our modules
 		stream: require('./stream'),
 		highcharts: require('./highcharts'),
+		map: require('./map/map'),
 		utils: require('./utils'),
 		graphs: require('./graphs'),
 		instance: require('./instance'),
