@@ -27,7 +27,8 @@ Map.prototype = Object.create(Stream.prototype, {
 			height: 500,
 			width: 960,
 			scale: 1000,
-			radius: 10 // the base for the dot radius (px)
+			radius: 10, // the base for the dot radius (px)
+			animationDuration: 500
 		}
 	},
 	setUp: {
@@ -64,17 +65,24 @@ Map.prototype = Object.create(Stream.prototype, {
 
 			dotData.enter().append('svg:circle')
 				.classed('dots', true)
-				
-			dotData
-				.attr('r', function(d) { return d['size'] * me.radius})
+				.attr('r', 0)
 				.attr('cx', function(d) { 
 					return me.projection([d['lng'], d['lat']])[0]
 				})
 				.attr('cy', function(d) { 
 					return me.projection([d['lng'], d['lat']])[1]
 				})
+				
+			dotData
+				.transition()
+				.duration(me.animationDuration)
+				.attr('r', function(d) { return d['size'] * me.radius})
 
-			dotData.exit().remove()
+			dotData.exit()
+				.transition()
+				.duration(me.animationDuration)
+				.attr('r', 0)
+				.remove()
 		}
 	},
 
