@@ -135,7 +135,8 @@ exports.filter = function (fn) {
  */
 exports.is = function (property, value) {
     return exports.filter(function(d) {
-        return d[property] == value
+        var fn = getPropertyFunc(property)
+        return fn(d) == value
     })
 }
 
