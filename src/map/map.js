@@ -4,6 +4,7 @@ var _ = require('lodash')
 var d3 = require('d3')
 var Stream = require('../stream')
 var us = require('./us_states')
+var world = require('./world')
 
 function Map(opts) {
 	Stream.call(this)
@@ -33,7 +34,7 @@ Map.prototype = Object.create(Stream.prototype, {
 	},
 	setUp: {
 		value: function () {
-			this.projection = d3.geo.albersUsa()
+			this.projection = d3.geo.mercator()
 				.scale(this.scale)
 				.translate([this.width / 2, this.height / 2]);
 
@@ -44,15 +45,15 @@ Map.prototype = Object.create(Stream.prototype, {
 				.attr("width", this.width)
 				.attr("height", this.height);
 
-		  this.mapSvg.insert("path", ".graticule")
-			  .datum(topojson.feature(us, us.objects.land))
-			  .attr("class", "land")
-			  .attr("d", path);
+			this.mapSvg.insert("path", ".graticule")
+				.datum(topojson.feature(world, world.objects.land))
+				.attr("class", "land")
+				.attr("d", path);
 
-		  this.mapSvg.insert("path", ".graticule")
-			  .datum(topojson.mesh(us, us.objects.states, function(a, b) { return a !== b; }))
-			  .attr("class", "state-boundary")
-			  .attr("d", path);
+			this.mapSvg.insert("path", ".graticule")
+				.datum(topojson.mesh(world, world.objects.countries, function(a, b) { return a !== b; }))
+				.attr("class", "boundary")
+				.attr("d", path);
 		}
 	},
 
