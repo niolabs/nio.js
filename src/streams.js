@@ -127,6 +127,20 @@ exports.filter = function (fn) {
 }
 
 /**
+ * filter to push chunk if property's value is value.
+ *
+ * @param property
+ * @param value
+ * @return {stream}
+ */
+exports.is = function (property, value) {
+    return exports.filter(function(d) {
+        var fn = getPropertyFunc(property)
+        return fn(d) == value
+    })
+}
+
+/**
  * unique IDs chunks that are sent to it and only pushes ones it hasn't seen
  * yet.
  *
