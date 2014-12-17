@@ -28,6 +28,7 @@ Map.prototype = Object.create(Stream.prototype, {
 			width: 960,
 			scale: 1000,
 			radius: 10, // the base for the dot radius (px)
+			radiusScaleExponent: 0.5, // the exponential scaling factor radius size
 			animationDuration: 500,
 			centerLng: 0,
 			centerLat: 0,
@@ -92,7 +93,11 @@ Map.prototype = Object.create(Stream.prototype, {
 			dotData
 				.transition()
 				.duration(me.animationDuration)
-				.attr('r', function(d) { return d['size'] * me.radius})
+				.attr('r', function(d) {
+					var size = 1
+					if ('size' in d) { size = d['size'] }
+					return Math.pow(size, me.radiusScaleExponent) * me.radius
+				})
 
 			dotData.exit()
 				.transition()
