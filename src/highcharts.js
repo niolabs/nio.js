@@ -70,6 +70,104 @@ LineChart.prototype = Object.create(Stream.prototype, {
 	}
 })
 
+function AllCharts(opts) {
+	Stream.call(this, opts)
+
+	var chartOptions = _.merge({
+		// default options
+		chart: {
+			backgroundColor: null,
+			type: 'spline',
+			renderTo: opts.selector
+		},
+		title: {
+			text: opts.title
+		},
+		credits: {
+			enabled: false
+		},
+		xAxis: {
+			type: 'datetime',
+			title: {
+				text: opts.xLabel
+			}
+		},
+		yAxis: {
+			title: {
+				text: opts.yLabel
+			}
+		}
+	}, opts.options)
+
+	_.assign(this, opts)
+
+	if (this.defaults)
+		_.defaults(this, this.defaults)
+
+	this.chart = new Highcharts.Chart(chartOptions)
+}
+AllCharts.prototype = Object.create(Stream.prototype, {
+	defaults: {
+		selector: '',
+		title: '',
+		xLabel: '',
+		yLabel: '',
+		options: {},
+		dataStrategy: 'append', // append, replace, 
+		seriesStrategy: 'dynamic' // dynamic, fixed
+	},
+	write: {
+		value: function (chunk) {
+			_.each(chunk, function(data, seriesName) {
+				this.handleData(data, this.getSeries(seriesName))
+			}, this)
+		}
+	},
+
+	handleData: {
+		value: function(data, series) {
+			// Make sure it is a real series
+			if (_.isUndefined(series))
+				return
+			
+			if (this.dataStrategy == 'append') {
+				series.addPoint(
+					[data.x, data.y], 
+					true, 
+					existingSeries.data.length >= this.entries,
+					{duration: 1000, easing: 'linear'})
+			} else if (this.dataStrategy == 'replace') {
+				series.setData(data)
+			}
+		}
+	},
+
+	getSeries: {
+		value: function(seriesName) {
+			// Will return a series based on the series name. 
+			// This method may create a series, based on the seriesStrategy
+			//
+			// seriesStrategy:
+			//	  dynamic: If the series name does not exist,
+			//				it will be created and returned
+			//	  fixed: If the sereis name does not exist,
+			//				it will NOT be created, undefined will be returned
+
+			var existingSeries = _.find(this.chart.series, function(series) {
+				return series.name == seriesName
+			})
+
+			if (_.isUndefined(existingSeries) && this.seriesStrategy == 'dynamic') {
+				existingSeries = this.chart.addSeries({
+					name: seriesName
+				}, false)
+			}
+
+			return existingSeries
+		}
+	}
+})
+
 function BarChart(opts) {
 	Stream.call(this, opts)
 	var chartOptions = _.merge({}, getGlobalChartOptions(opts), {
@@ -133,6 +231,9 @@ GaugeChart.prototype = Object.create(Stream.prototype, {
 })
 exports.line = function (opts) {
 	return new LineChart(opts)
+}
+exports.chart = function (opts) {
+	return new AllCharts(opts)
 }
 exports.bar = function (opts) {
 	return new BarChart(opts)
