@@ -233,6 +233,12 @@ exports.line = function (opts) {
 	return new LineChart(opts)
 }
 exports.chart = function (opts) {
+	Highcharts.setOptions({
+		global: {
+			useUTC: false
+		}
+	})
+
 	return new AllCharts(opts)
 }
 exports.bar = function (opts) {
