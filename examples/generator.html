@@ -1,0 +1,52 @@
+<!doctype html>
+<meta charset=utf-8>
+<title>nio.js examples</title>
+
+<script src=../dist/nio.js></script>
+
+
+</style>
+<div id="numA"></div>
+<div id="numB"></div>
+<div id="numC"></div>
+<script>
+
+	// the stream will receive these signals one at a time
+	signals = [
+	{"a":"A","num":99},
+	{"b":"B","num":98},
+	{"c":"C","num":97}
+	]
+	var index = signals.length
+	data = function() {
+		index = index + 1
+		if (index >= signals.length) { index = 0 }
+		return signals[index]
+	}
+
+	// generate every 2000 milliseconds.
+	var stream = nio.generate(data, 2000)
+
+	stream.pipe(nio.log())
+
+	stream
+	.pipe(nio.get('num'))
+	.pipe(nio.pass(function(d) {
+		nio.d3.select('#numA').html(d)
+	}))
+
+	stream
+	.pipe(nio.has('b'))
+	.pipe(nio.get('num'))
+	.pipe(nio.pass(function(d) {
+		nio.d3.select('#numB').html(d)
+	}))
+
+	stream
+	.pipe(nio.is('c', 'C'))
+	.pipe(nio.get('num'))
+	.pipe(nio.pass(function(d) {
+		nio.d3.select('#numC').html(d)
+	}))
+
+</script>
