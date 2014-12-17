@@ -19199,13 +19199,16 @@ Map.prototype = Object.create(Stream.prototype, {
 			radius: 10, // the base for the dot radius (px)
 			animationDuration: 500,
 			centerLng: 0,
-			centerLat: 0
+			centerLat: 0,
+			rotateLng: 0,
+			rotateLat: 0
 		}
 	},
 	setUp: {
 		value: function () {
 			this.projection = d3.geo.mercator()
 				.scale(this.scale)
+				.rotate([this.rotateLng, this.rotateLat])
 				.center([this.centerLng, this.centerLat])
 
 			var path = d3.geo.path()
@@ -19227,7 +19230,6 @@ Map.prototype = Object.create(Stream.prototype, {
 				.attr("class", "boundary")
 				.attr("d", path);
 
-			var me = this
 			// Zoom and pan
 			var zoom = d3.behavior.zoom()
 				.on("zoom", function() {
