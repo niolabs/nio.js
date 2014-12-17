@@ -3,7 +3,6 @@
 var _ = require('lodash')
 var d3 = require('d3')
 var Stream = require('../stream')
-var us = require('./us_states')
 var world = require('./world')
 
 function Map(opts) {
@@ -29,14 +28,16 @@ Map.prototype = Object.create(Stream.prototype, {
 			width: 960,
 			scale: 1000,
 			radius: 10, // the base for the dot radius (px)
-			animationDuration: 500
+			animationDuration: 500,
+			centerLng: 0,
+			centerLat: 0
 		}
 	},
 	setUp: {
 		value: function () {
 			this.projection = d3.geo.mercator()
 				.scale(this.scale)
-				.translate([this.width / 2, this.height / 2]);
+				.center([this.centerLng, this.centerLat])
 
 			var path = d3.geo.path()
 				.projection(this.projection);
@@ -45,22 +46,33 @@ Map.prototype = Object.create(Stream.prototype, {
 				.attr("width", this.width)
 				.attr("height", this.height);
 
-			this.mapSvg.insert("path", ".graticule")
+			var g = this.mapSvg.append('g')
+
+			g.insert("path", ".graticule")
 				.datum(topojson.feature(world, world.objects.land))
 				.attr("class", "land")
 				.attr("d", path);
 
-			this.mapSvg.insert("path", ".graticule")
+			g.insert("path", ".graticule")
 				.datum(topojson.mesh(world, world.objects.countries, function(a, b) { return a !== b; }))
 				.attr("class", "boundary")
 				.attr("d", path);
+
+			// Zoom and pan
+			var zoom = d3.behavior.zoom()
+				.on("zoom", function() {
+					g.attr("transform","translate("+ 
+						d3.event.translate.join(",")+")scale("+d3.event.scale+")");
+				  });
+
+			this.mapSvg.call(zoom)
 		}
 	},
 
 	drawDots: {
 		value: function(data) {
 			var me = this
-			var dotData = this.mapSvg
+			var dotData = this.mapSvg.select('g')
 				.selectAll('circle')
 				.data(data, function(d) {return d['city']})
 
