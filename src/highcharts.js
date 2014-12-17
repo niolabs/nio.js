@@ -154,7 +154,7 @@ AllCharts.prototype = Object.create(Stream.prototype, {
 			//				it will NOT be created, undefined will be returned
 
 			var existingSeries = _.find(this.chart.series, function(series) {
-				return series.name == seriesName
+				return series.options.id == seriesName || series.name == seriesName
 			})
 
 			if (_.isUndefined(existingSeries) && this.seriesStrategy == 'dynamic') {
