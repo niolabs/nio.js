@@ -118,26 +118,33 @@ AllCharts.prototype = Object.create(Stream.prototype, {
 	},
 	write: {
 		value: function (chunk) {
+			var occurrenceTime = (new Date()).valueOf();
 			_.each(chunk, function(data, seriesName) {
-				this.handleData(data, this.getSeries(seriesName))
+				this.handleData(data, this.getSeries(seriesName), occurrenceTime);
 			}, this)
 		}
 	},
 
 	handleData: {
-		value: function(data, series) {
+		value: function(data, series, occurrenceTime) {
 			// Make sure it is a real series
 			if (_.isUndefined(series))
 				return
-			
+
 			if (this.dataStrategy == 'append') {
 				series.addPoint(
 					[data.x, data.y], 
 					true, 
-					existingSeries.data.length >= this.entries,
+					series.data.length >= this.entries,
 					{duration: 1000, easing: 'linear'})
 			} else if (this.dataStrategy == 'replace') {
 				series.setData(data)
+			} else if (this.dataStrategy == 'signal') {
+				series.addPoint(
+					[occurrenceTime, data],
+					true,
+					true,
+					{duration: 1000, easing: 'linear'})
 			}
 		}
 	},
