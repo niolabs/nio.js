@@ -18977,11 +18977,16 @@ function AllCharts(opts) {
 	if (this.defaults)
 		_.defaults(this, this.defaults)
 
-	this.chart = new Highcharts.Chart(chartOptions)
+	if (this.stockChart) {
+		this.chart = new Highcharts.StockChart(chartOptions)
+	} else {
+		this.chart = new Highcharts.Chart(chartOptions)
+	}
 }
 AllCharts.prototype = Object.create(Stream.prototype, {
 	defaults: {
 		selector: '',
+		stockChart: false,
 		title: '',
 		xLabel: '',
 		yLabel: '',
