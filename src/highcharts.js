@@ -136,11 +136,15 @@ AllCharts.prototype = Object.create(Stream.prototype, {
 			if (_.isUndefined(series))
 				return
 
+			var shift = true;
+			if (this.entries) {
+				shift = series.data.length >= this.entries - 1;
+			}
 			if (this.dataStrategy == 'append') {
 				series.addPoint(
 					[data.x, data.y], 
 					true, 
-					series.data.length >= this.entries,
+					shift,
 					{duration: 1000, easing: 'linear'})
 			} else if (this.dataStrategy == 'replace') {
 				series.setData(data)
@@ -148,7 +152,7 @@ AllCharts.prototype = Object.create(Stream.prototype, {
 				series.addPoint(
 					[occurrenceTime, data],
 					true,
-					true)
+					shift)
 			}
 		}
 	},
