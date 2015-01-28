@@ -19021,8 +19021,7 @@ AllCharts.prototype = Object.create(Stream.prototype, {
 				series.addPoint(
 					[occurrenceTime, data],
 					true,
-					true,
-					{duration: 1000, easing: 'linear'})
+					true)
 			}
 		}
 	},
