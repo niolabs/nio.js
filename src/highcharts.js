@@ -117,6 +117,8 @@ AllCharts.prototype = Object.create(Stream.prototype, {
 		title: '',
 		xLabel: '',
 		yLabel: '',
+		entries: false,
+		maxTime: false, // the max duration a series should show (seconds)
 		options: {},
 		dataStrategy: 'append', // append, replace, 
 		seriesStrategy: 'dynamic' // dynamic, fixed
@@ -139,6 +141,14 @@ AllCharts.prototype = Object.create(Stream.prototype, {
 			var shift = true;
 			if (this.entries) {
 				shift = series.data.length >= this.entries - 1;
+			}
+
+			if (this.maxTime) {
+				var earliestTime = series.data[0].x,
+					diff = occurrenceTime - earliestTime;
+				// Shift off data points if our current time difference is
+				// greater than what we requested
+				shift = diff / 1000 > this.maxTime;
 			}
 			if (this.dataStrategy == 'append') {
 				series.addPoint(
