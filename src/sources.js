@@ -63,19 +63,25 @@ SocketIOStream.prototype.oninit = function () {
 		return this
 	}
 
-	this.ws = io.connect(this.host)
+	this.ws = io.connect(this.host, {'connect timeout': 10000})
 
-	var sock = this.ws.socket
+	if (this.ws.socket) {
+		var sock = this.ws.socket; // socket.io 0.9
+	} else {
+		var sock = this.ws; // socket.io 1.0
+	}
 	sock.on('connect', function () {
 		_.each(this.rooms, function (room) {
 			this.ws.emit('ready', room)
 		}, this)
 	}.bind(this))
-	sock.on('connect_failed', function () {
-		console.error('connection failed')
+	sock.on('connect_failed', function (e) {
+		console.error('connection failed');
+		console.error(e);
 	})
-	sock.on('error', function () {
-		console.error('connection error')
+	sock.on('error', function (e) {
+		console.error('connection error');
+		console.error(e);
 	})
 	this.ws.on('recvData', function (data) {
 		//if (this.state === Stream.STATES.PAUSE) return
