@@ -144,11 +144,17 @@ AllCharts.prototype = Object.create(Stream.prototype, {
 			}
 
 			if (this.maxTime) {
-				var earliestTime = series.data[0].x,
-					diff = occurrenceTime - earliestTime;
-				// Shift off data points if our current time difference is
-				// greater than what we requested
-				shift = diff / 1000 > this.maxTime;
+				try {
+					var earliestTime = series.data[0].x,
+						diff = occurrenceTime - earliestTime;
+					// Shift off data points if our current time difference is
+					// greater than what we requested
+					shift = diff / 1000 > this.maxTime;
+				} catch (e) {
+					// We can't determine the earliest time...
+					// shift away
+					shift = true;
+				}
 			}
 			if (this.dataStrategy == 'append') {
 				series.addPoint(
