@@ -62,5 +62,20 @@ Instance.prototype = Object.create(nio.API.prototype, {
 			child.makeRequest('blocks/' + blockName)
 			return child
 		}
-    }
+    },
+
+	command: {
+		value: function(serviceName, blockName, commandName, data) {
+			var child = this.getChild(block.Block);
+			if (data) {
+				child.makeRequest(
+					'services/' + serviceName + '/' + blockName + '/' + commandName,
+					'POST',
+					data);
+			} else {
+				child.makeRequest('services/' + serviceName + '/' + blockName + '/' + commandName);
+			}
+			return child;
+		}
+	}
 })
