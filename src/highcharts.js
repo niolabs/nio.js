@@ -109,6 +109,12 @@ function AllCharts(opts) {
 	} else {
 		this.chart = new Highcharts.Chart(chartOptions)
 	}
+
+	// If they have specified a maximum time to keep points
+	// start a job to clean up old points every few seconds
+	if (this.maxTime) {
+		setInterval(_.bind(this.trimOldData, this), 1000);
+	}
 }
 AllCharts.prototype = Object.create(Stream.prototype, {
 	defaults: {
@@ -138,24 +144,21 @@ AllCharts.prototype = Object.create(Stream.prototype, {
 			if (_.isUndefined(series))
 				return
 
+			if (_.isArray(data) && data.length > 0) {
+				data = data[0];
+			}
+
 			var shift = true;
 			if (this.entries) {
 				shift = series.data.length >= this.entries - 1;
 			}
 
 			if (this.maxTime) {
-				try {
-					var earliestTime = series.data[0].x,
-						diff = occurrenceTime - earliestTime;
-					// Shift off data points if our current time difference is
-					// greater than what we requested
-					shift = diff / 1000 > this.maxTime;
-				} catch (e) {
-					// We can't determine the earliest time...
-					// shift away
-					shift = true;
-				}
+				// shift if false for maxTime, rely on the job
+				// to remove points instead
+				shift = false;
 			}
+
 			if (this.dataStrategy == 'append') {
 				series.addPoint(
 					[data.x, data.y], 
@@ -169,6 +172,40 @@ AllCharts.prototype = Object.create(Stream.prototype, {
 					[occurrenceTime, data],
 					true,
 					shift)
+			}
+		}
+	},
+
+	trimOldData: {
+		value: function() {
+			var now = (new Date()).valueOf(),
+				removed = false;
+			_.each(this.chart.series, function(series) {
+				_.each(series.data, function(point) {
+					if (point && point.x && (now - point.x) / 1000 > this.maxTime) {
+						// If the point is old, remove it
+						point.remove(false);
+						removed = true;
+					} else {
+						// Otherwise, it's not old, keep it
+						// return false so we can exit the loop
+						return false;
+					}
+				}, this);
+			}, this);
+
+			// Remove any empty series if the series strategy is not fixed
+			if (this.seriesStrategy != 'fixed') {
+				_.each(this.chart.series, function(series) {
+					if (series && series.data.length == 0) {
+						removed = true;
+						series.remove(false);
+					}
+				});
+			}
+
+			if (removed) {
+				this.chart.redraw();
 			}
 		}
 	},
