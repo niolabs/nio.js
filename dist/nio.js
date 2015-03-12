@@ -18982,6 +18982,12 @@ function AllCharts(opts) {
 	} else {
 		this.chart = new Highcharts.Chart(chartOptions)
 	}
+
+	// If they have specified a maximum time to keep points
+	// start a job to clean up old points every few seconds
+	if (this.maxTime) {
+		setInterval(_.bind(this.trimOldData, this), 1000);
+	}
 }
 AllCharts.prototype = Object.create(Stream.prototype, {
 	defaults: {
@@ -19011,24 +19017,21 @@ AllCharts.prototype = Object.create(Stream.prototype, {
 			if (_.isUndefined(series))
 				return
 
+			if (_.isArray(data) && data.length > 0) {
+				data = data[0];
+			}
+
 			var shift = true;
 			if (this.entries) {
 				shift = series.data.length >= this.entries - 1;
 			}
 
 			if (this.maxTime) {
-				try {
-					var earliestTime = series.data[0].x,
-						diff = occurrenceTime - earliestTime;
-					// Shift off data points if our current time difference is
-					// greater than what we requested
-					shift = diff / 1000 > this.maxTime;
-				} catch (e) {
-					// We can't determine the earliest time...
-					// shift away
-					shift = true;
-				}
+				// shift if false for maxTime, rely on the job
+				// to remove points instead
+				shift = false;
 			}
+
 			if (this.dataStrategy == 'append') {
 				series.addPoint(
 					[data.x, data.y], 
@@ -19042,6 +19045,40 @@ AllCharts.prototype = Object.create(Stream.prototype, {
 					[occurrenceTime, data],
 					true,
 					shift)
+			}
+		}
+	},
+
+	trimOldData: {
+		value: function() {
+			var now = (new Date()).valueOf(),
+				removed = false;
+			_.each(this.chart.series, function(series) {
+				_.each(series.data, function(point) {
+					if (point && point.x && (now - point.x) / 1000 > this.maxTime) {
+						// If the point is old, remove it
+						point.remove(false);
+						removed = true;
+					} else {
+						// Otherwise, it's not old, keep it
+						// return false so we can exit the loop
+						return false;
+					}
+				}, this);
+			}, this);
+
+			// Remove any empty series if the series strategy is not fixed
+			if (this.seriesStrategy != 'fixed') {
+				_.each(this.chart.series, function(series) {
+					if (series && series.data.length == 0) {
+						removed = true;
+						series.remove(false);
+					}
+				});
+			}
+
+			if (removed) {
+				this.chart.redraw();
 			}
 		}
 	},
@@ -19277,7 +19314,22 @@ Instance.prototype = Object.create(nio.API.prototype, {
 			child.makeRequest('blocks/' + blockName)
 			return child
 		}
-    }
+    },
+
+	command: {
+		value: function(serviceName, blockName, commandName, data) {
+			var child = this.getChild(block.Block);
+			if (data) {
+				child.makeRequest(
+					'services/' + serviceName + '/' + blockName + '/' + commandName,
+					'POST',
+					data);
+			} else {
+				child.makeRequest('services/' + serviceName + '/' + blockName + '/' + commandName);
+			}
+			return child;
+		}
+	}
 })
 
 },{"./api":16,"./block":17,"./service":19}],19:[function(require,module,exports){
@@ -19551,7 +19603,6 @@ JSONStream.prototype.onfilter = function (params) {
 function SocketIOStream(opts) {
 	if (!(this instanceof SocketIOStream))
 		return new SocketIOStream(opts)
-	this.ws = null
 	this.host = opts.host
 	this.rooms = opts.rooms
 	Stream.call(this)
@@ -19563,20 +19614,15 @@ SocketIOStream.prototype.oninit = function () {
 	/* global io */
 	if (!window.io) {
 		var s = utils.script(this.host + '/socket.io/socket.io.js')
-		s.onload = function () { this.onresume() }.bind(this)
+		s.onload = function () { this.oninit() }.bind(this)
 		return this
 	}
 
-	this.ws = io.connect(this.host, {'connect timeout': 10000})
+	var sock = io.connect(this.host, {'connect timeout': 10000});
 
-	if (this.ws.socket) {
-		var sock = this.ws.socket; // socket.io 0.9
-	} else {
-		var sock = this.ws; // socket.io 1.0
-	}
 	sock.on('connect', function () {
 		_.each(this.rooms, function (room) {
-			this.ws.emit('ready', room)
+			sock.emit('ready', room)
 		}, this)
 	}.bind(this))
 	sock.on('connect_failed', function (e) {
@@ -19587,24 +19633,16 @@ SocketIOStream.prototype.oninit = function () {
 		console.error('connection error');
 		console.error(e);
 	})
-	this.ws.on('recvData', function (data) {
+	sock.on('recvData', function (data) {
 		//if (this.state === Stream.STATES.PAUSE) return
 		this.push(JSON.parse(data))
 	}.bind(this))
 	return this
 }
 
-SocketIOStream.prototype.onresume = function () {
-	if (!this.ws || !this.ws.socket.connected)
-		this.oninit()
-}
+SocketIOStream.prototype.onresume = function () { }
 
-SocketIOStream.prototype.onreset = function () {
-	if (this.ws && this.ws.socket.connected) {
-		this.ws.disconnect()
-		this.ws = null
-	}
-}
+SocketIOStream.prototype.onreset = function () { }
 
 function GeneratorStream(msg, rate) {
 	if (!(this instanceof GeneratorStream))
