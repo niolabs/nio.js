@@ -47,7 +47,6 @@ JSONStream.prototype.onfilter = function (params) {
 function SocketIOStream(opts) {
 	if (!(this instanceof SocketIOStream))
 		return new SocketIOStream(opts)
-	this.ws = null
 	this.host = opts.host
 	this.rooms = opts.rooms
 	Stream.call(this)
@@ -59,20 +58,15 @@ SocketIOStream.prototype.oninit = function () {
 	/* global io */
 	if (!window.io) {
 		var s = utils.script(this.host + '/socket.io/socket.io.js')
-		s.onload = function () { this.onresume() }.bind(this)
+		s.onload = function () { this.oninit() }.bind(this)
 		return this
 	}
 
-	this.ws = io.connect(this.host, {'connect timeout': 10000})
+	var sock = io.connect(this.host, {'connect timeout': 10000});
 
-	if (this.ws.socket) {
-		var sock = this.ws.socket; // socket.io 0.9
-	} else {
-		var sock = this.ws; // socket.io 1.0
-	}
 	sock.on('connect', function () {
 		_.each(this.rooms, function (room) {
-			this.ws.emit('ready', room)
+			sock.emit('ready', room)
 		}, this)
 	}.bind(this))
 	sock.on('connect_failed', function (e) {
@@ -83,24 +77,16 @@ SocketIOStream.prototype.oninit = function () {
 		console.error('connection error');
 		console.error(e);
 	})
-	this.ws.on('recvData', function (data) {
+	sock.on('recvData', function (data) {
 		//if (this.state === Stream.STATES.PAUSE) return
 		this.push(JSON.parse(data))
 	}.bind(this))
 	return this
 }
 
-SocketIOStream.prototype.onresume = function () {
-	if (!this.ws || !this.ws.socket.connected)
-		this.oninit()
-}
+SocketIOStream.prototype.onresume = function () { }
 
-SocketIOStream.prototype.onreset = function () {
-	if (this.ws && this.ws.socket.connected) {
-		this.ws.disconnect()
-		this.ws = null
-	}
-}
+SocketIOStream.prototype.onreset = function () { }
 
 function GeneratorStream(msg, rate) {
 	if (!(this instanceof GeneratorStream))
