@@ -62,7 +62,7 @@ SocketIOStream.prototype.oninit = function () {
 		return this
 	}
 
-	var sock = io.connect(this.host, {'connect timeout': 10000});
+	var sock = io.connect(this.host, {'force new connection': true});
 
 	sock.on('connect', function () {
 		_.each(this.rooms, function (room) {
