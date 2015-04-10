@@ -144,7 +144,7 @@ AllCharts.prototype = Object.create(Stream.prototype, {
 			if (_.isUndefined(series))
 				return
 
-			if (_.isArray(data) && data.length > 0) {
+			if (_.isArray(data) && data.length == 1) {
 				data = data[0];
 			}
 
@@ -172,6 +172,8 @@ AllCharts.prototype = Object.create(Stream.prototype, {
 					[occurrenceTime, data],
 					true,
 					shift)
+			} else if (this.dataStrategy == 'raw') {
+				series.addPoint(data, true, shift)
 			}
 		}
 	},
