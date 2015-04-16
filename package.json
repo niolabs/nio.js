@@ -6,7 +6,7 @@
   "dependencies": {
     "brfs": "^1.2.0",
     "d3": "^3.4.13",
-    "lodash": "^2.4.1"
+    "lodash-node": "^3.7.0"
   },
   "devDependencies": {
     "bower": "^1.3.12",
