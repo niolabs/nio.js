@@ -31020,7 +31020,7 @@ exports.line = function (opts) {
 },{"./stream":25,"d3":1,"lodash":13}],16:[function(require,module,exports){
 'use strict';
 
-var _ = require('lodash')
+var _ = require('lodash-node')
 var Stream = require('./stream')
 
 var getGlobalChartOptions = function(opts) {
@@ -31203,10 +31203,12 @@ AllCharts.prototype = Object.create(Stream.prototype, {
 			var now = (new Date()).valueOf(),
 				removed = false;
 			_.each(this.chart.series, function(series) {
-				_.each(series.data, function(point) {
-					if (point && point.x && (now - point.x) / 1000 > this.maxTime) {
-						// If the point is old, remove it
-						point.remove(false);
+				// Don't rely on series.data, if there is grouping it will be empty
+				// Instead, we will look at series.options.data and remove old items
+				var toRemove = 0;
+				_.each(series.options.data, function(point) {
+					if (point && point[0] && (now - point[0]) / 1000 > this.maxTime) {
+						toRemove++;
 						removed = true;
 					} else {
 						// Otherwise, it's not old, keep it
@@ -31214,6 +31216,10 @@ AllCharts.prototype = Object.create(Stream.prototype, {
 						return false;
 					}
 				}, this);
+
+				if (toRemove > 0) {
+					series.setData(_.slice(series.options.data, toRemove), false);
+				}
 			}, this);
 
 			// Remove any empty series if the series strategy is not fixed
@@ -31338,7 +31344,7 @@ exports.gauge = function (opts) {
 	return new GaugeChart(opts)
 }
 
-},{"./stream":25,"lodash":13}],17:[function(require,module,exports){
+},{"./stream":25,"lodash-node":12}],17:[function(require,module,exports){
 'use strict'
 
 var Stream = require('../stream')
