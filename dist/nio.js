@@ -31225,9 +31225,13 @@ AllCharts.prototype = Object.create(Stream.prototype, {
 			// Remove any empty series if the series strategy is not fixed
 			if (this.seriesStrategy != 'fixed') {
 				_.each(this.chart.series, function(series) {
-					if (series && series.data.length == 0) {
-						removed = true;
-						series.remove(false);
+					if (series && series.options.data.length == 0) {
+						try {
+							series.remove(false);
+							removed = true;
+						} catch (e) {
+							console.error("Could not remove series...");
+						}
 					}
 				});
 			}
