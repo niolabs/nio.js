@@ -1,7 +1,7 @@
 'use strict';
 
-var gulp = require('gulp')
-var plugins = require('gulp-load-plugins')()
+var gulp = require('gulp');
+var plugins = require('gulp-load-plugins')();
 
 
 gulp.task('compile', function () {
@@ -9,11 +9,18 @@ gulp.task('compile', function () {
 		.pipe(plugins.browserify())
 		.pipe(plugins.rename('nio.js'))
 		.pipe(gulp.dest('dist'))
-})
+});
 
-gulp.task('build', ['compile'])
+gulp.task('minify', ['compile'], function() {
+	return gulp.src('dist/nio.js')
+		.pipe(plugins.uglify())
+		.pipe(plugins.rename('nio.min.js'))
+		.pipe(gulp.dest('dist'))
+});
+
+gulp.task('build', ['compile', 'minify']);
 gulp.task('watch', function() {
 	gulp.watch('src/**/*.js', ['build'])
-})
+});
 
-gulp.task('default', ['build', 'watch'])
+gulp.task('default', ['build', 'watch']);

@@ -21,14 +21,14 @@ There are a few ways to make use of nio.js, follow the instructions for the one 
 
 2. Add the script to your HTML
    ```html
-   <script src="./bower_components/nio.js/dist/nio.js"></script>
+   <script src="./bower_components/nio.js/dist/nio.min.js"></script>
    ```
 3. Use it! - See the [Examples Section](#examples)
 
 ### Browser Application (without bower)
 
 1. Download the source file:
-   https://raw.githubusercontent.com/neutralio/nio.js/v1/dist/nio.js
+   https://raw.githubusercontent.com/neutralio/nio.js/v1/dist/nio.min.js
 
 2. Add the script to your HTML
    ```html
