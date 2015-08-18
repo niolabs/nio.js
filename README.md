@@ -53,12 +53,12 @@ There are a few ways to make use of nio.js, follow the instructions for the one 
 
 ## Examples
 
-### Log data from a socket.io server
+### Log data from a few rooms on a socket.io server
 
 ```js
-nio.source.socketio({
-   host: 'http://yoursocketserver.com:8080',
-   room: ['socket', 'rooms', 'go', 'here']
+nio.source.socketio(
+ 'http://yoursocketserver.com:8080',
+ ['socket', 'rooms', 'go', 'here']
 }).pipe(nio.log())
 ```
 
