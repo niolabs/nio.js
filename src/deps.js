@@ -13,5 +13,6 @@ if (typeof _ === "undefined") {
 
 module.exports = {
 	_: _,
-	eventemitter3: require('eventemitter3')
+	eventemitter3: require('eventemitter3'),
+	inherits: require('inherits')
 }

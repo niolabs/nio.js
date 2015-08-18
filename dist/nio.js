@@ -950,6 +950,8 @@ function hasOwnProperty(obj, prop) {
 
 }).call(this,require("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"./support/isBuffer":4,"1YiZ5S":3,"inherits":2}],6:[function(require,module,exports){
+module.exports=require(2)
+},{}],7:[function(require,module,exports){
 (function (global){
 /**
  * @license
@@ -13282,7 +13284,7 @@ function hasOwnProperty(obj, prop) {
 }.call(this));
 
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 "use strict";
 
 var has_require = typeof require !== 'undefined';
@@ -13298,10 +13300,11 @@ if (typeof _ === "undefined") {
 
 module.exports = {
 	_: _,
-	eventemitter3: require('eventemitter3')
+	eventemitter3: require('eventemitter3'),
+	inherits: require('inherits')
 }
 
-},{"eventemitter3":1,"lodash-node":6}],8:[function(require,module,exports){
+},{"eventemitter3":1,"inherits":6,"lodash-node":7}],9:[function(require,module,exports){
 "use strict";
 
 var deps = require('./deps');
@@ -13312,13 +13315,67 @@ module.exports = window.nio = deps._.assign(
 
 		// our modules
 		Stream: require('./stream'),
-		utils: require('./utils')
-		//source: require('./sources')
+		utils: require('./utils'),
+		source: require('./sources')
 	},
 	require('./streams')
 )
 
-},{"./deps":7,"./stream":9,"./streams":10,"./utils":11}],9:[function(require,module,exports){
+},{"./deps":8,"./sources":10,"./stream":11,"./streams":12,"./utils":13}],10:[function(require,module,exports){
+var _ = require('./deps')._
+var inherits = require('./deps').inherits
+var Stream = require('./stream')
+var utils = require('./utils')
+
+function SocketIOStream(opts) {
+	if (!(this instanceof SocketIOStream))
+		return new SocketIOStream(opts)
+	this.host = opts.host
+	this.rooms = opts.rooms
+	Stream.call(this)
+}
+
+inherits(SocketIOStream, Stream)
+
+SocketIOStream.prototype.oninit = function () {
+	/* global io */
+	if (!window.io) {
+		var s = utils.script(this.host + '/socket.io/socket.io.js')
+		s.onload = function () { this.oninit() }.bind(this)
+		return this
+	}
+
+	var sock = io.connect(this.host, {'force new connection': true});
+
+	sock.on('connect', function () {
+		_.each(this.rooms, function (room) {
+			sock.emit('ready', room)
+		}, this)
+	}.bind(this))
+	sock.on('connect_failed', function (e) {
+		console.error('connection failed');
+		console.error(e);
+	})
+	sock.on('error', function (e) {
+		console.error('connection error');
+		console.error(e);
+	})
+	sock.on('recvData', function (data) {
+		//if (this.state === Stream.STATES.PAUSE) return
+		this.push(JSON.parse(data))
+	}.bind(this))
+	return this
+}
+
+SocketIOStream.prototype.onresume = function () { }
+
+SocketIOStream.prototype.onreset = function () { }
+
+module.exports = {
+	socketio: SocketIOStream
+}
+
+},{"./deps":8,"./stream":11,"./utils":13}],11:[function(require,module,exports){
 /**
  * @name Stream
  * @author Matt Dodge <matt@n.io>
@@ -13515,7 +13572,7 @@ _.each(Stream.STATES, function (value, name) {
 
 module.exports = Stream
 
-},{"./deps":7,"./utils":11}],10:[function(require,module,exports){
+},{"./deps":8,"./utils":13}],12:[function(require,module,exports){
 'use strict';
 
 var _ = require('./deps')._
@@ -13999,7 +14056,7 @@ exports.each = function (fn) {
 	return exports.func(_.partialRight(_.each, function (chunk) { fn(chunk) }))
 }
 
-},{"./deps":7,"./stream":9}],11:[function(require,module,exports){
+},{"./deps":8,"./stream":11}],13:[function(require,module,exports){
 var deps = require('./deps');
 var _ = deps._;
 var events = deps.eventemitter3;
@@ -14096,4 +14153,4 @@ exports.windowSize = function () {
 
 module.exports = _.assign(require('util'), _, exports)
 
-},{"./deps":7,"util":5}]},{},[8])
+},{"./deps":8,"util":5}]},{},[9])

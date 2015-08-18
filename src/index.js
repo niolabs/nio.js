@@ -8,8 +8,8 @@ module.exports = window.nio = deps._.assign(
 
 		// our modules
 		Stream: require('./stream'),
-		utils: require('./utils')
-		//source: require('./sources')
+		utils: require('./utils'),
+		source: require('./sources')
 	},
 	require('./streams')
 )

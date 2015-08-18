@@ -5,6 +5,7 @@
   "main": "src/index.js",
   "dependencies": {
     "eventemitter3": "^1.1.1",
+    "inherits": "^2.0.1",
     "lodash-node": "^3.10.1"
   },
   "devDependencies": {
