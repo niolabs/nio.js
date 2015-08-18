@@ -112,6 +112,33 @@ Final value 7
    
    Note that this time we did return something from the function. The output of the function is what will be emitted to the stream.
 
+
+#### nio.log(prefix="")
+ 
+Log the data of the stream to the JavaScript console, with an optional prefix
+
+
+#### nio.filter(func)
+ 
+Only emit the data if the function evaluates to true
+
+
+#### nio.has(property)
+ 
+Only emit the data if it contains an attribute `property`.
+
+
+#### nio.is(property, value)
+ 
+Only emit the data if it contains an attribute `property` and if its value is `value`.
+
+
+#### nio.get(property)
+ 
+Emit the value of `property` on the data, if it exists.
+
+
+
 ### Source Methods
 
 The following methods allow you to connect to data sources or generate data in a stream
