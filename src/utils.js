@@ -1,11 +1,5 @@
 var deps = require('./deps');
 var _ = deps._;
-var events = deps.eventemitter3;
-
-/**
- * Make an alias for EventEmitter so that it's easy to swap out
- */
-exports.EventEmitter = events
 
 // turns urls and twitter handles/hashtags into links
 exports.linkify = function (text) {
@@ -92,4 +86,4 @@ exports.windowSize = function () {
 	return {width: width, height: height}
 }
 
-module.exports = _.assign(require('util'), _, exports)
+module.exports = exports;

@@ -4,20 +4,22 @@
  * @license MIT
  */
 
-var _ = require('./deps')._
-var utils = require('./utils')
+var deps = require('./deps')
+var _ = deps._
+var inherits = deps.inherits
+var EventEmitter = deps.eventemitter3
 
 /**
  * Stream is an event emitter for creating pipeline-based asynchronus workflows.
  *
  * @constructor
- * @extends {utils.EventEmitter}
+ * @extends {EventEmitter}
  * @param {function} onwrite
  */
 function Stream(opts) {
 	if (!(this instanceof Stream))
 		return new Stream(opts)
-	utils.EventEmitter.call(this)
+	EventEmitter.call(this)
 
 	// listen for events and call onevent functions
 	this.on('*', function () {
@@ -34,7 +36,7 @@ function Stream(opts) {
 	this.emit('init')
 }
 
-utils.inherits(Stream, utils.EventEmitter)
+inherits(Stream, EventEmitter)
 
 /**
  * emit is overwritten to support the '*' event, which is fired on every event.
@@ -44,11 +46,11 @@ utils.inherits(Stream, utils.EventEmitter)
  */
 Stream.prototype.emit = function () {
 	var args = [].slice.call(arguments)
-	utils.EventEmitter.prototype.emit.apply(this, args)
+	EventEmitter.prototype.emit.apply(this, args)
 
 	// emit the '*' event
 	args.unshift('*')
-	utils.EventEmitter.prototype.emit.apply(this, args)
+	EventEmitter.prototype.emit.apply(this, args)
 }
 
 /**
