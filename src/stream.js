@@ -1,11 +1,10 @@
 /**
  * @name Stream
- * @author Liam Curry <lcurry@n.io>
  * @author Matt Dodge <matt@n.io>
  * @license MIT
  */
 
-var _ = require('lodash')
+var _ = require('./deps')._
 var utils = require('./utils')
 
 /**

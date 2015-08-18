@@ -1,7 +1,6 @@
 'use strict';
 
-var _ = require('lodash')
-var d3 = require('d3')
+var _ = require('./deps')._
 var stream = require('./stream')
 
 /**
@@ -380,23 +379,6 @@ exports.throttle = function (delay) {
 exports.debounce = function (delay) {
 	var debounced = _.debounce(function (chunk) {this.push(chunk)}, delay)
 	return stream(debounced)
-}
-
-/**
- * display outputs the chunk to a DOM element
- *
- * @param {string} selector
- * @param {(string|function)} property
- * @return {stream}
- */
-exports.display = function (selector, property) {
-	var el = d3.select(selector)
-	var getDisplay = property
-	if (_.isString(getDisplay))
-		getDisplay = function (d) { return d[property] }
-	return exports.pass(function (chunk) {
-		el.html(getDisplay ? getDisplay(chunk) : chunk)
-	})
 }
 
 /**

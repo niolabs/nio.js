@@ -2,29 +2,22 @@
   "name": "nio.js",
   "main": "dist/nio.js",
   "description": "Interact with data streams and n.io instances",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "repository": {
-	  "type": "git",
-	  "url": "git://github.com/neutralio/nio.js.git"
+    "type": "git",
+    "url": "git://github.com/neutralio/nio.js.git"
   },
   "homepage": "https://github.com/neutralio/nio.js",
   "authors": [
-    "Matt Dodge <mdodge@n.io>"
+    "Matt Dodge <matt@n.io>"
   ],
-  "license": "MIT",
   "ignore": [
     "**/.*",
     "node_modules",
-    "bower_components",
-    "static/components",
-    "test",
-    "tests",
-    "components"
+    "bower_components"
   ],
-  "dependencies": {},
-  "devDependencies": {
-    "mocha": "~2.0.1",
-    "chai": "~1.9.2",
-    "closure-compiler": "~0.2.6"
-  }
+  "dependencies": {
+    "lodash": "~3.10.1"
+  },
+  "devDependencies": {}
 }

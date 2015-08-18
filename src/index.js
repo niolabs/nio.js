@@ -1,20 +1,15 @@
-var _ = require('lodash-node')
+"use strict";
+
+var deps = require('./deps');
 
 module.exports = window.nio = _.assign(
 	{
-		// exposing various dependencies
-		d3: require('d3'),
-		_: require('lodash-node'),
+		_: deps._,
 
 		// our modules
-		stream: require('./stream'),
-		highcharts: require('./highcharts'),
-		map: require('./map/map'),
-		utils: require('./utils'),
-		graphs: require('./graphs'),
-		instance: require('./instance'),
-		model: require('./model')
+		Stream: require('./stream'),
+		utils: require('./utils')
+		//source: require('./sources')
 	},
-	require('./sources'),
 	require('./streams')
 )

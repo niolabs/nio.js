@@ -1,5 +1,6 @@
-var _ = require('lodash')
-var events = require('eventemitter3')
+var deps = require('./deps');
+var _ = deps._;
+var events = deps.eventemitter3;
 
 /**
  * Make an alias for EventEmitter so that it's easy to swap out
