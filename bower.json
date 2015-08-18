@@ -11,6 +11,7 @@
   "authors": [
     "Matt Dodge <matt@n.io>"
   ],
+  "license": "MIT",
   "ignore": [
     "**/.*",
     "node_modules",
