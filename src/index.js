@@ -2,7 +2,7 @@
 
 var deps = require('./deps');
 
-module.exports = window.nio = _.assign(
+module.exports = window.nio = deps._.assign(
 	{
 		_: deps._,
 
