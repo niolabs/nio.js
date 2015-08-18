@@ -5,6 +5,8 @@ Work with streams in JavaScript
 * [Getting Started](#getting-started)
 * [Examples](#examples)
 * [API Documentation](#api-documentation)
+  * [Stream Methods](#stream-methods)
+  * [Source Methods](#source-methods)
 
 ## Getting Started
 
@@ -109,3 +111,11 @@ Final value 7
 ```
    
    Note that this time we did return something from the function. The output of the function is what will be emitted to the stream.
+
+### Source Methods
+
+The following methods allow you to connect to data sources or generate data in a stream
+
+#### nio.source.socketio(host, rooms)
+
+Connect to a socket.io server and subscribe to a list of rooms.
