@@ -55,3 +55,12 @@ nio.source.socketio({
    room: ['socket', 'rooms', 'go', 'here']
 }).pipe(nio.log())
 ```
+
+## API Documentation
+
+### Stream Methods
+
+The following methods allow you to filter/manipulate/work with streams of data. You can pipe streams (via `.pipe(...)`) into these methods, which will then return their own streams.
+
+ * **pass** - Pass the data through and then perform a function on it.
+ * **func** - Perform a function on the data and emit the results of the function.
