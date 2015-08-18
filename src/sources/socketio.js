@@ -1,7 +1,8 @@
-var _ = require('./deps')._
-var inherits = require('./deps').inherits
-var Stream = require('./stream')
-var utils = require('./utils')
+var deps = require('../deps');
+var _ = deps._
+var inherits = deps.inherits
+var Stream = require('../stream')
+var utils = require('../utils')
 
 function SocketIOStream(host, rooms) {
 	if (!(this instanceof SocketIOStream))
@@ -43,10 +44,4 @@ SocketIOStream.prototype.oninit = function () {
 	return this
 }
 
-SocketIOStream.prototype.onresume = function () { }
-
-SocketIOStream.prototype.onreset = function () { }
-
-module.exports = {
-	socketio: SocketIOStream
-}
+module.exports = SocketIOStream;

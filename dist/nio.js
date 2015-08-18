@@ -12679,11 +12679,71 @@ module.exports = window.nio = deps._.assign(
 	require('./streams')
 )
 
-},{"./deps":4,"./sources":6,"./stream":7,"./streams":8,"./utils":9}],6:[function(require,module,exports){
-var _ = require('./deps')._
-var inherits = require('./deps').inherits
-var Stream = require('./stream')
-var utils = require('./utils')
+},{"./deps":4,"./sources":7,"./stream":9,"./streams":10,"./utils":11}],6:[function(require,module,exports){
+var deps = require('../deps');
+var _ = deps._
+var inherits = deps.inherits
+var Stream = require('../stream')
+
+function GenerateStream(dataTemplate, maxTimes, rate) {
+	if (!(this instanceof GenerateStream))
+		return new GenerateStream(dataTemplate, maxTimes, rate)
+
+	this.dataTemplate = dataTemplate;
+	this.maxTimes = maxTimes;
+	this.rate = rate;
+
+	this.numIterations = 0;
+	this.interval = false;
+
+	_.defaults(this, {
+		dataTemplate: {},
+		rate: 100,
+		maxTimes: 1
+	});
+
+	Stream.call(this)
+}
+
+inherits(GenerateStream, Stream);
+
+GenerateStream.prototype.oninit = function() {
+	this.interval = setInterval(this.generate.bind(this), this.rate);
+	return this;
+};
+
+GenerateStream.prototype.generate = function() {
+	if (this.maxTimes >= 0 && this.numIterations >= this.maxTimes) {
+		if (this.interval) {
+			clearInterval(this.interval);
+		}
+	} else {
+		this.push(this.getSignal(this.numIterations++));
+	}
+}
+
+GenerateStream.prototype.getSignal = function(iteration) {
+	if (_.isFunction(this.dataTemplate)) {
+		return this.dataTemplate(iteration);
+	} else {
+		return this.dataTemplate;
+	}
+}
+
+module.exports = GenerateStream;
+
+},{"../deps":4,"../stream":9}],7:[function(require,module,exports){
+module.exports = {
+	socketio: require('./socketio'),
+	generate: require('./generate')
+};
+
+},{"./generate":6,"./socketio":8}],8:[function(require,module,exports){
+var deps = require('../deps');
+var _ = deps._
+var inherits = deps.inherits
+var Stream = require('../stream')
+var utils = require('../utils')
 
 function SocketIOStream(host, rooms) {
 	if (!(this instanceof SocketIOStream))
@@ -12725,15 +12785,9 @@ SocketIOStream.prototype.oninit = function () {
 	return this
 }
 
-SocketIOStream.prototype.onresume = function () { }
+module.exports = SocketIOStream;
 
-SocketIOStream.prototype.onreset = function () { }
-
-module.exports = {
-	socketio: SocketIOStream
-}
-
-},{"./deps":4,"./stream":7,"./utils":9}],7:[function(require,module,exports){
+},{"../deps":4,"../stream":9,"../utils":11}],9:[function(require,module,exports){
 /**
  * @name Stream
  * @author Matt Dodge <matt@n.io>
@@ -12932,7 +12986,7 @@ _.each(Stream.STATES, function (value, name) {
 
 module.exports = Stream
 
-},{"./deps":4}],8:[function(require,module,exports){
+},{"./deps":4}],10:[function(require,module,exports){
 'use strict';
 
 var _ = require('./deps')._
@@ -12984,7 +13038,9 @@ exports.pass = function (fn) {
 // will only push a chunk if the function it's passed to returns true
 exports.filter = function (fn) {
 	return stream(function (chunk) {
-		if (fn.call(this, chunk)) this.push(chunk)
+		if (fn.call(this, chunk)) {
+			this.push(chunk);
+		}
 	})
 }
 
@@ -13065,7 +13121,7 @@ exports.log = function (prefix) {
 	})
 }
 
-},{"./deps":4,"./stream":7}],9:[function(require,module,exports){
+},{"./deps":4,"./stream":9}],11:[function(require,module,exports){
 var deps = require('./deps');
 var _ = deps._;
 

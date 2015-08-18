@@ -49,7 +49,9 @@ exports.pass = function (fn) {
 // will only push a chunk if the function it's passed to returns true
 exports.filter = function (fn) {
 	return stream(function (chunk) {
-		if (fn.call(this, chunk)) this.push(chunk)
+		if (fn.call(this, chunk)) {
+			this.push(chunk);
+		}
 	})
 }
 
