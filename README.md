@@ -119,3 +119,49 @@ The following methods allow you to connect to data sources or generate data in a
 #### nio.source.socketio(host, rooms)
 
 Connect to a socket.io server and subscribe to a list of rooms.
+
+#### nio.source.generate(data, maxTimes=1, rate=100)
+
+Generate an asynchronous data stream at a regular interval.
+
+ * **data** (function or object): If `data` is a function, it can receive one argument which would be the iteration number (starting at 0) of the current execution. If it is an object, that object will be emitted.
+ * **maxTimes** (int): How many times the data will get generated. Defaults to 1. Setting this to a negative number will cause it to run indefinitely.
+ * **rate** (int): The rate (in milliseconds) of how often to generate the data.
+
+*Example #1*: 
+```js
+nio.source.generate({val: 1})
+ .pipe(nio.log("output"));
+```
+
+*Output #1*:
+```
+output {val: 1}
+```
+
+*Example #2*: 
+```js
+nio.source.generate({val: 1}, 3)
+ .pipe(nio.log("output"));
+```
+
+*Output #2*:
+```
+output {val: 1}
+output {val: 1}
+output {val: 1}
+```
+
+*Example #3*: 
+```js
+nio.source.generate(function(iter) {
+ return {val: iter};
+}, 3).pipe(nio.log("output"));
+```
+
+*Output #3*:
+```
+output {val: 0}
+output {val: 1}
+output {val: 2}
+```
