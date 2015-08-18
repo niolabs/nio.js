@@ -16,7 +16,7 @@ There are a few ways to make use of nio.js, follow the instructions for the one 
 
 1. Install from bower
    ```
-   bower install -S nio.js
+   bower install nio.js
    ```
 
 2. Add the script to your HTML
@@ -28,7 +28,7 @@ There are a few ways to make use of nio.js, follow the instructions for the one 
 ### Browser Application (without bower)
 
 1. Download the source file:
-   https://raw.githubusercontent.com/neutralio/nio.js/master/dist/nio.js
+   https://raw.githubusercontent.com/neutralio/nio.js/v1/dist/nio.js
 
 2. Add the script to your HTML
    ```html
