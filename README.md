@@ -44,3 +44,14 @@ There are a few ways to make use of nio.js, follow the instructions for the one 
    
 3. Use it! - See the [Examples Section](#examples)
 
+
+## Examples
+
+### Log data from a socket.io server
+
+```js
+nio.source.socketio({
+   host: 'http://yoursocketserver.com:8080',
+   room: ['socket', 'rooms', 'go', 'here']
+}).pipe(nio.log())
+```
