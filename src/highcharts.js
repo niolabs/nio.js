@@ -148,15 +148,11 @@ AllCharts.prototype = Object.create(Stream.prototype, {
 				data = data[0];
 			}
 
-			var shift = true;
+			var shift = false;
 			if (this.entries) {
+				// We will only shift if we have a fixed number of entries
+				// If maxTime is set, a job will run to trim off old data
 				shift = series.data.length >= this.entries - 1;
-			}
-
-			if (this.maxTime) {
-				// shift if false for maxTime, rely on the job
-				// to remove points instead
-				shift = false;
 			}
 
 			if (this.dataStrategy == 'append') {
