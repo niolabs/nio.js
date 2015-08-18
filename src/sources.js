@@ -3,11 +3,11 @@ var inherits = require('./deps').inherits
 var Stream = require('./stream')
 var utils = require('./utils')
 
-function SocketIOStream(opts) {
+function SocketIOStream(host, rooms) {
 	if (!(this instanceof SocketIOStream))
-		return new SocketIOStream(opts)
-	this.host = opts.host
-	this.rooms = opts.rooms
+		return new SocketIOStream(host, rooms)
+	this.host = host
+	this.rooms = rooms
 	Stream.call(this)
 }
 
