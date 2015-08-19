@@ -70,7 +70,7 @@ The following methods allow you to filter/manipulate/work with streams of data. 
 
 #### nio.pass(func)
 
-Pass the data through and then perform a function on it.
+Perform a function on the data but pass it through unchanged. Changes to the data inside of the function will not be realized in the output stream. Use `nio.func()` to do that.
  
 *Example*: 
 ```js
