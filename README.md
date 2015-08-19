@@ -36,7 +36,7 @@ There are a few ways to make use of nio.js, follow the instructions for the one 
    ```
 3. Use it! - See the [Examples Section](#examples)
 
-### Node Application (TODO: Make this actually work)
+### Node Application
 
 1. Install from npm
    ```
