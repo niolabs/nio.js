@@ -1,20 +1,27 @@
-var _ = require('lodash-node')
+"use strict";
+(function () {
 
-module.exports = window.nio = _.assign(
-	{
-		// exposing various dependencies
-		d3: require('d3'),
-		_: require('lodash-node'),
+	var deps = require('./deps');
 
-		// our modules
-		stream: require('./stream'),
-		highcharts: require('./highcharts'),
-		map: require('./map/map'),
-		utils: require('./utils'),
-		graphs: require('./graphs'),
-		instance: require('./instance'),
-		model: require('./model')
-	},
-	require('./sources'),
-	require('./streams')
-)
+	var nio = deps._.assign(
+		{
+			_: deps._,
+
+			// our modules
+			Stream: require('./stream'),
+			utils: require('./utils'),
+			source: require('./sources')
+		},
+		require('./streams')
+	)
+
+    // Establish the root object, `window` in the browser, or `global` on the server.
+    var root = this; 
+
+    if (typeof module !== 'undefined' && module.exports) {
+		module.exports = nio;
+    } else {
+		root.nio = nio;
+    }
+})();
+

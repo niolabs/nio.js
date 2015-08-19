@@ -1,10 +1,5 @@
-var _ = require('lodash')
-var events = require('eventemitter3')
-
-/**
- * Make an alias for EventEmitter so that it's easy to swap out
- */
-exports.EventEmitter = events.EventEmitter
+var deps = require('./deps');
+var _ = deps._;
 
 // turns urls and twitter handles/hashtags into links
 exports.linkify = function (text) {
@@ -91,4 +86,4 @@ exports.windowSize = function () {
 	return {width: width, height: height}
 }
 
-module.exports = _.assign(require('util'), _, exports)
+module.exports = exports;
