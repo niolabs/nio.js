@@ -12672,6 +12672,8 @@ module.exports = {
 		{
 			_: deps._,
 
+			_version: '1.1.0',
+
 			// our modules
 			Stream: require('./stream'),
 			utils: require('./utils'),
