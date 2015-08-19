@@ -32,7 +32,7 @@ There are a few ways to make use of nio.js, follow the instructions for the one 
 
 2. Add the script to your HTML
    ```html
-   <script src="./nio.js"></script>
+   <script src="./nio.min.js"></script>
    ```
 3. Use it! - See the [Examples Section](#examples)
 
