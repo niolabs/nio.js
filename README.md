@@ -7,6 +7,10 @@ Work with streams in JavaScript
 * [API Documentation](#api-documentation)
   * [Stream Methods](#stream-methods)
   * [Source Methods](#source-methods)
+  
+
+[![npm version](https://badge.fury.io/js/niojs.svg)](http://badge.fury.io/js/niojs)
+[![Bower version](https://badge.fury.io/bo/nio.js.svg)](http://badge.fury.io/bo/nio.js)
 
 ## Getting Started
 
