@@ -100,8 +100,7 @@ nio.source.generate({
    test_a: 1,
    test_b: 2
 }).pipe(nio.func(function(chunk) {
-   chunk.test_b += 5;
-   return chunk;
+   return chunk.test_b + 5;
 })).pipe(nio.log("Final value"));
 ```
 
