@@ -18,7 +18,14 @@ gulp.task('minify', ['compile'], function() {
 		.pipe(gulp.dest('dist'))
 });
 
-gulp.task('build', ['compile', 'minify']);
+gulp.task('test', function() {
+	return gulp.src('tests/*.js')
+		.pipe(plugins.jasmine({
+			verbose: true
+		}));
+});
+
+gulp.task('build', ['compile', 'test', 'minify']);
 gulp.task('watch', function() {
 	gulp.watch('src/**/*.js', ['build'])
 });
