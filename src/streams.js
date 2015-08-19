@@ -41,8 +41,8 @@ exports.func = function (fn) {
  */
 exports.pass = function (fn) {
 	return stream(function (chunk) {
+		if (fn) fn.call(this, _.clone(chunk))
 		this.push(chunk)
-		if (fn) fn.call(this, chunk)
 	})
 }
 

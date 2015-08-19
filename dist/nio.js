@@ -12664,20 +12664,32 @@ module.exports = {
 
 },{"eventemitter3":1,"inherits":2,"lodash":3}],5:[function(require,module,exports){
 "use strict";
+(function () {
 
-var deps = require('./deps');
+	var deps = require('./deps');
 
-module.exports = window.nio = deps._.assign(
-	{
-		_: deps._,
+	var nio = deps._.assign(
+		{
+			_: deps._,
 
-		// our modules
-		Stream: require('./stream'),
-		utils: require('./utils'),
-		source: require('./sources')
-	},
-	require('./streams')
-)
+			// our modules
+			Stream: require('./stream'),
+			utils: require('./utils'),
+			source: require('./sources')
+		},
+		require('./streams')
+	)
+
+    // Establish the root object, `window` in the browser, or `global` on the server.
+    var root = this; 
+
+    if (typeof module !== 'undefined' && module.exports) {
+		module.exports = nio;
+    } else {
+		root.nio = nio;
+    }
+})();
+
 
 },{"./deps":4,"./sources":7,"./stream":9,"./streams":10,"./utils":11}],6:[function(require,module,exports){
 var deps = require('../deps');
@@ -13030,8 +13042,8 @@ exports.func = function (fn) {
  */
 exports.pass = function (fn) {
 	return stream(function (chunk) {
+		if (fn) fn.call(this, _.clone(chunk))
 		this.push(chunk)
-		if (fn) fn.call(this, chunk)
 	})
 }
 
