@@ -10,6 +10,7 @@ Work with streams in JavaScript
   
 
 [![Build Status](https://travis-ci.org/neutralio/nio.js.svg?branch=master)](https://travis-ci.org/neutralio/nio.js)
+[![Code Climate](https://codeclimate.com/github/neutralio/nio.js/badges/gpa.svg)](https://codeclimate.com/github/neutralio/nio.js)
 [![npm version](https://badge.fury.io/js/niojs.svg)](http://badge.fury.io/js/niojs)
 [![Bower version](https://badge.fury.io/bo/nio.js.svg)](http://badge.fury.io/bo/nio.js)
 
