@@ -1,5 +1,6 @@
 {
   "name": "nio.js",
+  "version": "1.1.1",
   "main": "dist/nio.js",
   "description": "Interact with data streams and n.io instances",
   "repository": {
