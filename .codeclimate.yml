@@ -1,0 +1,4 @@
+launguages:
+  JavaScript: true
+exclude_paths:
+  - "dist/*"
