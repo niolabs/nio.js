@@ -7,6 +7,8 @@
 		{
 			_: deps._,
 
+			_version: '1.1.1',
+
 			// our modules
 			Stream: require('./stream'),
 			utils: require('./utils'),
