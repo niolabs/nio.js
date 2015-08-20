@@ -15,13 +15,14 @@
 		require('./streams')
 	)
 
-    // Establish the root object, `window` in the browser, or `global` on the server.
-    var root = this; 
 
     if (typeof module !== 'undefined' && module.exports) {
 		module.exports = nio;
-    } else {
-		root.nio = nio;
+    } 
+	
+	// TODO: Is there a better way to check this?
+	if (typeof window !== 'undefined') {
+		window.nio = nio;
     }
 })();
 
