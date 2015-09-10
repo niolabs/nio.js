@@ -4,11 +4,12 @@ var inherits = deps.inherits
 var Stream = require('../stream')
 var utils = require('../utils')
 
-function SocketIOStream(host, rooms) {
+function SocketIOStream(host, rooms, maxLookback) {
 	if (!(this instanceof SocketIOStream))
-		return new SocketIOStream(host, rooms)
-	this.host = host
-	this.rooms = rooms
+		return new SocketIOStream(host, rooms, maxLookback)
+	this.host = host;
+	this.rooms = rooms;
+	this.maxLookback = maxLookback;
 	Stream.call(this)
 }
 
@@ -26,7 +27,15 @@ SocketIOStream.prototype.oninit = function () {
 
 	sock.on('connect', function () {
 		_.each(this.rooms, function (room) {
-			sock.emit('ready', room)
+			if (typeof this.maxLookback == 'undefined') {
+				// use the legacy room joining method
+				sock.emit('ready', room);
+			} else {
+				sock.emit('ready', {
+					room: room,
+					fromTime: this.maxLookback
+				});
+			}
 		}, this)
 	}.bind(this))
 	sock.on('connect_failed', function (e) {
