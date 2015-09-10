@@ -12672,7 +12672,7 @@ module.exports = {
 		{
 			_: deps._,
 
-			_version: '1.1.1',
+			_version: '1.1.2',
 
 			// our modules
 			Stream: require('./stream'),
