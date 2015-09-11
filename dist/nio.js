@@ -12766,6 +12766,7 @@ function SocketIOStream(host, rooms, maxLookback) {
 	this.host = host;
 	this.rooms = rooms;
 	this.maxLookback = maxLookback;
+	this.sock = null;
 	Stream.call(this)
 }
 
@@ -12779,7 +12780,12 @@ SocketIOStream.prototype.oninit = function () {
 		return this
 	}
 
-	var sock = io.connect(this.host, {'force new connection': true});
+	return this.connectToSocket();
+}
+
+SocketIOStream.prototype.connectToSocket = function () {
+
+	var sock = this.sock = io.connect(this.host, {'force new connection': true});
 
 	sock.on('connect', function () {
 		_.each(this.rooms, function (room) {
@@ -12794,20 +12800,39 @@ SocketIOStream.prototype.oninit = function () {
 			}
 		}, this)
 	}.bind(this))
+
 	sock.on('connect_failed', function (e) {
 		console.error('connection failed');
 		console.error(e);
 	})
+
 	sock.on('error', function (e) {
 		console.error('connection error');
 		console.error(e);
 	})
+
 	sock.on('recvData', function (data) {
 		//if (this.state === Stream.STATES.PAUSE) return
 		this.push(JSON.parse(data))
 	}.bind(this))
+
 	return this
-}
+};
+
+SocketIOStream.prototype.onpause = function () {
+	if (this.sock) {
+		this.sock.disconnect();
+	}
+	this.sock = null;
+};
+
+SocketIOStream.prototype.onresume = function () {
+	if (this.sock && this.sock.connected) {
+		console.error("Resumed a connected socket...call pause first");
+		return;
+	}
+	this.connectToSocket();
+};
 
 module.exports = SocketIOStream;
 
