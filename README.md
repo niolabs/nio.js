@@ -64,8 +64,9 @@ There are a few ways to make use of nio.js, follow the instructions for the one 
 ```js
 nio.source.socketio(
  'http://yoursocketserver.com:8080',
- ['socket', 'rooms', 'go', 'here']
-}).pipe(nio.log())
+ ['socket', 'rooms', 'go', 'here'],
+ 120 // optional - will immediately stream cached data within the last 120 seconds
+).pipe(nio.log())
 ```
 
 ## API Documentation
