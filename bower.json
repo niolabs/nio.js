@@ -5,9 +5,9 @@
   "description": "Interact with data streams and n.io instances",
   "repository": {
     "type": "git",
-    "url": "git://github.com/neutralio/nio.js.git"
+    "url": "git://github.com/nioinnovation/nio.js.git"
   },
-  "homepage": "https://github.com/neutralio/nio.js",
+  "homepage": "https://github.com/nioinnovation/nio.js",
   "authors": [
     "Matt Dodge <matt@n.io>"
   ],
