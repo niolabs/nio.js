@@ -8,14 +8,14 @@ gulp.task('compile', function () {
 	return gulp.src('src/index.js')
 		.pipe(plugins.browserify())
 		.pipe(plugins.rename('nio.js'))
-		.pipe(gulp.dest('dist'))
+		.pipe(gulp.dest('dist'));
 });
 
 gulp.task('minify', ['compile'], function() {
 	return gulp.src('dist/nio.js')
 		.pipe(plugins.uglify())
 		.pipe(plugins.rename('nio.min.js'))
-		.pipe(gulp.dest('dist'))
+		.pipe(gulp.dest('dist'));
 });
 
 gulp.task('test', function() {
@@ -27,7 +27,7 @@ gulp.task('test', function() {
 
 gulp.task('build', ['compile', 'test', 'minify']);
 gulp.task('watch', function() {
-	gulp.watch('src/**/*.js', ['build'])
+	gulp.watch('src/**/*.js', ['build']);
 });
 
 gulp.task('default', ['build', 'watch']);

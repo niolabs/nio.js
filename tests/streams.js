@@ -1,4 +1,4 @@
-
+/* jshint jasmine: true */
 describe("nio.streams", function() {
 
 	var nio = require('../src/index');

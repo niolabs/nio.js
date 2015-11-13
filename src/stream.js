@@ -4,10 +4,10 @@
  * @license MIT
  */
 
-var deps = require('./deps')
-var _ = deps._
-var inherits = deps.inherits
-var EventEmitter = deps.eventemitter3
+var deps = require('./deps');
+var _ = deps._;
+var inherits = deps.inherits;
+var EventEmitter = deps.eventemitter3;
 
 /**
  * Stream is an event emitter for creating pipeline-based asynchronus workflows.
@@ -17,26 +17,31 @@ var EventEmitter = deps.eventemitter3
  * @param {function} onwrite
  */
 function Stream(opts) {
-	if (!(this instanceof Stream))
-		return new Stream(opts)
-	EventEmitter.call(this)
+	if (!(this instanceof Stream)) {
+		return new Stream(opts);
+	}
+	EventEmitter.call(this);
 
 	// listen for events and call onevent functions
 	this.on('*', function () {
-		var args = [].slice.call(arguments)
-		var event = args[0]
-		var func = this['on' + event]
-		if (func) func.apply(this, args.slice(1))
+		var args = [].slice.call(arguments);
+		var event = args[0];
+		var func = this['on' + event];
+		if (func) {
+			func.apply(this, args.slice(1));
+		}
 	})
 
-	if (_.isFunction(opts))
-		this.onwrite = opts
-	else if (_.isPlainObject(opts))
-		_.assign(this, opts)
-	this.emit('init')
+	if (_.isFunction(opts)) {
+		this.onwrite = opts;
+	}
+	else if (_.isPlainObject(opts)) {
+		_.assign(this, opts);
+	}
+	this.emit('init');
 }
 
-inherits(Stream, EventEmitter)
+inherits(Stream, EventEmitter);
 
 /**
  * emit is overwritten to support the '*' event, which is fired on every event.
@@ -45,12 +50,12 @@ inherits(Stream, EventEmitter)
  * @return {Stream}
  */
 Stream.prototype.emit = function () {
-	var args = [].slice.call(arguments)
-	EventEmitter.prototype.emit.apply(this, args)
+	var args = [].slice.call(arguments);
+	EventEmitter.prototype.emit.apply(this, args);
 
 	// emit the '*' event
-	args.unshift('*')
-	EventEmitter.prototype.emit.apply(this, args)
+	args.unshift('*');
+	EventEmitter.prototype.emit.apply(this, args);
 }
 
 /**
@@ -60,12 +65,16 @@ Stream.prototype.emit = function () {
  */
 Stream.prototype.push = function (chunk) {
 	if (this.state === Stream.STATES.PAUSE) {
-		this.broadcast('pauseddata', chunk)
-		return
+		this.broadcast('pauseddata', chunk);
+		return;
 	}
-	if (_.isUndefined(chunk) || _.isNull(chunk)) return
-	if (_.isEmpty(chunk) && (_.isArray(chunk) || _.isPlainObject(chunk))) return
-	this.emit('data', chunk)
+	if (_.isUndefined(chunk) || _.isNull(chunk)) {
+		return;
+	}
+	if (_.isEmpty(chunk) && (_.isArray(chunk) || _.isPlainObject(chunk))) {
+		return;
+	}
+	this.emit('data', chunk);
 }
 
 /**
@@ -77,7 +86,9 @@ Stream.prototype.push = function (chunk) {
  * @param {*} chunk Arbitrary data sent down the pipeline.
  */
 Stream.prototype.write = function (chunk) {
-	if (this.onwrite) this.onwrite(chunk)
+	if (this.onwrite) {
+		this.onwrite(chunk);
+	}
 }
 
 /**
@@ -89,7 +100,7 @@ Stream.prototype.write = function (chunk) {
  * @override
  */
 Stream.prototype.onwrite = function (chunk) {
-	this.push(chunk)
+	this.push(chunk);
 }
 
 /**
@@ -100,19 +111,20 @@ Stream.prototype.onwrite = function (chunk) {
  * @return {Stream} The last stream in the pipeline. {@link Stream}
  */
 Stream.prototype.pipe = function () {
-	if (_.isArray(arguments[0]))
-		return this.pipe.apply(this, arguments[0])
-	var dest = arguments[0]
+	if (_.isArray(arguments[0])) {
+		return this.pipe.apply(this, arguments[0]);
+	}
+	var dest = arguments[0];
 
-	this.on('data', dest.write.bind(dest))
-	this.on('broadcast', dest.broadcast.bind(dest))
+	this.on('data', dest.write.bind(dest));
+	this.on('broadcast', dest.broadcast.bind(dest));
 
 	// use recursion to pipe the streams together
 	if (arguments.length > 1) {
-		var args = [].slice.call(arguments, 1)
-		dest.pipe.apply(dest, args)
+		var args = [].slice.call(arguments, 1);
+		dest.pipe.apply(dest, args);
 	}
-	return dest
+	return dest;
 }
 
 /**
@@ -124,10 +136,10 @@ Stream.prototype.pipe = function () {
  * @return {Stream} This stream.
  */
 Stream.prototype.broadcast = function () {
-	var args = [].slice.call(arguments)
-	args.unshift('broadcast')
-	this.emit.apply(this, args)
-	return this
+	var args = [].slice.call(arguments);
+	args.unshift('broadcast');
+	this.emit.apply(this, args);
+	return this;
 }
 
 /**
@@ -135,15 +147,16 @@ Stream.prototype.broadcast = function () {
  */
 Stream.prototype.onbroadcast = function () {
 	if (arguments.length === 0) {
-		console.warn('broadcast() called without any arguments')
-		return this
+		console.warn('broadcast() called without any arguments');
+		return this;
 	}
 
 	// handle special case for states
-	var event = arguments[0].toUpperCase()
-	if (event in Stream.STATES)
-		this.state = Stream.STATES[event]
-	this.emit.apply(this, arguments)
+	var event = arguments[0].toUpperCase();
+	if (event in Stream.STATES) {
+		this.state = Stream.STATES[event];
+	}
+	this.emit.apply(this, arguments);
 }
 
 /**
@@ -153,9 +166,10 @@ Stream.prototype.onbroadcast = function () {
  * @return {Function}
  */
 Stream.prototype._broadcastOrEmit = function (broadcast) {
-	if (broadcast === false)
-		return this.emit.bind(this)
-	return this.broadcast.bind(this)
+	if (broadcast === false) {
+		return this.emit.bind(this);
+	}
+	return this.broadcast.bind(this);
 }
 
 /**
@@ -164,8 +178,8 @@ Stream.prototype._broadcastOrEmit = function (broadcast) {
  * @return {Stream} this
  */
 Stream.prototype.reset = function (broadcast) {
-	this._broadcastOrEmit(broadcast)('reset')
-	return this
+	this._broadcastOrEmit(broadcast)('reset');
+	return this;
 }
 
 /**
@@ -175,23 +189,23 @@ Stream.STATES = {
 	DEFAULT: 0,
 	PAUSE: 1,
 	RESUME: 2
-}
+};
 
 /**
  * Set the default state.
  */
-Stream.prototype.state = Stream.STATES.DEFAULT
+Stream.prototype.state = Stream.STATES.DEFAULT;
 
 /**
  * Create a propogating function for each state.
  */
 _.each(Stream.STATES, function (value, name) {
-	name = name.toLowerCase()
+	name = name.toLowerCase();
 	Stream.prototype[name] = function (broadcast) {
-		this.state = value
-		this._broadcastOrEmit(broadcast)(name)
-		return this
-	}
-})
+		this.state = value;
+		this._broadcastOrEmit(broadcast)(name);
+		return this;
+	};
+});
 
-module.exports = Stream
+module.exports = Stream;

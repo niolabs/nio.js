@@ -1,11 +1,12 @@
 var deps = require('../deps');
-var _ = deps._
-var inherits = deps.inherits
-var Stream = require('../stream')
+var _ = deps._;
+var inherits = deps.inherits;
+var Stream = require('../stream');
 
 function GenerateStream(dataTemplate, maxTimes, rate) {
-	if (!(this instanceof GenerateStream))
+	if (!(this instanceof GenerateStream)) {
 		return new GenerateStream(dataTemplate, maxTimes, rate)
+	}
 
 	this.dataTemplate = dataTemplate;
 	this.maxTimes = maxTimes;
@@ -20,7 +21,7 @@ function GenerateStream(dataTemplate, maxTimes, rate) {
 		maxTimes: 1
 	});
 
-	Stream.call(this)
+	Stream.call(this);
 }
 
 inherits(GenerateStream, Stream);

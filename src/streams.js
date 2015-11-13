@@ -1,7 +1,7 @@
 'use strict';
 
-var _ = require('./deps')._
-var stream = require('./stream')
+var _ = require('./deps')._;
+var stream = require('./stream');
 
 /**
  * getPropertyFunc creates a function that gets a property on an object.
@@ -10,14 +10,15 @@ var stream = require('./stream')
  * @return {function}
  */
 function getPropertyFunc(value) {
-	if (_.isUndefined(value))
-		return function (chunk) { return chunk }
+	if (_.isUndefined(value)) {
+		return function (chunk) { return chunk; }
 	else if (_.isString(value))
-		return function (chunk) { return chunk[value] }
-	else if (_.isFunction(value))
-		return value
-	else
-		throw new Error('value must be a string or function')
+		return function (chunk) { return chunk[value]; }
+	} else if (_.isFunction(value)) {
+		return value;
+	} else {
+		throw new Error('value must be a string or function');
+	}
 }
 
 /**
@@ -28,8 +29,8 @@ function getPropertyFunc(value) {
  */
 exports.func = function (fn) {
 	return stream(function (chunk) {
-		var results = fn.call(this, chunk)
-		this.push(results)
+		var results = fn.call(this, chunk);
+		this.push(results);
 	})
 }
 
@@ -41,10 +42,10 @@ exports.func = function (fn) {
  */
 exports.pass = function (fn) {
 	return stream(function (chunk) {
-		if (fn) fn.call(this, _.clone(chunk))
-		this.push(chunk)
+		if (fn) fn.call(this, _.clone(chunk));
+		this.push(chunk);
 	})
-}
+};
 
 // will only push a chunk if the function it's passed to returns true
 exports.filter = function (fn) {
@@ -53,7 +54,7 @@ exports.filter = function (fn) {
 			this.push(chunk);
 		}
 	})
-}
+};
 
 /**
  * filter to push chunk if property's value is value.
@@ -64,10 +65,10 @@ exports.filter = function (fn) {
  */
 exports.is = function (property, value) {
     return exports.filter(function(d) {
-        var fn = getPropertyFunc(property)
-        return fn(d) == value
+        var fn = getPropertyFunc(property);
+        return fn(d) == value;
     })
-}
+};
 
 /**
  * filter to push chunk if it has a property.
@@ -77,9 +78,9 @@ exports.is = function (property, value) {
  */
 exports.has = function (property) {
     return exports.filter(function(d) {
-        return property in d 
-    })
-}
+        return property in d ;
+    });
+};
 
 /**
  * get pushes a property on the chunks passed to it.
@@ -88,9 +89,9 @@ exports.has = function (property) {
  * @return {stream}
  */
 exports.get = function (value) {
-	var fn = getPropertyFunc(value)
-	return exports.func(fn)
-}
+	var fn = getPropertyFunc(value);
+	return exports.func(fn);
+};
 
 /**
  * single pushes each item in an array.
@@ -99,12 +100,13 @@ exports.get = function (value) {
  */
 exports.single = function () {
 	return stream(function (chunk) {
-		if (_.isArray(chunk))
-			_.each(chunk, this.push, this)
-		else
-			this.push(chunk)
-	})
-}
+		if (_.isArray(chunk)) {
+			_.each(chunk, this.push, this);
+		} else {
+			this.push(chunk);
+		}
+	});
+};
 
 /**
  * defaults assigns defaults to chunks.
@@ -125,9 +127,9 @@ exports.defaults = function (opts) {
 exports.log = function (prefix) {
 	return exports.pass(function (chunk) {
 		if (prefix) {
-			console.log(prefix, chunk)
+			console.log(prefix, chunk);
 		} else {
-			console.log(chunk)
+			console.log(chunk);
 		}
-	})
-}
+	});
+};

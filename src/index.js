@@ -15,7 +15,7 @@
 			source: require('./sources')
 		},
 		require('./streams')
-	)
+	);
 
 
     if (typeof module !== 'undefined' && module.exports) {
