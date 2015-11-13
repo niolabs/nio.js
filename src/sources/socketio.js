@@ -78,4 +78,14 @@ SocketIOStream.prototype.onresume = function () {
 	this.connectToSocket();
 };
 
+
+// Write data back to our socket server when it's piped in
+SocketIOStream.prototype.onwrite = function (chunk) {
+	if (this.sock && this.sock.connected) {
+		this.sock.emit('pub', JSON.stringify(chunk));
+	} else {
+		console.error("Socket not connected or is paused");
+	}
+};
+
 module.exports = SocketIOStream;
