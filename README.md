@@ -9,8 +9,8 @@ Work with streams in JavaScript
   * [Source Methods](#source-methods)
   
 
-[![Build Status](https://travis-ci.org/neutralio/nio.js.svg?branch=master)](https://travis-ci.org/neutralio/nio.js)
-[![Code Climate](https://codeclimate.com/github/neutralio/nio.js/badges/gpa.svg)](https://codeclimate.com/github/neutralio/nio.js)
+[![Build Status](https://travis-ci.org/nioinnovation/nio.js.svg?branch=master)](https://travis-ci.org/neutralio/nio.js)
+[![Code Climate](https://codeclimate.com/github/nioinnovation/nio.js/badges/gpa.svg)](https://codeclimate.com/github/nioinnovation/nio.js)
 [![npm version](https://badge.fury.io/js/niojs.svg)](http://badge.fury.io/js/niojs)
 [![Bower version](https://badge.fury.io/bo/nio.js.svg)](http://badge.fury.io/bo/nio.js)
 
@@ -34,7 +34,7 @@ There are a few ways to make use of nio.js, follow the instructions for the one 
 ### Browser Application (without bower)
 
 1. Download the source file:
-   https://raw.githubusercontent.com/neutralio/nio.js/v1/dist/nio.min.js
+   https://raw.githubusercontent.com/nioinnovation/nio.js/v1/dist/nio.min.js
 
 2. Add the script to your HTML
    ```html
