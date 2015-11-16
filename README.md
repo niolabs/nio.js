@@ -9,7 +9,7 @@ Work with streams in JavaScript
   * [Source Methods](#source-methods)
   
 
-[![Build Status](https://travis-ci.org/nioinnovation/nio.js.svg?branch=master)](https://travis-ci.org/neutralio/nio.js)
+[![Build Status](https://travis-ci.org/nioinnovation/nio.js.svg?branch=master)](https://travis-ci.org/nioinnovation/nio.js)
 [![Code Climate](https://codeclimate.com/github/nioinnovation/nio.js/badges/gpa.svg)](https://codeclimate.com/github/nioinnovation/nio.js)
 [![npm version](https://badge.fury.io/js/niojs.svg)](http://badge.fury.io/js/niojs)
 [![Bower version](https://badge.fury.io/bo/nio.js.svg)](http://badge.fury.io/bo/nio.js)
