@@ -12,7 +12,7 @@ var stream = require('./stream');
 function getPropertyFunc(value) {
 	if (_.isUndefined(value)) {
 		return function (chunk) { return chunk; }
-	else if (_.isString(value))
+	} else if (_.isString(value)) {
 		return function (chunk) { return chunk[value]; }
 	} else if (_.isFunction(value)) {
 		return value;
