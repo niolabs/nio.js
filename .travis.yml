@@ -1,11 +1,16 @@
 language: node_js
 node_js:
-  - "0.12"
-  - "0.11"
-  - "0.10"
+- '0.12'
+- '0.11'
+- '0.10'
 before_script:
-  - npm install -g gulp
+- npm install -g gulp
 script: gulp test
+notifications:
+  slack:
+    secure: kmujwxTcIdUjlc7ehM8tHZ3ZLNdZVc2nWSIGnwKvSY7Zq8lhDm36/bgSPpRbTcCT7M6GeqSQpurqlMKYLcgecncF2VVfJACG/Tm1GQvJj2CpB6KcDCjb1kgl0x8dIndHu0AP4c8WXbQPLJSmkiRYz+kU3tm9yVSheXiX9pi5QAKJnPi9mPNYzEt6hZhvIq8/w+9nxR0qvdJWLn/NwdMa33ocNRfLdM1/695NI5DRtsMgaeyjO3CahF3+tP/8us7Q+DRRakFIG2RjuCVsNCU9rEPcHgMgIRtJiVueyomZ4q++1i85oeBGzjThsC0WpjFzvmmSsPRWZxb1DKaTR22C6fIRE3huFsDf9etsZ3Llv4krkRARf64q8jZJbFcvMW1FEuyqiw0qxTm7O27mBAJyrRXNzKGFcJNEDaSWjwtoeqKaV0LSdpkIOHunxeie8lp0jqP2ibZ5rO1oVyFLIna/UepFNvItGiDiQdrSwcgPtBUpZwKoWbUXfghnPg6QNZGaVv2zY7oiPIEdjeQUROj3Gxru3Ye+IkPvt9NMbYDtj1Ovr4h8HNSJOdeczfgodMYyJOt9clKM5vcGVI1S2Ur6qHNI166Pp3fT7pQoWny1orKUivVelOyh2ZM7Myu2tFLwrBUxCpbbpXNs3PTCS84iRCY0AtmZfSR3oyNP6DNJ1kA=
+  email: false
 addons:
-    code_climate:
-        repo_token: cefb5614cd7f80dfac76c304043923c8faeb82585820f676a798800cce2dd2e6
+  code_climate:
+    repo_token:
+      secure: 2FOjmqP8QtdzRs//ZTMjwXbmkMRsOe8/mYa8GI+kGl522qUoj2DzVnnq+wBr63BDNwp3Dxfo3K17SQ66z0GTHbZ8WrkpE8Ed2DrhbdvGsVmb70rZr8B1iMhlMhEcW43fJ9YWyyw1cOpHb1T/F5l7d5Sh955u2yw2laFAEGJnHomU1sYgvcdUPHA4D2aNz3I59h4EdPhPGrxrOk1XLSlqlBI2AKPblWXPiWlJn1gJsQdxQ3s/LmOx31gA6eCQYQ/chOkbA9/ZdK8WzluuP8Gs3BLDUIls6hE0J47piVrqtOv0KhevNsd2nzhUcsngk34iiuaTuRkGmofwXONVdcsukmvnTNu7OAFTY/wdfp5RIASmWa//hUdHvIb1CR2cAK+04d325BGteNVe4T+XUmJBSJ0DYWeoIbEZBMbWb2gg2v8GF4f2/ggH4p3bBLk7QvPuRIiAP/WXpdN6ENi61en31saadWp6r2VBnJtlySi9ZqXig64IvLVvDkwybEq1Pw7pjh9VLCKHdSAQ6/pwMQRwwqY79UujzXoIDzL8Mj6pb2LChW3OLS/LD9SbGJME38xy9MG/111W2LQSvmJ5pfIh6Ha2xZRoFH5Hjh1370LoKa4l4cP2kuRyJpMI71IPUSA5Q8OfPp+pgvhy9+CZrfSeZR8MYP7M9B/nTQP33FRpXqo=
