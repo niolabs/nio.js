@@ -7,7 +7,7 @@
 		{
 			_: deps._,
 
-			_version: '1.1.3',
+			_version: '1.1.4',
 
 			// our modules
 			Stream: require('./stream'),
