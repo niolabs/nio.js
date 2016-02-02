@@ -34,7 +34,7 @@ There are a few ways to make use of nio.js, follow the instructions for the one 
 ### Browser Application (without bower)
 
 1. Download the source file:
-   https://raw.githubusercontent.com/nioinnovation/nio.js/v1/dist/nio.min.js
+   https://raw.githubusercontent.com/nioinnovation/nio.js/master/dist/nio.min.js
 
 2. Add the script to your HTML
    ```html
